@@ -1,0 +1,7 @@
+*.swp
+*.sqlite3
+build/
+__pycache__/
+
+DrFujiBot_IRC/config.json
+DrFujiBot_Installer/combined.nsi
