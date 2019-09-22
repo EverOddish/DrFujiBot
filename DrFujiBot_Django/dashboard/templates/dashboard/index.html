@@ -1,9 +1,19 @@
-{% if command_list %}
-    <table border="0">
-    {% for command in command_list %}
-        <tr><td>{{ command.command_text }}</td></tr>
-    {% endfor %}
-    </table>
-{% else %}
-    <p>No commands are available.</p>
-{% endif %}
+<html>
+    <head>
+        <title>DrFujiBot 2.0 Dashboard</title>
+    </head>
+    <body>
+        <h2>DrFujiBot 2.0 Dashboard</h2>
+        <h3>Command List</h3>
+        {% if command_list %}
+            <table border="1" cellpadding="5">
+                <tr><th>Command</th><th>Output</th><th>Permissions</th></tr>
+            {% for command in command_list %}
+            <tr><td>{{ command.command }}</td><td>{{ command.output.output_text }}</td><td>{{ command.get_permissions_display }}</td></tr>
+            {% endfor %}
+            </table>
+        {% else %}
+            <p>No commands are available.</p>
+        {% endif %}
+    </body>
+</html>

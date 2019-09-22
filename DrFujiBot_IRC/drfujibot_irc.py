@@ -135,5 +135,8 @@ if '__main__' == __name__:
         servicemanager.Initialize()
         servicemanager.PrepareToHostSingle(DrFujiBotService)
         servicemanager.StartServiceCtrlDispatcher()
+    elif len(sys.argv) >= 2 and 'debug' == sys.argv[1]:
+        bot = DrFujiBot()
+        bot.start()
     else:
         DrFujiBotService.parse_command_line()
