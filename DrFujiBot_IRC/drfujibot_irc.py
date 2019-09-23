@@ -29,6 +29,7 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
             twitch_channel = self.settings['twitch_channel']
             irc.bot.SingleServerIRCBot.__init__(self, [('irc.twitch.tv', 6667, token)], twitch_channel, twitch_channel)
             self.channel = '#' + twitch_channel.lower()
+            self.session = requests.Session()
 
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
@@ -75,7 +76,7 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
 
             parameters = {'is_broadcaster': is_broadcaster, 'is_moderator': is_moderator, 'is_subscriber': is_subscriber, 'line': line}
             try:
-                response = requests.get('http://localhost:41945/dashboard/drfujibot', parameters)
+                response = self.session.get('http://127.0.0.1:41945/dashboard/drfujibot', params=parameters)
                 if len(response.text) > 0:
                     print(response.text)
                     self.output_msg(response.text)

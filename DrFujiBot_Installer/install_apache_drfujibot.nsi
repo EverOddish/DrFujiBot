@@ -48,6 +48,14 @@ Section "Apache HTTP Server 2.4"
     FileWrite $4 "$\r$\n"
     FileWrite $4 "</Directory>"
     FileWrite $4 "$\r$\n"
+    FileWrite $4 "$\r$\n"
+    ; Use persistent connections for better performance
+    FileWrite $4 "KeepAlive On"
+    FileWrite $4 "$\r$\n"
+    FileWrite $4 "MaxKeepAliveRequests 0"
+    FileWrite $4 "$\r$\n"
+    FileWrite $4 "KeepAliveTimeout 300"
+    FileWrite $4 "$\r$\n"
     FileClose $4
 
     ; Install Visual Studio 2015 Runtime if needed
