@@ -5,3 +5,5 @@ __pycache__/
 
 DrFujiBot_IRC/config.json
 DrFujiBot_Installer/combined.nsi
+
+DrFujiBot_Django/westwood

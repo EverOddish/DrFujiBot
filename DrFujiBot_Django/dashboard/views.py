@@ -34,8 +34,8 @@ def drfujibot(request):
         if permitted(is_broadcaster, is_moderator, is_subscriber, cmd.permissions):
             if cmd.output:
                 response_text = cmd.output.output_text
-            else:
-                # Complex Command
-                pass
+    else:
+        # Complex Command
+        pass
 
     return HttpResponse(response_text)
