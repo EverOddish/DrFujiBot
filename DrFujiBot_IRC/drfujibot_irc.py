@@ -15,10 +15,13 @@ file_dir = os.path.join(os.path.dirname(__file__), '..', 'pkgs', 'win32', 'lib')
 print('Adding ' + file_dir)
 sys.path.append(file_dir)
 
-import win32event
-import win32service
-import win32serviceutil
-import servicemanager
+try:
+    import win32event
+    import win32service
+    import win32serviceutil
+    import servicemanager
+except ImportError:
+    pass
 
 class DrFujiBot(irc.bot.SingleServerIRCBot):
     def __init__(self):
@@ -84,58 +87,67 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
                 print(e)
 
     def output_msg(self, output):
-        MAX_MESSAGE_SIZE = 512
-        chunk_size = MAX_MESSAGE_SIZE - 8
+        MAX_MESSAGE_SIZE = 480
+        chunk_size = MAX_MESSAGE_SIZE - 10
         chunks = [output[i:i + chunk_size] for i in range(0, len(output), chunk_size)]
         j = 1
         for ch in chunks:
             if len(chunks) > 1:
                 ch = '(' + str(j) + '/' + str(len(chunks)) + ') ' + ch
             self.c.privmsg(self.channel, ch)
+            j += 1
 
-class DrFujiBotService(win32serviceutil.ServiceFramework):
-    _svc_name_ = 'DrFujiBot IRC'
-    _svc_display_name_ = 'DrFujiBot IRC'
-    _svc_description_ = 'Connects to Twitch chat to relay commands to the local DrFujiBot Django instance'
-    _exe_name_ = sys.executable
-    _exe_args_ = '"' + os.path.abspath(sys.argv[0]) + '"'
+try:
+    class DrFujiBotService(win32serviceutil.ServiceFramework):
+        _svc_name_ = 'DrFujiBot IRC'
+        _svc_display_name_ = 'DrFujiBot IRC'
+        _svc_description_ = 'Connects to Twitch chat to relay commands to the local DrFujiBot Django instance'
+        _exe_name_ = sys.executable
+        _exe_args_ = '"' + os.path.abspath(sys.argv[0]) + '"'
 
-    @classmethod
-    def parse_command_line(cls):
-        win32serviceutil.HandleCommandLine(cls)
+        @classmethod
+        def parse_command_line(cls):
+            win32serviceutil.HandleCommandLine(cls)
 
-    def __init__(self, args):
-        win32serviceutil.ServiceFramework.__init__(self, args)
-        self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
-        socket.setdefaulttimeout(60)
-        self.bot = None
+        def __init__(self, args):
+            win32serviceutil.ServiceFramework.__init__(self, args)
+            self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
+            socket.setdefaulttimeout(60)
+            self.bot = None
 
-    def log(self, msg):
-        servicemanager.LogInfoMsg(str(msg))
+        def log(self, msg):
+            servicemanager.LogInfoMsg(str(msg))
 
-    def SvcStop(self):
-        self.log('Service is stopping.')
-        if self.bot:
-            self.bot.disconnect()
+        def SvcStop(self):
+            self.log('Service is stopping.')
+            if self.bot:
+                self.bot.disconnect()
 
-        self.ReportServiceStatus(win32service.SERVICE_STOPPED)
+            self.ReportServiceStatus(win32service.SERVICE_STOPPED)
 
-    def SvcDoRun(self):
-        self.log('Service is starting.')
-        self.bot = DrFujiBot()
-        servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
-                              servicemanager.PYS_SERVICE_STARTED,
-                              (self._svc_name_, ''))
-        self.ReportServiceStatus(win32service.SERVICE_RUNNING)
-        self.log('Service is running.')
-        self.bot.start()
+        def SvcDoRun(self):
+            self.log('Service is starting.')
+            self.bot = DrFujiBot()
+            servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
+                                  servicemanager.PYS_SERVICE_STARTED,
+                                  (self._svc_name_, ''))
+            self.ReportServiceStatus(win32service.SERVICE_RUNNING)
+            self.log('Service is running.')
+            self.bot.start()
+
+except NameError:
+    pass
 
 if '__main__' == __name__:
     print('Welcome to DrFujiBot 2.0')
     if len(sys.argv) == 1:
-        servicemanager.Initialize()
-        servicemanager.PrepareToHostSingle(DrFujiBotService)
-        servicemanager.StartServiceCtrlDispatcher()
+        try:
+            servicemanager.Initialize()
+            servicemanager.PrepareToHostSingle(DrFujiBotService)
+            servicemanager.StartServiceCtrlDispatcher()
+        except NameError:
+            print('Running on non-Windows, only debug mode is available!')
+            print('Usage: python3 drfujibot_irc.py debug')
     elif len(sys.argv) >= 2 and 'debug' == sys.argv[1]:
         bot = DrFujiBot()
         bot.start()
