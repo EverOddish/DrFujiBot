@@ -2,7 +2,9 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.template import loader
 
+from .models import BROADCASTER_ONLY, MODERATOR_ONLY, SUBSCRIBER_ONLY, EVERYONE
 from .models import Command, SimpleOutput
+from .lookup_commands import handle_lookup_command
 
 def index(request):
     command_list = Command.objects.order_by('command')
@@ -11,12 +13,12 @@ def index(request):
 
 def permitted(is_broadcaster, is_moderator, is_subscriber, permissions):
     if is_broadcaster:
-        return permissions >= Command.BROADCASTER_ONLY
+        return permissions >= BROADCASTER_ONLY
     if is_moderator:
-        return permissions >= Command.MODERATOR_ONLY
+        return permissions >= MODERATOR_ONLY
     if is_subscriber:
-        return permissions >= Command.SUBSCRIBER_ONLY
-    return permissions >= Command.EVERYONE
+        return permissions >= SUBSCRIBER_ONLY
+    return permissions >= EVERYONE
 
 def drfujibot(request):
     is_broadcaster = request.GET.get('is_broadcaster')
@@ -34,8 +36,7 @@ def drfujibot(request):
         if permitted(is_broadcaster, is_moderator, is_subscriber, cmd.permissions):
             if cmd.output:
                 response_text = cmd.output.output_text
-    else:
-        # Complex Command
-        pass
+            else:
+                response_text = handle_lookup_command(line)
 
     return HttpResponse(response_text)

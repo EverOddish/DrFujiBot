@@ -1,22 +1,22 @@
 from django.db import models
 
+# Order is important for permissions calculation!
+BROADCASTER_ONLY = 1
+MODERATOR_ONLY = 2
+SUBSCRIBER_ONLY = 3
+EVERYONE = 4
+
+PERMISSIONS_CHOICES = (
+    (BROADCASTER_ONLY, 'Broadcaster Only'),
+    (MODERATOR_ONLY, 'Moderator Only'),
+    (SUBSCRIBER_ONLY, 'Subscriber Only'),
+    (EVERYONE, 'Everyone'),
+)
+
 class SimpleOutput(models.Model):
     output_text = models.CharField(max_length=5000)
 
 class Command(models.Model):
-    # Order is important for permissions calculation!
-    BROADCASTER_ONLY = 1
-    MODERATOR_ONLY = 2
-    SUBSCRIBER_ONLY = 3
-    EVERYONE = 4
-
-    PERMISSIONS_CHOICES = (
-        (BROADCASTER_ONLY, 'Broadcaster Only'),
-        (MODERATOR_ONLY, 'Moderator Only'),
-        (SUBSCRIBER_ONLY, 'Subscriber Only'),
-        (EVERYONE, 'Everyone'),
-    )
-
     command = models.CharField(max_length=200)
     permissions = models.IntegerField(choices=PERMISSIONS_CHOICES, default=EVERYONE)
     invocation_count = models.IntegerField(default=0)
