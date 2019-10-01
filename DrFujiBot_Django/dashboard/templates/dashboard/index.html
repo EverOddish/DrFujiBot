@@ -4,16 +4,40 @@
     </head>
     <body>
         <h2>DrFujiBot 2.0 Dashboard</h2>
-        <h3>Command List</h3>
-        {% if command_list %}
+        <h3>Settings</h3>
+        {% if settings_list %}
+            <table border="1" cellpadding="5">
+                <tr><th>Setting</th><th>Value</th></tr>
+            {% for setting in settings_list %}
+            <tr><td>{{ setting.key }}</td><td>{{ setting.value }}</td></tr>
+            {% endfor %}
+            </table>
+        {% else %}
+            <p>No settings are set.</p>
+        {% endif %}
+
+        <h3>Custom Command List</h3>
+        {% if custom_command_list %}
             <table border="1" cellpadding="5">
                 <tr><th>Command</th><th>Output</th><th>Permissions</th></tr>
-            {% for command in command_list %}
+            {% for command in custom_command_list %}
             <tr><td>{{ command.command }}</td><td>{{ command.output.output_text }}</td><td>{{ command.get_permissions_display }}</td></tr>
             {% endfor %}
             </table>
         {% else %}
-            <p>No commands are available.</p>
+            <p>No custom commands are available.</p>
+        {% endif %}
+
+        <h3>Built-In Command List</h3>
+        {% if builtin_command_list %}
+            <table border="1" cellpadding="5">
+                <tr><th>Command</th><th>Permissions</th></tr>
+            {% for command in builtin_command_list %}
+            <tr><td>{{ command.command }}</td><td>{{ command.get_permissions_display }}</td></tr>
+            {% endfor %}
+            </table>
+        {% else %}
+            <p>No built-in commands are available.</p>
         {% endif %}
     </body>
 </html>

@@ -3,12 +3,16 @@ from django.shortcuts import render
 from django.template import loader
 
 from .models import BROADCASTER_ONLY, MODERATOR_ONLY, SUBSCRIBER_ONLY, EVERYONE
-from .models import Command, SimpleOutput
+from .models import Command, SimpleOutput, Setting
 from .lookup_commands import handle_lookup_command
 
 def index(request):
-    command_list = Command.objects.order_by('command')
-    context = {'command_list' : command_list}
+    settings_list = Setting.objects.order_by('key')
+    custom_command_list = Command.objects.filter(output__isnull=False).order_by('command')
+    builtin_command_list = Command.objects.filter(output__isnull=True).order_by('command')
+    context = {'settings_list': settings_list,
+               'custom_command_list' : custom_command_list,
+               'builtin_command_list' : builtin_command_list}
     return render(request, 'dashboard/index.html', context)
 
 def permitted(is_broadcaster, is_moderator, is_subscriber, permissions):
