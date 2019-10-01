@@ -21,3 +21,7 @@ class Command(models.Model):
     permissions = models.IntegerField(choices=PERMISSIONS_CHOICES, default=EVERYONE)
     invocation_count = models.IntegerField(default=0)
     output = models.ForeignKey(SimpleOutput, blank=True, null=True, on_delete=models.CASCADE)
+
+class Setting(models.Model):
+    key = models.CharField(max_length=200)
+    value = models.CharField(max_length=200)

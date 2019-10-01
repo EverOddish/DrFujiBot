@@ -1,3 +1,6 @@
+from .models import Setting
+from .lookup_helpers import is_game_name_in_game_list
+
 from westwood.models import *
 
 def handle_pokemon(args):
@@ -46,15 +49,18 @@ def handle_learnset(args):
     pokemon_learnset_matches = PokemonLearnsets.objects.filter(name__iexact=pokemon_name)
     if pokemon_learnset_matches:
         pokemon_learnset = pokemon_learnset_matches[0]
+
+        current_game_name = Setting.objects.filter(key='current_game')[0]
+
         output += pokemon_learnset.name + ' '
         for learnsets_list_element in LearnsetsListElement.objects.filter(list_id=pokemon_learnset.learnsets):
             learnset = learnsets_list_element.element
-            # TODO: Filter based on current game
-            for learnset_moves_list_element in LearnsetMovesListElement.objects.filter(list_id=learnset.learnset_moves):
-                learnset_move = learnset_moves_list_element.element
-                output += '| ' + str(learnset_move.level) + ' ' + learnset_move.name + ' '
+            if is_game_name_in_game_list(current_game_name.value, learnset.games):
+                for learnset_moves_list_element in LearnsetMovesListElement.objects.filter(list_id=learnset.learnset_moves):
+                    learnset_move = learnset_moves_list_element.element
+                    output += '| ' + str(learnset_move.level) + ' ' + learnset_move.name + ' '
     else:
-        output = 'Learnsets for "' + ability_name + '" were not found'
+        output = 'Learnsets for "' + pokemon_name + '" were not found'
     return output
 
 def handle_tmset(args):
