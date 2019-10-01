@@ -66,6 +66,23 @@ def handle_learnset(args):
 def handle_tmset(args):
     output = ''
     pokemon_name = args[0]
+    pokemon_tmset_matches = PokemonTmSets.objects.filter(name__iexact=pokemon_name)
+    if pokemon_tmset_matches:
+        pokemon_tmset = pokemon_tmset_matches[0]
+
+        current_game_name = Setting.objects.filter(key='current_game')[0]
+
+        output += pokemon_tmset.name + ': '
+        for tmsets_list_element in TmSetsListElement.objects.filter(list_id=pokemon_tmset.tm_sets):
+            tm_set = tmsets_list_element.element
+            if is_game_name_in_game_list(current_game_name.value, tm_set.games):
+                for tmset_moves_list_element in TmsetMovesListElement.objects.filter(list_id=tm_set.tmset_moves):
+                    tmset_move = tmset_moves_list_element.element
+                    output += tmset_move.name + ', '
+        if output.endswith(', '):
+            output = output[:-2]
+    else:
+        output = 'TM sets for "' + pokemon_name + '" were not found'
     return output
 
 handlers = {'!pokemon': handle_pokemon,
