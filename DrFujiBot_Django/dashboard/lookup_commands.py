@@ -9,7 +9,22 @@ def handle_pokemon(args):
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
     if pokemon_matches:
         pokemon = pokemon_matches[0]
-        output = pokemon.name + ': [type] HP('
+        output = pokemon.name + ': [type] '
+
+        current_game_name = Setting.objects.filter(key='current_game')[0]
+
+        for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon.stat_sets):
+            stat_set = stat_sets_list_element.element
+            if is_game_name_in_game_list(current_game_name.value, stat_set.games):
+                output += 'HP(' + str(stat_set.hp) + ') '
+                output += 'Attack(' + str(stat_set.attack) + ') '
+                output += 'Defense(' + str(stat_set.defense) + ') '
+                output += 'Sp. Atk(' + str(stat_set.special_attack) + ') '
+                output += 'Sp. Def(' + str(stat_set.special_defense) + ') '
+                output += 'Speed(' + str(stat_set.speed) + ') '
+                break
+
+        # TODO: Abilities
     else:
         output = '"' + pokemon_name + '" was not found'
     return output
@@ -59,6 +74,7 @@ def handle_learnset(args):
                 for learnset_moves_list_element in LearnsetMovesListElement.objects.filter(list_id=learnset.learnset_moves):
                     learnset_move = learnset_moves_list_element.element
                     output += '| ' + str(learnset_move.level) + ' ' + learnset_move.name + ' '
+                break
     else:
         output = 'Learnsets for "' + pokemon_name + '" were not found'
     return output
