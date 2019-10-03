@@ -32,8 +32,20 @@ def handle_pokemon(args):
                 output += 'Sp. Def(' + str(stat_set.special_defense) + ') '
                 output += 'Speed(' + str(stat_set.speed) + ') '
                 break
-
-        # TODO: Abilities
+                
+        output += 'Abilities: '
+        for ability_sets_list_element in AbilitySetsListElement.objects.filter(list_id=pokemon.ability_sets):
+            ability_set = ability_sets_list_element.element
+            if is_game_name_in_game_list(current_game_name.value, ability_set.games):
+                for ability_records_list_element in AbilityRecordsListElement.objects.filter(list_id=ability_set.ability_records):
+                    ability_record = ability_records_list_element.element
+                    output += ability_record.name
+                    if ability_record.hidden == 'Yes':
+                        output += ' (HA)'
+                    output += ', '
+                break
+        if output.endswith(', '):
+            output = output[:-2]
     else:
         output = '"' + pokemon_name + '" was not found'
     return output
