@@ -122,11 +122,51 @@ def handle_tmset(args):
         output = 'TM sets for "' + pokemon_name + '" were not found'
     return output
 
+def handle_faster(args):
+    output = ''
+    pokemon_name_1 = args[0]
+    pokemon_name_2 = args[1]
+    pokemon_matches_1 = Pokemon.objects.filter(name__iexact=pokemon_name_1)
+    pokemon_matches_2 = Pokemon.objects.filter(name__iexact=pokemon_name_2)
+    if pokemon_matches_1:
+        if pokemon_matches_2:
+            pokemon_1 = pokemon_matches_1[0]
+            pokemon_2 = pokemon_matches_2[0]
+            speed_1 = 0
+            speed_2 = 0
+
+            current_game_name = Setting.objects.filter(key='current_game')[0]
+
+            for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon_1.stat_sets):
+                stat_set = stat_sets_list_element.element
+                if is_game_name_in_game_list(current_game_name.value, stat_set.games):
+                    speed_1 = stat_set.speed
+                    break
+
+            for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon_2.stat_sets):
+                stat_set = stat_sets_list_element.element
+                if is_game_name_in_game_list(current_game_name.value, stat_set.games):
+                    speed_2 = stat_set.speed
+                    break
+
+            if speed_1 == speed_2:
+                output = pokemon_1.name + ' and ' + pokemon_2.name + ' are tied for speed (' + str(speed_1)
+            elif speed_1 > speed_2:
+                output = pokemon_1.name + ' (' + str(speed_1) + ') is faster than ' + pokemon_2.name + ' (' + str(speed_2) + ')'
+            elif speed_1 < speed_2:
+                output = pokemon_1.name + ' (' + str(speed_1) + ') is slower than ' + pokemon_2.name + ' (' + str(speed_2) + ')'
+        else:
+            output = '"' + pokemon_name_2 + '" was not found'
+    else:
+        output = '"' + pokemon_name_1 + '" was not found'
+    return output
+
 handlers = {'!pokemon': handle_pokemon,
             '!move': handle_move,
             '!ability': handle_ability,
             '!learnset': handle_learnset,
             '!tmset': handle_tmset,
+            '!faster': handle_faster,
            }
 
 expected_args = {'!pokemon': 1,
@@ -134,6 +174,7 @@ expected_args = {'!pokemon': 1,
                  '!ability': 1,
                  '!learnset': 1,
                  '!tmset': 1,
+                 '!faster': 2,
                 }
 
 usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
@@ -141,6 +182,7 @@ usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
           '!ability': 'Usage: !ability <ability name>',
           '!learnset': 'Usage: !learnset <pokemon name>',
           '!tmset': 'Usage: !tmset <pokemon name>',
+          '!faster': 'Usage: !faster <pokemon name 1> <pokemon name 2>',
          }
 
 def handle_lookup_command(line):
