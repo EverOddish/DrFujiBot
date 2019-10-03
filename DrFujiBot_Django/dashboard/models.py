@@ -25,3 +25,8 @@ class Command(models.Model):
 class Setting(models.Model):
     key = models.CharField(max_length=200)
     value = models.CharField(max_length=200)
+
+class TimedMessage(models.Model):
+    minutes_interval = models.IntegerField(default=15)
+    last_output_time = models.DateTimeField()
+    message = models.ForeignKey(SimpleOutput, on_delete=models.CASCADE)

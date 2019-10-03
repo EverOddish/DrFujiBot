@@ -1,9 +1,11 @@
+import datetime
+
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.template import loader
 
 from .models import BROADCASTER_ONLY, MODERATOR_ONLY, SUBSCRIBER_ONLY, EVERYONE
-from .models import Command, SimpleOutput, Setting
+from .models import Command, SimpleOutput, Setting, TimedMessage
 from .lookup_commands import handle_lookup_command
 
 def index(request):
@@ -42,5 +44,22 @@ def drfujibot(request):
                 response_text = cmd.output.output_text
             else:
                 response_text = handle_lookup_command(line)
+
+    return HttpResponse(response_text)
+
+def timed_messages(request):
+    response_text = ''
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+
+    timed_messages = TimedMessage.objects.all()
+    for timed_message in timed_messages:
+        interval = datetime.timedelta(minutes=timed_message.minutes_interval)
+        if now - timed_message.last_output_time > interval:
+            response_text = timed_message.message.output_text
+            timed_message.last_output_time = now
+            timed_message.save()
+            # Only output one timed message at a time. Others will be picked up next time around.
+            break
 
     return HttpResponse(response_text)

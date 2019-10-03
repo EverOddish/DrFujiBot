@@ -5,14 +5,13 @@ import requests
 import socket
 import sys
 import threading
+import time
 
 # These are necessary because of the standalone Python installation
 file_dir = os.path.join(os.path.dirname(__file__), '..', 'pkgs', 'win32')
-print('Adding ' + file_dir)
 sys.path.append(file_dir)
 
 file_dir = os.path.join(os.path.dirname(__file__), '..', 'pkgs', 'win32', 'lib')
-print('Adding ' + file_dir)
 sys.path.append(file_dir)
 
 try:
@@ -33,6 +32,8 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
             irc.bot.SingleServerIRCBot.__init__(self, [('irc.twitch.tv', 6667, token)], twitch_channel, twitch_channel)
             self.channel = '#' + twitch_channel.lower()
             self.session = requests.Session()
+            self.timed_message_thread = threading.Thread(target=self.timed_message_loop)
+            self.timed_message_thread.start()
 
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
@@ -96,6 +97,18 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
                 ch = '(' + str(j) + '/' + str(len(chunks)) + ') ' + ch
             self.c.privmsg(self.channel, ch)
             j += 1
+
+    def timed_message_loop(self):
+        while True:
+            # Ask the server once per minute for a timed message (if any)
+            try:
+                response = self.session.get('http://127.0.0.1:41945/dashboard/timed_messages')
+                if len(response.text) > 0:
+                    print(response.text)
+                    self.output_msg(response.text)
+            except Exception as e:
+                print(e)
+            time.sleep(60)
 
 try:
     class DrFujiBotService(win32serviceutil.ServiceFramework):
