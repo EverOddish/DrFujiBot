@@ -9,9 +9,18 @@ def handle_pokemon(args):
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
     if pokemon_matches:
         pokemon = pokemon_matches[0]
-        output = pokemon.name + ': [type] '
+        output = pokemon.name + ': ['
 
         current_game_name = Setting.objects.filter(key='current_game')[0]
+
+        for type_sets_list_element in TypeSetsListElement.objects.filter(list_id=pokemon.type_sets):
+            type_set = type_sets_list_element.element
+            if is_game_name_in_game_list(current_game_name.value, type_set.games):
+                output += type_set.type1
+                if len(type_set.type2) > 0:
+                    output += ', '
+                    output += type_set.type2
+        output += '] '
 
         for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon.stat_sets):
             stat_set = stat_sets_list_element.element
