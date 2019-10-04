@@ -10,9 +10,11 @@ from .lookup_commands import handle_lookup_command
 
 def index(request):
     settings_list = Setting.objects.order_by('key')
+    timed_message_list = TimedMessage.objects.all().order_by('minutes_interval')
     custom_command_list = Command.objects.filter(output__isnull=False).order_by('command')
     builtin_command_list = Command.objects.filter(output__isnull=True).order_by('command')
     context = {'settings_list': settings_list,
+               'timed_message_list': timed_message_list,
                'custom_command_list' : custom_command_list,
                'builtin_command_list' : builtin_command_list}
     return render(request, 'dashboard/index.html', context)

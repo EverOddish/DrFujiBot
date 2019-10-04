@@ -16,6 +16,18 @@
             <p>No settings are set.</p>
         {% endif %}
 
+        <h3>Timed Message List</h3>
+        {% if timed_message_list %}
+            <table border="1" cellpadding="5">
+                <tr><th>Interval</th><th>Message</th></tr>
+            {% for message in timed_message_list %}
+            <tr><td>{{ message.minutes_interval }} minute(s)</td><td>{{ message.message.output_text }}</td></tr>
+            {% endfor %}
+            </table>
+        {% else %}
+            <p>No timed messages are available.</p>
+        {% endif %}
+
         <h3>Custom Command List</h3>
         {% if custom_command_list %}
             <table border="1" cellpadding="5">
