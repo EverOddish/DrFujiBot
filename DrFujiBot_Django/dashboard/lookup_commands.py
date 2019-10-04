@@ -197,6 +197,56 @@ def handle_evolve(args):
         output = '"' + pokemon_name + '" was not found'
     return output
 
+def handle_weak(args):
+    output = ''
+    type_name = args[0]
+    weak_to = []
+
+    current_game_name = Setting.objects.filter(key='current_game')[0]
+
+    for effectiveness_sets_list_element in EffectivenessSetsListElement.objects.all():
+        effectiveness_set = effectiveness_sets_list_element.element
+        if is_game_name_in_game_list(current_game_name.value, effectiveness_set.games):
+            for effectiveness_records_list_element in EffectivenessRecordsListElement.objects.filter(list_id=effectiveness_set.effectiveness_records):
+                effectiveness_record = effectiveness_records_list_element.element
+                if effectiveness_record.target_type.lower() == type_name.lower() and effectiveness_record.damage_factor > 100:
+                    weak_to.append(effectiveness_record.source_type)
+            break
+
+    if len(weak_to) > 0:
+        output = type_name.title() + ' is weak to: ' + ', '.join(weak_to)
+    else:
+        output = type_name.title() + ' has no weaknesses'
+
+    return output
+
+def handle_resist(args):
+    output = ''
+    type_name = args[0]
+    resistant_to = []
+
+    current_game_name = Setting.objects.filter(key='current_game')[0]
+
+    for effectiveness_sets_list_element in EffectivenessSetsListElement.objects.all():
+        effectiveness_set = effectiveness_sets_list_element.element
+        if is_game_name_in_game_list(current_game_name.value, effectiveness_set.games):
+            for effectiveness_records_list_element in EffectivenessRecordsListElement.objects.filter(list_id=effectiveness_set.effectiveness_records):
+                effectiveness_record = effectiveness_records_list_element.element
+                if effectiveness_record.target_type.lower() == type_name.lower() and effectiveness_record.damage_factor != 0 and effectiveness_record.damage_factor < 100:
+                    resistant_to.append(effectiveness_record.source_type)
+            break
+
+    if len(resistant_to) > 0:
+        output = type_name.title() + ' is resistant to: ' + ', '.join(resistant_to)
+    else:
+        output = type_name.title() + ' has no resistances'
+
+    return output
+
+def handle_type(args):
+    output = ''
+    return output
+
 handlers = {'!pokemon': handle_pokemon,
             '!move': handle_move,
             '!ability': handle_ability,
@@ -205,6 +255,9 @@ handlers = {'!pokemon': handle_pokemon,
             '!faster': handle_faster,
             '!item': handle_item,
             '!evolve': handle_evolve,
+            '!weak': handle_weak,
+            '!resist': handle_resist,
+            '!type': handle_type,
            }
 
 expected_args = {'!pokemon': 1,
@@ -215,6 +268,9 @@ expected_args = {'!pokemon': 1,
                  '!faster': 2,
                  '!item': 1,
                  '!evolve': 1,
+                 '!weak': 1,
+                 '!resist': 1,
+                 '!type': 3,
                 }
 
 usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
@@ -225,6 +281,9 @@ usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
           '!faster': 'Usage: !faster <pokemon name 1> <pokemon name 2>',
           '!item': 'Usage: !item <item name>',
           '!evolve': 'Usage: !evolve <pokemon name>',
+          '!weak': 'Usage: !weak <type>',
+          '!resist': 'Usage: !resist <type>',
+          '!type': 'Usage: !type <type 1> against <type 2> <type 3>',
          }
 
 def handle_lookup_command(line):
