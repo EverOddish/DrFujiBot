@@ -161,12 +161,24 @@ def handle_faster(args):
         output = '"' + pokemon_name_1 + '" was not found'
     return output
 
+def handle_item(args):
+    output = ''
+    item_name = args[0]
+    item_matches = Item.objects.filter(name__iexact=item_name)
+    if item_matches:
+        item = item_matches[0]
+        output = item.name + ': ' + item.description + ' (Buy for $' + str(item.cost) + ')'
+    else:
+        output = '"' + item_name + '" was not found'
+    return output
+
 handlers = {'!pokemon': handle_pokemon,
             '!move': handle_move,
             '!ability': handle_ability,
             '!learnset': handle_learnset,
             '!tmset': handle_tmset,
             '!faster': handle_faster,
+            '!item': handle_item,
            }
 
 expected_args = {'!pokemon': 1,
@@ -175,6 +187,7 @@ expected_args = {'!pokemon': 1,
                  '!learnset': 1,
                  '!tmset': 1,
                  '!faster': 2,
+                 '!item': 1,
                 }
 
 usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
@@ -183,6 +196,7 @@ usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
           '!learnset': 'Usage: !learnset <pokemon name>',
           '!tmset': 'Usage: !tmset <pokemon name>',
           '!faster': 'Usage: !faster <pokemon name 1> <pokemon name 2>',
+          '!item': 'Usage: !item <item name>',
          }
 
 def handle_lookup_command(line):

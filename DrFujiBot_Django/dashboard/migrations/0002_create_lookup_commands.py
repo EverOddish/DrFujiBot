@@ -9,6 +9,7 @@ lookup_commands = ['!pokemon',
                    '!learnset',
                    '!tmset',
                    '!faster',
+                   '!item',
                   ]
 
 def create_lookup_commands(apps, schema_editor):
