@@ -172,6 +172,31 @@ def handle_item(args):
         output = '"' + item_name + '" was not found'
     return output
 
+def handle_evolve(args):
+    output = ''
+    pokemon_name = args[0]
+    pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
+    if pokemon_matches:
+        pokemon = pokemon_matches[0]
+
+        current_game_name = Setting.objects.filter(key='current_game')[0]
+
+        evolution_set_list_elements = EvolutionSetsListElement.objects.filter(list_id=pokemon.evolution_sets)
+        if len(evolution_set_list_elements) > 0:
+            for evolution_set_list_element in evolution_set_list_elements:
+                evolution_set = evolution_set_list_element.element
+                if is_game_name_in_game_list(current_game_name.value, evolution_set.games):
+                    for evolution_records_list_element in EvolutionRecordsListElement.objects.filter(list_id=evolution_set.evolution_records):
+                        evolution_record = evolution_records_list_element.element
+                        if evolution_record.level > 0:
+                            output += pokemon.name + ' evolves into ' + str(evolution_record.evolves_to) + ' at level ' + str(evolution_record.level) + '. '
+                    break
+        else:
+            output = pokemon.name + ' does not evolve.'
+    else:
+        output = '"' + pokemon_name + '" was not found'
+    return output
+
 handlers = {'!pokemon': handle_pokemon,
             '!move': handle_move,
             '!ability': handle_ability,
@@ -179,6 +204,7 @@ handlers = {'!pokemon': handle_pokemon,
             '!tmset': handle_tmset,
             '!faster': handle_faster,
             '!item': handle_item,
+            '!evolve': handle_evolve,
            }
 
 expected_args = {'!pokemon': 1,
@@ -188,6 +214,7 @@ expected_args = {'!pokemon': 1,
                  '!tmset': 1,
                  '!faster': 2,
                  '!item': 1,
+                 '!evolve': 1,
                 }
 
 usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
@@ -197,6 +224,7 @@ usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
           '!tmset': 'Usage: !tmset <pokemon name>',
           '!faster': 'Usage: !faster <pokemon name 1> <pokemon name 2>',
           '!item': 'Usage: !item <item name>',
+          '!evolve': 'Usage: !evolve <pokemon name>',
          }
 
 def handle_lookup_command(line):
