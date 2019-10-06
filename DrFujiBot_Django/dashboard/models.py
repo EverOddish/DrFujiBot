@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.timezone import now
 
 # Order is important for permissions calculation!
 BROADCASTER_ONLY = 1
@@ -15,6 +16,8 @@ PERMISSIONS_CHOICES = (
 
 class SimpleOutput(models.Model):
     output_text = models.CharField(max_length=5000)
+    def __str__(self):
+        return self.output_text
 
 class Command(models.Model):
     command = models.CharField(max_length=200)
@@ -28,5 +31,5 @@ class Setting(models.Model):
 
 class TimedMessage(models.Model):
     minutes_interval = models.IntegerField(default=15)
-    last_output_time = models.DateTimeField()
+    last_output_time = models.DateTimeField(default=now)
     message = models.ForeignKey(SimpleOutput, on_delete=models.CASCADE)
