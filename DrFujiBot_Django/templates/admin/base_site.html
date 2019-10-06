@@ -1,0 +1,46 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+<style>
+:root {
+    --my-dark-red: #c40808;
+    --my-light-red: #e64c4c;
+}
+
+div#header {
+    background: var(--my-dark-red);
+}
+
+a:link, a:visited {
+    color: var(--my-dark-red);
+}
+
+.button.default, input[type=submit].default, .submit-row input.default {
+    background: var(--my-dark-red);
+}
+
+div.breadcrumbs {
+    background: var(--my-light-red);
+}
+
+.module caption {
+    background: var(--my-light-red);
+}
+
+.button, input[type=submit], input[type=button], .submit-row input, a.button {
+    background: var(--my-light-red);
+}
+
+#branding h1, #branding h1 a:link, #branding h1 a:visited, #user-tools {
+    color: #ffffff;
+}
+</style>
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">DrFujiBot Administration</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
