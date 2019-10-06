@@ -14,6 +14,8 @@ lookup_commands = ['!pokemon',
                    '!weak',
                    '!resist',
                    '!type',
+                   '!catchrate',
+                   '!expcurve',
                   ]
 
 def create_lookup_commands(apps, schema_editor):

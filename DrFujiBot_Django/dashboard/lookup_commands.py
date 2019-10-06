@@ -247,6 +247,30 @@ def handle_type(args):
     output = ''
     return output
 
+def handle_catch_rate(args):
+    output = ''
+    pokemon_name = args[0]
+    pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
+    if pokemon_matches:
+        pokemon = pokemon_matches[0]
+
+        output = pokemon.name + ' catch rate: ' + str(pokemon.catch_rate)
+    else:
+        output = '"' + pokemon_name + '" was not found'
+    return output
+
+def handle_exp_curve(args):
+    output = ''
+    pokemon_name = args[0]
+    pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
+    if pokemon_matches:
+        pokemon = pokemon_matches[0]
+
+        output = pokemon.name + ' exp. curve/growth rate: ' + str(pokemon.growth_rate)
+    else:
+        output = '"' + pokemon_name + '" was not found'
+    return output
+
 handlers = {'!pokemon': handle_pokemon,
             '!move': handle_move,
             '!ability': handle_ability,
@@ -258,6 +282,8 @@ handlers = {'!pokemon': handle_pokemon,
             '!weak': handle_weak,
             '!resist': handle_resist,
             '!type': handle_type,
+            '!catchrate': handle_catch_rate,
+            '!expcurve': handle_exp_curve,
            }
 
 expected_args = {'!pokemon': 1,
@@ -271,6 +297,8 @@ expected_args = {'!pokemon': 1,
                  '!weak': 1,
                  '!resist': 1,
                  '!type': 3,
+                 '!catchrate': 1,
+                 '!expcurve': 1,
                 }
 
 usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
@@ -284,6 +312,8 @@ usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
           '!weak': 'Usage: !weak <type>',
           '!resist': 'Usage: !resist <type>',
           '!type': 'Usage: !type <type 1> against <type 2> <type 3>',
+          '!catchrate': 'Usage: !catchrate <pokemon name>',
+          '!expcurve': 'Usage: !expcurve <pokemon name>',
          }
 
 def handle_lookup_command(line):
