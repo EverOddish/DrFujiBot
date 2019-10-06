@@ -4,6 +4,16 @@ DrFujiBot is a client-side Twitch chat bot that provides a command-based interfa
 
 The primary goal of DrFujiBot is to be as easy to install and use as possible. Very little configuration is required out-of-the-box, but customization is possible for advanced users.
 
+Improvements over the original OpenFuji:
+
+ * No server or access requests, just download, install and run
+ * Web-based configuration dashboard
+   * Easy configuration of timed messages, custom command output, and per-command permissions
+ * Configuration backup
+ * More specific data per generation or game
+ * Fully up-to-date database including Pokemon Sword & Shield data (Generation 8)
+ * ROM hack data (Drayano hacks)
+
 # Components
 
 ## DrFujiBot Django
