@@ -11,6 +11,12 @@ class CommandAdmin(admin.ModelAdmin):
     get_output.admin_order_field = 'output'
     get_output.short_description = 'Output Text'
 
+    def has_delete_permission(self, request, obj=None):
+        if obj:
+            return None != obj.output
+        else:
+            return True
+
 class TimedMessageAdmin(admin.ModelAdmin):
     fields = ['message', 'minutes_interval']
     list_display = ['get_message', 'minutes_interval']
