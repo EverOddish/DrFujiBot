@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('minutes_interval', models.IntegerField(default=15)),
-                ('last_output_time', models.DateTimeField()),
+                ('last_output_time', models.DateTimeField(default=django.utils.timezone.now)),
                 ('message', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='dashboard.SimpleOutput')),
             ],
         ),
