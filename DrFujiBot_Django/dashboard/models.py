@@ -2,12 +2,14 @@ from django.db import models
 from django.utils.timezone import now
 
 # Order is important for permissions calculation!
+DISABLED = 0
 BROADCASTER_ONLY = 1
 MODERATOR_ONLY = 2
 SUBSCRIBER_ONLY = 3
 EVERYONE = 4
 
 PERMISSIONS_CHOICES = (
+    (DISABLED, 'Disabled'),
     (BROADCASTER_ONLY, 'Broadcaster Only'),
     (MODERATOR_ONLY, 'Moderator Only'),
     (SUBSCRIBER_ONLY, 'Subscriber Only'),
