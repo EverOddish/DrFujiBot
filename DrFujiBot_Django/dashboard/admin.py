@@ -3,8 +3,13 @@ from django.contrib import admin
 from .models import Command, SimpleOutput, TimedMessage
 
 class CommandAdmin(admin.ModelAdmin):
-    fields = ['command', 'permissions', 'output']
     list_display = ['command', 'get_output', 'permissions']
+
+    def get_fields(self, request, obj=None):
+        if None == obj or not obj.is_built_in:
+            return ('command', 'permissions', 'output')
+        elif obj.is_built_in:
+            return ('command', 'permissions')
 
     def get_output(self, obj):
         return obj.output.output_text if None != obj.output else ''
@@ -13,7 +18,7 @@ class CommandAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         if obj:
-            return None != obj.output
+            return not obj.is_built_in
         else:
             return True
 

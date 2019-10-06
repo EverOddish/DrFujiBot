@@ -23,6 +23,7 @@ class Command(models.Model):
     command = models.CharField(max_length=200)
     permissions = models.IntegerField(choices=PERMISSIONS_CHOICES, default=EVERYONE)
     invocation_count = models.IntegerField(default=0)
+    is_built_in = models.BooleanField(default=False)
     output = models.ForeignKey(SimpleOutput, blank=True, null=True, on_delete=models.CASCADE)
 
 class Setting(models.Model):

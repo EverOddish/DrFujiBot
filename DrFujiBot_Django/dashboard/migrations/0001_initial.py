@@ -26,6 +26,7 @@ class Migration(migrations.Migration):
                 ('command', models.CharField(max_length=200)),
                 ('permissions', models.IntegerField(choices=[(1, 'Broadcaster Only'), (2, 'Moderator Only'), (3, 'Subscriber Only'), (4, 'Everyone')], default=4)),
                 ('invocation_count', models.IntegerField(default=0)),
+                ('is_built_in', models.BooleanField(default=False)),
                 ('output', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='dashboard.SimpleOutput')),
             ],
         ),
