@@ -81,7 +81,7 @@ SectionEnd
 
 ; Django Section
 Section "DrFujiBot Django"
-    File /r /x *.sqlite3 /x *.pyc /x *.swp "..\..\..\DrFujiBot_Django"
+    File /r /x db.sqlite3 /x *.pyc /x *.swp "..\..\..\DrFujiBot_Django"
 
     ; Initialize Django
     nsExec::ExecToLog '"$INSTDIR\Python\python.exe" "$INSTDIR\DrFujiBot_Django\manage.py" migrate'

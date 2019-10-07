@@ -12,4 +12,4 @@ def start():
     subprocess.call(['net.exe', 'start', '"DrFujiBot IRC"'])
 
     # Open dashboard
-    subprocess.call(['explorer.exe', 'http://localhost:41945/dashboard'])
+    subprocess.call(['explorer.exe', 'http://localhost:41945/admin'])
