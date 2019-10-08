@@ -7,6 +7,7 @@ admin_commands = [('!setgame', MODERATOR_ONLY),
                   ('!addcom', DISABLED),
                   ('!delcom', DISABLED),
                   ('!editcom', DISABLED),
+                  ('!alias', DISABLED),
                  ]
 
 def create_admin_commands(apps, schema_editor):
