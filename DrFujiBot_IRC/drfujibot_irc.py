@@ -22,13 +22,25 @@ try:
 except ImportError:
     pass
 
+def unscramble(scrambled):
+    unscrambled = ''
+    for i in range(0, 30, 2):
+        unscrambled += scrambled[i]
+    for i in range(1, 30, 2):
+        unscrambled += scrambled[i]
+    return unscrambled
+
 class DrFujiBot(irc.bot.SingleServerIRCBot):
     def __init__(self):
         config_path = os.path.join(os.path.dirname(__file__), 'config.json')
         with open(config_path) as f:
             self.settings = json.load(f)
-            token = self.settings['twitch_oauth_token']
-            twitch_channel = self.settings['twitch_channel']
+
+            # The purpose of scrambling the token is mainly to prevent bots from scraping the token from GitHub.
+            # Please do not use this token for any other purpose than the normal functions of DrFujiBot. Thank you.
+            token = 'oauth:' + unscramble(self.settings['twitch_oauth_token'])
+
+            twitch_channel = self.settings['twitch_channel'].lower()
             irc.bot.SingleServerIRCBot.__init__(self, [('irc.twitch.tv', 6667, token)], twitch_channel, twitch_channel)
             self.channel = '#' + twitch_channel.lower()
             self.session = requests.Session()

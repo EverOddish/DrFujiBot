@@ -37,6 +37,39 @@ SetCompressor lzma
 [% endif %]
 !insertmacro MULTIUSER_PAGE_INSTALLMODE
 !insertmacro MUI_PAGE_DIRECTORY
+
+; Start DrFujiBot add-in:
+!include nsDialogs.nsh
+!include LogicLib.nsh
+
+Page custom MyPageFunc MyPageFuncLeave
+Var twitchChannel
+Var myTextBox
+Function OnChannelChange
+Pop $0 ; Throw away handle we don't need
+${NSD_GetText} $myTextBox $1
+GetDlgItem $0 $hWndParent 1 ; Get button handle
+${If} "$1" == ""
+    EnableWindow $0 0
+${Else}
+    EnableWindow $0 1
+${EndIf}
+FunctionEnd
+Function MyPageFunc
+    nsDialogs::Create 1018
+    ${NSD_CreateLabel} 0 0 80u 10u "Twitch channel name:"
+    ${NSD_CreateText} 120 0 100u 12u ""
+    Pop $myTextBox
+    ${NSD_OnChange} $myTextBox OnChannelChange
+    GetDlgItem $0 $hWndParent 1 ; Get button handle
+    EnableWindow $0 0
+    nsDialogs::Show
+FunctionEnd
+Function MyPageFuncLeave
+    ${NSD_GetText} $myTextBox $twitchChannel
+FunctionEnd
+; End DrFujiBot add-in
+
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 [% endblock ui_pages %]
