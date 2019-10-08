@@ -245,6 +245,78 @@ def handle_resist(args):
 
 def handle_type(args):
     output = ''
+    attacking_type_name = args[0].title()
+    defending_type_1_name = args[2]
+    defending_type_2_name = ''
+    if len(args) >= 4:
+        defending_type_2_name = args[3]
+
+    current_game_name = Setting.objects.filter(key='current_game')[0]
+
+    weaknesses = []
+    resistances = []
+    no_damage = []
+
+    for effectiveness_sets_list_element in EffectivenessSetsListElement.objects.all():
+        effectiveness_set = effectiveness_sets_list_element.element
+        if is_game_name_in_game_list(current_game_name.value, effectiveness_set.games):
+            for effectiveness_records_list_element in EffectivenessRecordsListElement.objects.filter(list_id=effectiveness_set.effectiveness_records):
+                effectiveness_record = effectiveness_records_list_element.element
+
+                if effectiveness_record.target_type.lower() == defending_type_1_name.lower() or effectiveness_record.target_type.lower() == defending_type_2_name.lower():
+                    if effectiveness_record.damage_factor == 0:
+                        no_damage.append(effectiveness_record.source_type)
+                    elif effectiveness_record.damage_factor > 100:
+                        weaknesses.append(effectiveness_record.source_type)
+                    elif effectiveness_record.damage_factor < 100:
+                        resistances.append(effectiveness_record.source_type)
+            break
+
+    # Take out no-damage types outright.
+    weaknesses = [
+        w for w in weaknesses if w not in no_damage
+    ]
+    resistances = [
+        r for r in resistances if r not in no_damage
+    ]
+
+    weaknesses_copy = weaknesses[:]
+
+    # Reduce weakness instance by one for each resistance.
+    for r in resistances:
+        if r in weaknesses:
+            weaknesses.remove(r)
+
+    # Reduce resistance instance by one for each weakness.
+    for w in weaknesses_copy:
+        if w in resistances:
+            resistances.remove(w)
+
+    output = attacking_type_name.capitalize()
+    print(weaknesses)
+    print(resistances)
+
+    if attacking_type_name in no_damage:
+        output += " does no damage"
+    elif attacking_type_name in weaknesses:
+        output += " is super effective ("
+        if weaknesses.count(attacking_type_name) == 1:
+            output += "2x)"
+        elif weaknesses.count(attacking_type_name) == 2:
+            output += "4x)"
+    elif attacking_type_name in resistances:
+        output += " is not very effective ("
+        if resistances.count(attacking_type_name) == 1:
+            output += "0.5x)"
+        elif resistances.count(attacking_type_name) == 2:
+            output += "0.25x)"
+    else:
+        output += " does normal damage"
+
+    output += " against " + defending_type_1_name.capitalize()
+    if len(defending_type_2_name) > 0:
+        output += "/" + defending_type_2_name.capitalize()
+
     return output
 
 def handle_catch_rate(args):
