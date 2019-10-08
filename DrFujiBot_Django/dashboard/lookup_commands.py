@@ -271,6 +271,48 @@ def handle_exp_curve(args):
         output = '"' + pokemon_name + '" was not found'
     return output
 
+def handle_offence(args):
+    output = ''
+    pokemon_name = args[0]
+    pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
+    if pokemon_matches:
+        pokemon = pokemon_matches[0]
+        output = pokemon.name + ': '
+
+        current_game_name = Setting.objects.filter(key='current_game')[0]
+
+        for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon.stat_sets):
+            stat_set = stat_sets_list_element.element
+            if is_game_name_in_game_list(current_game_name.value, stat_set.games):
+                output += 'Attack(' + str(stat_set.attack) + ') '
+                output += 'Defense(' + str(stat_set.defense) + ') '
+                output += 'Speed(' + str(stat_set.speed) + ') '
+                break
+    else:
+        output = '"' + pokemon_name + '" was not found'
+    return output
+
+def handle_defence(args):
+    output = ''
+    pokemon_name = args[0]
+    pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
+    if pokemon_matches:
+        pokemon = pokemon_matches[0]
+        output = pokemon.name + ': '
+
+        current_game_name = Setting.objects.filter(key='current_game')[0]
+
+        for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon.stat_sets):
+            stat_set = stat_sets_list_element.element
+            if is_game_name_in_game_list(current_game_name.value, stat_set.games):
+                output += 'HP(' + str(stat_set.hp) + ') '
+                output += 'Sp. Atk(' + str(stat_set.special_attack) + ') '
+                output += 'Sp. Def(' + str(stat_set.special_defense) + ') '
+                break
+    else:
+        output = '"' + pokemon_name + '" was not found'
+    return output
+
 handlers = {'!pokemon': handle_pokemon,
             '!move': handle_move,
             '!ability': handle_ability,
@@ -284,6 +326,10 @@ handlers = {'!pokemon': handle_pokemon,
             '!type': handle_type,
             '!catchrate': handle_catch_rate,
             '!expcurve': handle_exp_curve,
+            '!offence': handle_offence,
+            '!offense': handle_offence,
+            '!defence': handle_defence,
+            '!defense': handle_defence,
            }
 
 expected_args = {'!pokemon': 1,
@@ -299,6 +345,10 @@ expected_args = {'!pokemon': 1,
                  '!type': 3,
                  '!catchrate': 1,
                  '!expcurve': 1,
+                 '!offence': 1,
+                 '!offense': 1,
+                 '!defence': 1,
+                 '!defense': 1,
                 }
 
 usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
@@ -314,6 +364,10 @@ usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
           '!type': 'Usage: !type <type 1> against <type 2> <type 3>',
           '!catchrate': 'Usage: !catchrate <pokemon name>',
           '!expcurve': 'Usage: !expcurve <pokemon name>',
+          '!offence': 'Usage: !offence <pokemon name>',
+          '!offense': 'Usage: !offense <pokemon name>',
+          '!defence': 'Usage: !defence <pokemon name>',
+          '!defense': 'Usage: !defense <pokemon name>',
          }
 
 def handle_lookup_command(line):
