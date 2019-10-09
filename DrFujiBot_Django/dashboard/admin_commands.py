@@ -1,7 +1,18 @@
 from .models import Setting, Command, SimpleOutput
+from westwood.models import Game
 
 def handle_setgame(args):
-    output = ''
+    game_name = ' '.join(args)
+    output = 'Game "' + game_name + '" not found'
+    game_objects = Game.objects.all()
+    for game_object in game_objects:
+        short_name = game_object.name.replace('Pokemon ', '').lower()
+        if game_name.lower() == short_name or game_name.replace(' ', '').lower() == short_name:
+            game_setting_matches = Setting.objects.filter(key__exact='Current Game')
+            if len(game_setting_matches) > 0:
+                game_setting_matches[0].value = game_object.name
+                game_setting_matches[0].save()
+                return 'Current game set to ' + game_object.name
     return output
 
 def handle_addcom(args):

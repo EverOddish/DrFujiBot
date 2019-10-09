@@ -2,7 +2,7 @@
 
 from django.db import migrations
 
-default_settings = [('current_game', 'Pokemon Ultra Sun'),
+default_settings = [('Current Game', 'Pokemon Ultra Sun'),
                    ]
 
 def create_default_settings(apps, schema_editor):

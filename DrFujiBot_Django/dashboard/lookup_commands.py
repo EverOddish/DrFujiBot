@@ -11,7 +11,7 @@ def handle_pokemon(args):
         pokemon = pokemon_matches[0]
         output = pokemon.name + ': ['
 
-        current_game_name = Setting.objects.filter(key='current_game')[0]
+        current_game_name = Setting.objects.filter(key='Current Game')[0]
 
         for type_sets_list_element in TypeSetsListElement.objects.filter(list_id=pokemon.type_sets):
             type_set = type_sets_list_element.element
@@ -86,7 +86,7 @@ def handle_learnset(args):
     if pokemon_learnset_matches:
         pokemon_learnset = pokemon_learnset_matches[0]
 
-        current_game_name = Setting.objects.filter(key='current_game')[0]
+        current_game_name = Setting.objects.filter(key='Current Game')[0]
 
         output += pokemon_learnset.name + ' '
         for learnsets_list_element in LearnsetsListElement.objects.filter(list_id=pokemon_learnset.learnsets):
@@ -107,7 +107,7 @@ def handle_tmset(args):
     if pokemon_tmset_matches:
         pokemon_tmset = pokemon_tmset_matches[0]
 
-        current_game_name = Setting.objects.filter(key='current_game')[0]
+        current_game_name = Setting.objects.filter(key='Current Game')[0]
 
         output += pokemon_tmset.name + ': '
         for tmsets_list_element in TmSetsListElement.objects.filter(list_id=pokemon_tmset.tm_sets):
@@ -135,7 +135,7 @@ def handle_faster(args):
             speed_1 = 0
             speed_2 = 0
 
-            current_game_name = Setting.objects.filter(key='current_game')[0]
+            current_game_name = Setting.objects.filter(key='Current Game')[0]
 
             for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon_1.stat_sets):
                 stat_set = stat_sets_list_element.element
@@ -179,7 +179,7 @@ def handle_evolve(args):
     if pokemon_matches:
         pokemon = pokemon_matches[0]
 
-        current_game_name = Setting.objects.filter(key='current_game')[0]
+        current_game_name = Setting.objects.filter(key='Current Game')[0]
 
         evolution_set_list_elements = EvolutionSetsListElement.objects.filter(list_id=pokemon.evolution_sets)
         if len(evolution_set_list_elements) > 0:
@@ -202,7 +202,7 @@ def handle_weak(args):
     type_name = args[0]
     weak_to = []
 
-    current_game_name = Setting.objects.filter(key='current_game')[0]
+    current_game_name = Setting.objects.filter(key='Current Game')[0]
 
     for effectiveness_sets_list_element in EffectivenessSetsListElement.objects.all():
         effectiveness_set = effectiveness_sets_list_element.element
@@ -225,7 +225,7 @@ def handle_resist(args):
     type_name = args[0]
     resistant_to = []
 
-    current_game_name = Setting.objects.filter(key='current_game')[0]
+    current_game_name = Setting.objects.filter(key='Current Game')[0]
 
     for effectiveness_sets_list_element in EffectivenessSetsListElement.objects.all():
         effectiveness_set = effectiveness_sets_list_element.element
@@ -251,7 +251,7 @@ def handle_type(args):
     if len(args) >= 4:
         defending_type_2_name = args[3]
 
-    current_game_name = Setting.objects.filter(key='current_game')[0]
+    current_game_name = Setting.objects.filter(key='Current Game')[0]
 
     weaknesses = []
     resistances = []
@@ -351,7 +351,7 @@ def handle_offence(args):
         pokemon = pokemon_matches[0]
         output = pokemon.name + ': '
 
-        current_game_name = Setting.objects.filter(key='current_game')[0]
+        current_game_name = Setting.objects.filter(key='Current Game')[0]
 
         for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon.stat_sets):
             stat_set = stat_sets_list_element.element
@@ -372,7 +372,7 @@ def handle_defence(args):
         pokemon = pokemon_matches[0]
         output = pokemon.name + ': '
 
-        current_game_name = Setting.objects.filter(key='current_game')[0]
+        current_game_name = Setting.objects.filter(key='Current Game')[0]
 
         for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon.stat_sets):
             stat_set = stat_sets_list_element.element

@@ -1,6 +1,8 @@
 from django.contrib import admin
+from django.forms import ModelForm, Select, TextInput
 
-from .models import Command, SimpleOutput, TimedMessage
+from .models import Command, SimpleOutput, TimedMessage, Setting
+from westwood.models import Game
 
 class CommandAdmin(admin.ModelAdmin):
     list_display = ['command', 'get_output', 'permissions']
@@ -34,6 +36,24 @@ class TimedMessageAdmin(admin.ModelAdmin):
 class SimpleOutputAdmin(admin.ModelAdmin):
     list_display = ['output_text']
 
+class SettingAdmin(admin.ModelAdmin):
+    list_display = ['key', 'value']
+    readonly_fields = ['key']
+    def get_form(self, request, obj=None, **kwargs):
+        class SettingAdminForm(ModelForm):
+            class Meta:
+                model = Setting
+                fields = ('value',)
+                game_objects = Game.objects.all().order_by('sequence')
+                valid_games = [(game.name, game.name) for game in game_objects]
+                widgets={'value': Select(choices=valid_games)}
+        return SettingAdminForm
+    def get_fields(self, request, obj=None):
+        return ['key', 'value']
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 admin.site.register(Command, CommandAdmin)
 admin.site.register(TimedMessage, TimedMessageAdmin)
 admin.site.register(SimpleOutput, SimpleOutputAdmin)
+admin.site.register(Setting, SettingAdmin)
