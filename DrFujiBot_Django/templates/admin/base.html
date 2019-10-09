@@ -78,6 +78,20 @@
         {{ content }}
         {% endblock %}
         {% block sidebar %}{% endblock %}
+        {% if title == 'Site administration' %}
+        <div id="guide" style="margin: 10px;">
+            <h3>Quick Start Guide:</h3>
+            <ul>
+                <li>A Command defines the text that a Twitch user types to invoke a command (starting with "!")</li>
+                <li>DrFujiBot comes with a set of built-in Commands, and custom Commands can be defined</li>
+                <li>Each Command has a permission value and an optional "Simple output"</li>
+                <li>Simple outputs are defined separately from Commands, but can be defined at the same time as a new Command</li>
+                <li>Several Commands can point to the same Simple output (command aliases)</li>
+                <li>Timed messages point to a Simple output and contain an interval in minutes for repeated output</li>
+                <li>A Command and a Timed message can point to the same Simple output</li>
+            </ul>
+        </div>
+        {% endif %}
         <br class="clear">
     </div>
     <!-- END Content -->
