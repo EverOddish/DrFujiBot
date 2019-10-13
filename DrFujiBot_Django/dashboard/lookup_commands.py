@@ -385,6 +385,18 @@ def handle_defence(args):
         output = '"' + pokemon_name + '" was not found'
     return output
 
+def handle_whatis(args):
+    output = ''
+    move_or_ability_name = args[0]
+
+    move_matches = Move.objects.filter(name__iexact=move_or_ability_name)
+    if move_matches:
+        return handle_move(args)
+
+    ability_matches = Ability.objects.filter(name__iexact=move_or_ability_name)
+    if ability_matches:
+        return handle_ability(args)
+
 handlers = {'!pokemon': handle_pokemon,
             '!move': handle_move,
             '!ability': handle_ability,
@@ -402,6 +414,7 @@ handlers = {'!pokemon': handle_pokemon,
             '!offense': handle_offence,
             '!defence': handle_defence,
             '!defense': handle_defence,
+            '!whatis': handle_whatis,
            }
 
 expected_args = {'!pokemon': 1,
@@ -421,6 +434,7 @@ expected_args = {'!pokemon': 1,
                  '!offense': 1,
                  '!defence': 1,
                  '!defense': 1,
+                 '!whatis': 1,
                 }
 
 usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
@@ -440,6 +454,7 @@ usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
           '!offense': 'Usage: !offense <pokemon name>',
           '!defence': 'Usage: !defence <pokemon name>',
           '!defense': 'Usage: !defense <pokemon name>',
+          '!whatis': 'Usage: !whatis <move or ability name>',
          }
 
 def handle_lookup_command(line):

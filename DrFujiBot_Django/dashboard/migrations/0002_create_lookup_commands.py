@@ -20,6 +20,7 @@ lookup_commands = ['!pokemon',
                    '!offence',
                    '!defense',
                    '!defence',
+                   '!whatis',
                   ]
 
 def create_lookup_commands(apps, schema_editor):
