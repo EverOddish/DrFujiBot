@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+      {% load static %}
+      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/2.8.0/js/jquery.terminal.min.js"></script>
+      <link href="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/2.8.0/css/jquery.terminal.min.css" rel="stylesheet"/>
+      <style>
+.terminal, .cmd {
+  --color: rgba(196, 8, 8, 0.99);
+  --background: white;
+  --animation: terminal-glow;
+}
+body {
+    font-family: "Roboto","Lucida Grande","DejaVu Sans","Bitstream Vera Sans",Verdana,Arial,sans-serif;
+}
+a {
+    color: rgba(196, 8, 8, 0.99);
+}
+      </style>
+  </head>
+  <body>
+  <h3><a href="../../admin">Go to DrFujiBot administration</a></h3>
+  <div id="drfujibot_console"></div>
+  <script>
+  jQuery(function($, undefined) {
+      $('#drfujibot_console').terminal(function(command) {
+          if (command !== '') {
+              drfujibot_console = this;
+              $.ajax({url: "http://localhost:41945/dashboard/drfujibot?is_broadcaster=True&is_moderator=True&is_subscriber=True&line=" + command, success: function(result){
+                  drfujibot_console.echo(String(result));
+              }});
+          }
+      }, {
+          greetings: 'DrFujiBot Console',
+          name: 'drfujibot_console',
+          height: 600,
+          width: 900,
+          prompt: '> '
+      });
+  });
+  </script>
+  </body>
+</html>

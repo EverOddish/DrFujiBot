@@ -20,6 +20,10 @@ def index(request):
                'builtin_command_list' : builtin_command_list}
     return render(request, 'dashboard/index.html', context)
 
+def console(request):
+    context = {}
+    return render(request, 'dashboard/console.html', context)
+
 def permitted(is_broadcaster, is_moderator, is_subscriber, permissions):
     if permissions == DISABLED:
         return False
