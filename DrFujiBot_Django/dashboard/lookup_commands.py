@@ -116,6 +116,7 @@ def handle_tmset(args):
                 for tmset_moves_list_element in TmsetMovesListElement.objects.filter(list_id=tm_set.tmset_moves):
                     tmset_move = tmset_moves_list_element.element
                     output += tmset_move.name + ', '
+                break
         if output.endswith(', '):
             output = output[:-2]
     else:
@@ -397,6 +398,44 @@ def handle_whatis(args):
     if ability_matches:
         return handle_ability(args)
 
+def handle_does(args):
+    output = ''
+    pokemon_name = args[0]
+    move_name = args[2]
+
+    pokemon_learnset_matches = PokemonLearnsets.objects.filter(name__iexact=pokemon_name)
+    if pokemon_learnset_matches:
+        pokemon_learnset = pokemon_learnset_matches[0]
+
+        current_game_name = Setting.objects.filter(key='Current Game')[0]
+
+        for learnsets_list_element in LearnsetsListElement.objects.filter(list_id=pokemon_learnset.learnsets):
+            learnset = learnsets_list_element.element
+            if is_game_name_in_game_list(current_game_name.value, learnset.games):
+                for learnset_moves_list_element in LearnsetMovesListElement.objects.filter(list_id=learnset.learnset_moves):
+                    learnset_move = learnset_moves_list_element.element
+                    if learnset_move.name.lower() == move_name.lower():
+                        output = pokemon_name.capitalize() + ' learns ' + learnset_move.name + ' at level ' + str(learnset_move.level)
+                break
+
+        if len(output) == 0:
+            pokemon_tmset_matches = PokemonTmSets.objects.filter(name__iexact=pokemon_name)
+            if pokemon_tmset_matches:
+                pokemon_tmset = pokemon_tmset_matches[0]
+
+                for tmsets_list_element in TmSetsListElement.objects.filter(list_id=pokemon_tmset.tm_sets):
+                    tm_set = tmsets_list_element.element
+                    if is_game_name_in_game_list(current_game_name.value, tm_set.games):
+                        for tmset_moves_list_element in TmsetMovesListElement.objects.filter(list_id=tm_set.tmset_moves):
+                            tmset_move = tmset_moves_list_element.element
+                            if tmset_move.name.lower() == move_name.lower():
+                                output = pokemon_name.capitalize() + ' learns ' + tmset_move.name + ' by TM/HM'
+                        break
+    else:
+        output = 'Learnsets for "' + pokemon_name + '" were not found'
+
+    return output
+
 handlers = {'!pokemon': handle_pokemon,
             '!move': handle_move,
             '!ability': handle_ability,
@@ -415,6 +454,7 @@ handlers = {'!pokemon': handle_pokemon,
             '!defence': handle_defence,
             '!defense': handle_defence,
             '!whatis': handle_whatis,
+            '!does': handle_does,
            }
 
 expected_args = {'!pokemon': 1,
@@ -435,6 +475,7 @@ expected_args = {'!pokemon': 1,
                  '!defence': 1,
                  '!defense': 1,
                  '!whatis': 1,
+                 '!does': 3,
                 }
 
 usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
@@ -455,6 +496,7 @@ usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
           '!defence': 'Usage: !defence <pokemon name>',
           '!defense': 'Usage: !defense <pokemon name>',
           '!whatis': 'Usage: !whatis <move or ability name>',
+          '!does': 'Usage: !does <pokemon name> learn <move name>',
          }
 
 def handle_lookup_command(line):
