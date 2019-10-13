@@ -87,6 +87,7 @@
                 <li>A Command defines the text that a Twitch user types to invoke a command (starting with "!")</li>
                 <li>DrFujiBot comes with a set of built-in Commands, and custom Commands can be defined</li>
                 <li>Each Command has a permission value and an optional "Simple output"</li>
+                <li>Each Command's permission value includes all permissions above it (for example, a Subscriber Only command can be used by a Moderator)
                 <li>Simple outputs are defined separately from Commands, but can be defined at the same time as a new Command</li>
                 <li>Several Commands can point to the same Simple output (command aliases)</li>
                 <li>Timed messages point to a Simple output and contain an interval in minutes for repeated output</li>
