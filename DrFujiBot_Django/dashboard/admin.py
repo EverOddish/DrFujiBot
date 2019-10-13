@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.forms import ModelForm, Select, TextInput
 
 from .models import Command, SimpleOutput, TimedMessage, Setting
+from .models import DISABLED, BROADCASTER_ONLY, MODERATOR_ONLY, SUBSCRIBER_ONLY, EVERYONE
 from westwood.models import Game
 
 class CommandAdmin(admin.ModelAdmin):
@@ -23,6 +24,28 @@ class CommandAdmin(admin.ModelAdmin):
             return not obj.is_built_in
         else:
             return True
+
+    def permit_disabled(modeladmin, request, queryset):
+        queryset.update(permissions=DISABLED)
+    permit_disabled.short_description = 'Set selected commands to Disabled'
+
+    def permit_broadcaster(modeladmin, request, queryset):
+        queryset.update(permissions=BROADCASTER_ONLY)
+    permit_broadcaster.short_description = 'Set selected commands to Broadcaster Only'
+
+    def permit_moderator(modeladmin, request, queryset):
+        queryset.update(permissions=MODERATOR_ONLY)
+    permit_moderator.short_description = 'Set selected commands to Moderator Only'
+
+    def permit_subscriber(modeladmin, request, queryset):
+        queryset.update(permissions=SUBSCRIBER_ONLY)
+    permit_subscriber.short_description = 'Set selected commands to Subscriber Only'
+
+    def permit_everyone(modeladmin, request, queryset):
+        queryset.update(permissions=EVERYONE)
+    permit_everyone.short_description = 'Set selected commands to Everyone'
+
+    actions = [permit_disabled, permit_broadcaster, permit_moderator, permit_subscriber, permit_everyone]
 
 class TimedMessageAdmin(admin.ModelAdmin):
     fields = ['message', 'minutes_interval']
