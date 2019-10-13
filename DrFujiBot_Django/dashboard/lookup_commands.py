@@ -57,11 +57,11 @@ def handle_move(args):
     if move_matches:
         move = move_matches[0]
         output = move.name + ': [' + move.type_1 + '] '
-        output += 'BasePower(' + move.base_power + ') '
+        output += 'BasePower(' + str(move.base_power) + ') '
         output += 'Class(' + move.damage_category + ') '
-        output += 'Accuracy(' + move.accuracy + ') '
+        output += 'Accuracy(' + str(move.accuracy) + ') '
         output += 'PP(' + str(move.power_points) + ') '
-        output += 'Priority(' + move.priority + ') '
+        output += 'Priority(' + str(move.priority) + ') '
         #output += move.description
     else:
         output = '"' + move_name + '" was not found'
