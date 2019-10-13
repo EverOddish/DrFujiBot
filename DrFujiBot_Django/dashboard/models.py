@@ -1,3 +1,4 @@
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.timezone import now
 
@@ -22,7 +23,7 @@ class SimpleOutput(models.Model):
         return self.output_text
 
 class Command(models.Model):
-    command = models.CharField(max_length=200)
+    command = models.CharField(max_length=200, validators=[RegexValidator(regex='^![a-zA-Z0-9]+$', message='Command must start with ! and contain only alphanumeric characters')])
     permissions = models.IntegerField(choices=PERMISSIONS_CHOICES, default=EVERYONE)
     invocation_count = models.IntegerField(default=0)
     is_built_in = models.BooleanField(default=False)
