@@ -37,3 +37,13 @@ class TimedMessage(models.Model):
     minutes_interval = models.IntegerField(default=15)
     last_output_time = models.DateTimeField(default=now)
     message = models.ForeignKey(SimpleOutput, on_delete=models.CASCADE)
+
+class Run(models.Model):
+    name = models.CharField(max_length=200)
+    attempt_number = models.IntegerField(default=1)
+    game_setting = models.CharField(max_length=200)
+
+class Death(models.Model):
+    nickname = models.CharField(max_length=200)
+    respect_count = models.IntegerField(default=0)
+    run = models.ForeignKey(Run, on_delete=models.CASCADE)

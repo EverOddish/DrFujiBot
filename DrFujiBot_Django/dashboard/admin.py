@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.forms import ModelForm, Select, TextInput
 
-from .models import Command, SimpleOutput, TimedMessage, Setting
+from .models import Command, SimpleOutput, TimedMessage, Setting, Run, Death
 from .models import DISABLED, BROADCASTER_ONLY, MODERATOR_ONLY, SUBSCRIBER_ONLY, EVERYONE
 from westwood.models import Game
 
@@ -76,7 +76,33 @@ class SettingAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
+class RunAdmin(admin.ModelAdmin):
+    list_display = ['name', 'attempt_number', 'game_setting']
+    def get_form(self, request, obj=None, **kwargs):
+        class RunAdminForm(ModelForm):
+            class Meta:
+                model = Run
+                fields = ('name', 'attempt_number', 'game_setting')
+                game_objects = Game.objects.all().order_by('sequence')
+                valid_games = [(game.name, game.name) for game in game_objects]
+                widgets={'name': TextInput(), 'attempt_number': TextInput(), 'game_setting': Select(choices=valid_games)}
+        return RunAdminForm
+    def get_fields(self, request, obj=None):
+        return ['name', 'attempt_number', 'game_setting']
+
+class DeathAdmin(admin.ModelAdmin):
+    fields = ['nickname', 'respect_count', 'run']
+    readonly_fields = ['respect_count']
+    list_display = ['nickname', 'respect_count', 'get_run']
+
+    def get_run(self, obj):
+        return obj.run.name
+    get_run.short_description = 'Run'
+    get_run.admin_order_field = 'run'
+
 admin.site.register(Command, CommandAdmin)
 admin.site.register(TimedMessage, TimedMessageAdmin)
 admin.site.register(SimpleOutput, SimpleOutputAdmin)
 admin.site.register(Setting, SettingAdmin)
+admin.site.register(Run, RunAdmin)
+admin.site.register(Death, DeathAdmin)
