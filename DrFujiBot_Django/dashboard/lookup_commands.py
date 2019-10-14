@@ -450,6 +450,35 @@ def handle_does(args):
 
     return output
 
+def handle_grassknot(args):
+    output = ''
+    pokemon_name = ' '.join(args)
+    pokemon_name = correct_pokemon_name(pokemon_name)
+    pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
+    if pokemon_matches:
+        pokemon = pokemon_matches[0]
+        output = 'Grass Knot/Low Kick has '
+        if pokemon.weight < 100:
+            bp = "20"
+        elif pokemon.weight < 250:
+            bp = "40"
+        elif pokemon.weight < 500:
+            bp = "60"
+        elif pokemon.weight < 1000:
+            bp = "80"
+        elif pokemon.weight < 2000:
+            bp = "100"
+        else:
+            bp = "120"
+
+        output += bp
+        output += " base power against " + pokemon.name + " ("
+        output += str(float(pokemon.weight) / 10)
+        output += " kg)"
+    else:
+        output = '"' + pokemon_name + '" was not found'
+    return output
+
 handlers = {'!pokemon': handle_pokemon,
             '!move': handle_move,
             '!ability': handle_ability,
@@ -469,6 +498,8 @@ handlers = {'!pokemon': handle_pokemon,
             '!defense': handle_defence,
             '!whatis': handle_whatis,
             '!does': handle_does,
+            '!grassknot': handle_grassknot,
+            '!lowkick': handle_grassknot,
            }
 
 expected_args = {'!pokemon': 1,
@@ -490,6 +521,8 @@ expected_args = {'!pokemon': 1,
                  '!defense': 1,
                  '!whatis': 1,
                  '!does': 3,
+                 '!grassknot': 1,
+                 '!lowkick': 1,
                 }
 
 usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
@@ -511,6 +544,8 @@ usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
           '!defense': 'Usage: !defense <pokemon name>',
           '!whatis': 'Usage: !whatis <move or ability name>',
           '!does': 'Usage: !does <pokemon name> learn <move name>',
+          '!grassknot': 'Usage: !grassknot <pokemon name>',
+          '!lowkick': 'Usage: !lowkick <pokemon name>',
          }
 
 def handle_lookup_command(line):
