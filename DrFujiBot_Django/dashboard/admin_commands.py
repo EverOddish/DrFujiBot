@@ -1,4 +1,4 @@
-from .models import Setting, Command, SimpleOutput
+from .models import Setting, Command, SimpleOutput, Run, Death
 from westwood.models import Game
 
 def handle_setgame(args):
@@ -116,11 +116,64 @@ def handle_alias(args):
         output = 'Existing command not found'
     return output
 
+def handle_addrun(args):
+    output = ''
+    run_name = ' '.join(args)
+
+    run_matches = Run.objects.filter(name__iexact=run_name)
+    if len(run_matches) == 0:
+        current_game_setting = Setting.objects.filter(key='Current Game')[0]
+        run_object = Run(name=run_name, game_setting=current_game_setting.value)
+        run_object.save()
+
+        output = 'Added new run "' + run_object.name + '" playing ' + run_object.game_setting
+    else:
+        output = 'Run "' + run_name + '" already exists'
+    return output
+
+def handle_setrun(args):
+    output = ''
+    run_name = ' '.join(args)
+
+    run_matches = Run.objects.filter(name__iexact=run_name)
+    if len(run_matches) > 0:
+        run_object = run_matches[0]
+        current_game_setting = Setting.objects.filter(key='Current Game')[0]
+        current_game_setting.value = run_object.game_setting
+        current_game_setting.save()
+
+        current_run_setting = Setting.objects.filter(key='Current Run')[0]
+        current_run_setting.value = run_name
+        current_run_setting.save()
+
+        output = 'Current run set to "' + run_object.name + '" playing ' + run_object.game_setting
+    else:
+        output = 'Run "' + run_name + '" not found'
+    return output
+
+def handle_rip(args):
+    output = ''
+    nickname = ' '.join(args)
+    return output
+
+def handle_deaths(args):
+    output = ''
+    return output
+
+def handle_fallen(args):
+    output = ''
+    return output
+
 handlers = {'!setgame': handle_setgame,
             '!addcom': handle_addcom,
             '!delcom': handle_delcom,
             '!editcom': handle_editcom,
             '!alias': handle_alias,
+            '!addrun': handle_addrun,
+            '!setrun': handle_setrun,
+            '!rip': handle_rip,
+            '!deaths': handle_deaths,
+            '!fallen': handle_fallen,
            }
 
 expected_args = {'!setgame': 1,
@@ -128,6 +181,11 @@ expected_args = {'!setgame': 1,
                  '!delcom': 1,
                  '!editcom': 2,
                  '!alias': 2,
+                 '!addrun': 1,
+                 '!setrun': 1,
+                 '!rip': 1,
+                 '!deaths': 0,
+                 '!fallen': 0,
                 }
 
 usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
@@ -135,6 +193,11 @@ usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
          '!delcom': 'Usage: !delcom <command>',
          '!editcom': 'Usage: !editcom <command> <output>',
          '!alias': 'Usage: !alias <existing command> <new command>',
+         '!addrun': 'Usage: !addrun <run name>',
+         '!setrun': 'Usage: !setrun <run name>',
+         '!rip': 'Usage: !rip <pokemon nickname>',
+         '!deaths': 'Usage: !deaths',
+         '!fallen': 'Usage: !fallen',
         }
 
 def handle_admin_command(line):
