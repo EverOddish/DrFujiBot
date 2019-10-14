@@ -1,11 +1,12 @@
 from .models import Setting
-from .lookup_helpers import is_game_name_in_game_list
+from .lookup_helpers import *
 
 from westwood.models import *
 
 def handle_pokemon(args):
     output = ''
-    pokemon_name = args[0]
+    pokemon_name = ' '.join(args)
+    pokemon_name = correct_pokemon_name(pokemon_name)
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
     if pokemon_matches:
         pokemon = pokemon_matches[0]
@@ -52,7 +53,8 @@ def handle_pokemon(args):
 
 def handle_move(args):
     output = ''
-    move_name = args[0]
+    move_name = ' '.join(args)
+    move_name = correct_move_name(move_name)
     move_matches = Move.objects.filter(name__iexact=move_name)
     if move_matches:
         move = move_matches[0]
@@ -69,7 +71,8 @@ def handle_move(args):
 
 def handle_ability(args):
     output = ''
-    ability_name = args[0]
+    ability_name = ' '.join(args)
+    ability_name = correct_ability_name(ability_name)
     ability_matches = Ability.objects.filter(name__iexact=ability_name)
     if ability_matches:
         ability = ability_matches[0]
@@ -81,7 +84,8 @@ def handle_ability(args):
 
 def handle_learnset(args):
     output = ''
-    pokemon_name = args[0]
+    pokemon_name = ' '.join(args)
+    pokemon_name = correct_pokemon_name(pokemon_name)
     pokemon_learnset_matches = PokemonLearnsets.objects.filter(name__iexact=pokemon_name)
     if pokemon_learnset_matches:
         pokemon_learnset = pokemon_learnset_matches[0]
@@ -102,7 +106,8 @@ def handle_learnset(args):
 
 def handle_tmset(args):
     output = ''
-    pokemon_name = args[0]
+    pokemon_name = ' '.join(args)
+    pokemon_name = correct_pokemon_name(pokemon_name)
     pokemon_tmset_matches = PokemonTmSets.objects.filter(name__iexact=pokemon_name)
     if pokemon_tmset_matches:
         pokemon_tmset = pokemon_tmset_matches[0]
@@ -175,7 +180,8 @@ def handle_item(args):
 
 def handle_evolve(args):
     output = ''
-    pokemon_name = args[0]
+    pokemon_name = ' '.join(args)
+    pokemon_name = correct_pokemon_name(pokemon_name)
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
     if pokemon_matches:
         pokemon = pokemon_matches[0]
@@ -322,7 +328,8 @@ def handle_type(args):
 
 def handle_catch_rate(args):
     output = ''
-    pokemon_name = args[0]
+    pokemon_name = ' '.join(args)
+    pokemon_name = correct_pokemon_name(pokemon_name)
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
     if pokemon_matches:
         pokemon = pokemon_matches[0]
@@ -334,7 +341,8 @@ def handle_catch_rate(args):
 
 def handle_exp_curve(args):
     output = ''
-    pokemon_name = args[0]
+    pokemon_name = ' '.join(args)
+    pokemon_name = correct_pokemon_name(pokemon_name)
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
     if pokemon_matches:
         pokemon = pokemon_matches[0]
@@ -346,7 +354,8 @@ def handle_exp_curve(args):
 
 def handle_offence(args):
     output = ''
-    pokemon_name = args[0]
+    pokemon_name = ' '.join(args)
+    pokemon_name = correct_pokemon_name(pokemon_name)
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
     if pokemon_matches:
         pokemon = pokemon_matches[0]
@@ -367,7 +376,8 @@ def handle_offence(args):
 
 def handle_defence(args):
     output = ''
-    pokemon_name = args[0]
+    pokemon_name = ' '.join(args)
+    pokemon_name = correct_pokemon_name(pokemon_name)
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
     if pokemon_matches:
         pokemon = pokemon_matches[0]
@@ -388,15 +398,19 @@ def handle_defence(args):
 
 def handle_whatis(args):
     output = ''
-    move_or_ability_name = args[0]
+    move_or_ability_name = ' '.join(args)
 
-    move_matches = Move.objects.filter(name__iexact=move_or_ability_name)
+    move_name = correct_move_name(move_or_ability_name)
+    move_matches = Move.objects.filter(name__iexact=move_name)
     if move_matches:
-        return handle_move(args)
+        output = 'Move: '
+        return output + handle_move(args)
 
-    ability_matches = Ability.objects.filter(name__iexact=move_or_ability_name)
+    ability_name = correct_ability_name(move_or_ability_name)
+    ability_matches = Ability.objects.filter(name__iexact=ability_name)
     if ability_matches:
-        return handle_ability(args)
+        output = 'Ability: '
+        return output + handle_ability(args)
 
 def handle_does(args):
     output = ''

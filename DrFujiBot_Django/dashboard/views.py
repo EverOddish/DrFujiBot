@@ -53,7 +53,7 @@ def drfujibot(request):
                 response_text = cmd.output.output_text
             else:
                 response_text = handle_lookup_command(line)
-                if len(response_text) == 0:
+                if None == response_text or len(response_text) == 0:
                     response_text = handle_admin_command(line)
 
     return HttpResponse(response_text)
