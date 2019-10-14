@@ -508,6 +508,21 @@ def handle_evyield(args):
         output = '"' + pokemon_name + '" was not found'
     return output
 
+def handle_nature(args):
+    output = ''
+    nature_name = args[0]
+    nature_matches = Nature.objects.filter(name__iexact=nature_name)
+    if nature_matches:
+        nature = nature_matches[0]
+        output = nature.name + ': '
+        if 'None' == nature.increased_stat:
+            output += 'Neutral'
+        else:
+            output += '+' + nature.increased_stat + ' -' + nature.decreased_stat
+    else:
+        output = '"' + nature_name + '" was not found'
+    return output
+
 handlers = {'!pokemon': handle_pokemon,
             '!move': handle_move,
             '!ability': handle_ability,
@@ -531,6 +546,7 @@ handlers = {'!pokemon': handle_pokemon,
             '!lowkick': handle_grassknot,
             '!baseexp': handle_baseexp,
             '!evyield': handle_evyield,
+            '!nature': handle_nature,
            }
 
 expected_args = {'!pokemon': 1,
@@ -556,6 +572,7 @@ expected_args = {'!pokemon': 1,
                  '!lowkick': 1,
                  '!baseexp': 1,
                  '!evyield': 1,
+                 '!nature': 1,
                 }
 
 usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
@@ -581,6 +598,7 @@ usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
           '!lowkick': 'Usage: !lowkick <pokemon name>',
           '!baseexp': 'Usage: !baseexp <pokemon name>',
           '!evyield': 'Usage: !evyield <pokemon name>',
+          '!nature': 'Usage: !nature <nature name>',
          }
 
 def handle_lookup_command(line):
