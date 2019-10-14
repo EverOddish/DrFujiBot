@@ -493,6 +493,21 @@ def handle_baseexp(args):
         output = '"' + pokemon_name + '" was not found'
     return output
 
+def handle_evyield(args):
+    output = ''
+    pokemon_name = ' '.join(args)
+    pokemon_name = correct_pokemon_name(pokemon_name)
+    pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
+    if pokemon_matches:
+        pokemon = pokemon_matches[0]
+        output = pokemon.name + ' EV Yield: '
+        for ev_yields_list_element in EvYieldsListElement.objects.filter(list_id=pokemon.ev_yields):
+            ev_yield = ev_yields_list_element.element
+            output += ev_yield.stat + '(' + str(ev_yield.value) + ') '
+    else:
+        output = '"' + pokemon_name + '" was not found'
+    return output
+
 handlers = {'!pokemon': handle_pokemon,
             '!move': handle_move,
             '!ability': handle_ability,
@@ -515,6 +530,7 @@ handlers = {'!pokemon': handle_pokemon,
             '!grassknot': handle_grassknot,
             '!lowkick': handle_grassknot,
             '!baseexp': handle_baseexp,
+            '!evyield': handle_evyield,
            }
 
 expected_args = {'!pokemon': 1,
@@ -539,6 +555,7 @@ expected_args = {'!pokemon': 1,
                  '!grassknot': 1,
                  '!lowkick': 1,
                  '!baseexp': 1,
+                 '!evyield': 1,
                 }
 
 usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
@@ -563,6 +580,7 @@ usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
           '!grassknot': 'Usage: !grassknot <pokemon name>',
           '!lowkick': 'Usage: !lowkick <pokemon name>',
           '!baseexp': 'Usage: !baseexp <pokemon name>',
+          '!evyield': 'Usage: !evyield <pokemon name>',
          }
 
 def handle_lookup_command(line):
