@@ -479,6 +479,20 @@ def handle_grassknot(args):
         output = '"' + pokemon_name + '" was not found'
     return output
 
+def handle_baseexp(args):
+    output = ''
+    pokemon_name = ' '.join(args)
+    pokemon_name = correct_pokemon_name(pokemon_name)
+    pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
+    if pokemon_matches:
+        pokemon = pokemon_matches[0]
+        output = pokemon.name + ': '
+        output += str(pokemon.base_exp)
+        output += ' base exp.'
+    else:
+        output = '"' + pokemon_name + '" was not found'
+    return output
+
 handlers = {'!pokemon': handle_pokemon,
             '!move': handle_move,
             '!ability': handle_ability,
@@ -500,6 +514,7 @@ handlers = {'!pokemon': handle_pokemon,
             '!does': handle_does,
             '!grassknot': handle_grassknot,
             '!lowkick': handle_grassknot,
+            '!baseexp': handle_baseexp,
            }
 
 expected_args = {'!pokemon': 1,
@@ -523,6 +538,7 @@ expected_args = {'!pokemon': 1,
                  '!does': 3,
                  '!grassknot': 1,
                  '!lowkick': 1,
+                 '!baseexp': 1,
                 }
 
 usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
@@ -546,6 +562,7 @@ usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
           '!does': 'Usage: !does <pokemon name> learn <move name>',
           '!grassknot': 'Usage: !grassknot <pokemon name>',
           '!lowkick': 'Usage: !lowkick <pokemon name>',
+          '!baseexp': 'Usage: !baseexp <pokemon name>',
          }
 
 def handle_lookup_command(line):

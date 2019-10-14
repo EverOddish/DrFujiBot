@@ -24,6 +24,7 @@ lookup_commands = ['!pokemon',
                    '!does',
                    '!grassknot',
                    '!lowkick',
+                   '!baseexp',
                   ]
 
 def create_lookup_commands(apps, schema_editor):
