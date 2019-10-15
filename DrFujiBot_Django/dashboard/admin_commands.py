@@ -169,11 +169,30 @@ def handle_rip(args):
     return output
 
 def handle_deaths(args):
-    output = ''
+    current_run_setting = Setting.objects.filter(key='Current Run')[0]
+    run = Run.objects.filter(name=current_run_setting.value)[0]
+
+    death_count = Death.objects.filter(run=run).count()
+    death_objects = Death.objects.filter(run=run).order_by('-time_of_death')[:3]
+    death_names = [death.nickname for death in death_objects]
+
+    output = 'There have been ' + str(death_count) + ' deaths so far. Most recent deaths (latest first): '
+    output += ', '.join(death_names)
+
     return output
 
 def handle_fallen(args):
-    output = ''
+    current_run_setting = Setting.objects.filter(key='Current Run')[0]
+    run = Run.objects.filter(name=current_run_setting.value)[0]
+
+    death_objects = Death.objects.filter(run=run).order_by('respect_count')[:3]
+
+    output = 'The most respected fallen: '
+    for death in death_objects:
+        output += death.nickname + ' (' + str(death.respect_count) + '), '
+
+    if output.endswith(', '):
+        output = output[:-2]
     return output
 
 handlers = {'!setgame': handle_setgame,
