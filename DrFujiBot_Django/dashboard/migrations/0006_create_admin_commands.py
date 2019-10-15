@@ -13,6 +13,10 @@ admin_commands = [('!setgame', MODERATOR_ONLY),
                   ('!rip', DISABLED),
                   ('!deaths', DISABLED),
                   ('!fallen', DISABLED),
+                  ('!quote', DISABLED),
+                  ('!latestquote', DISABLED),
+                  ('!addquote', DISABLED),
+                  ('!delquote', DISABLED),
                  ]
 
 def create_admin_commands(apps, schema_editor):

@@ -1,4 +1,4 @@
-from .models import Setting, Command, SimpleOutput, Run, Death
+from .models import Setting, Command, SimpleOutput, Run, Death, Quote
 from westwood.models import Game
 
 def handle_setgame(args):
@@ -185,7 +185,9 @@ def handle_fallen(args):
     current_run_setting = Setting.objects.filter(key='Current Run')[0]
     run = Run.objects.filter(name=current_run_setting.value)[0]
 
-    death_objects = Death.objects.filter(run=run).order_by('respect_count')[:3]
+    death_objects = Death.objects.filter(run=run).order_by('respect_count')
+    if len(death_objects) > 3:
+        death_objects = death_objects[:3]
 
     output = 'The most respected fallen: '
     for death in death_objects:
@@ -193,6 +195,56 @@ def handle_fallen(args):
 
     if output.endswith(', '):
         output = output[:-2]
+    return output
+
+def handle_quote(args):
+    output = ''
+    quote_matches = []
+    quote_num = 0
+    if len(args) > 0:
+        if args[0].isnumeric():
+            quote_num = int(args[0])
+            quote_matches = Quote.objects.filter(id=quote_num)
+        else:
+            keyword = args[0]
+            quote_matches = Quote.objects.filter(quote_text__icontains=keyword)
+    else:
+        quote_matches = Quote.objects.all().order_by('?')
+
+    if len(quote_matches) > 0:
+        quote = quote_matches[0]
+        output = 'Quote #' + str(quote.id) + ' "' + quote.quote_text + '" -' + quote.quotee
+    else:
+        output = 'Quote not found'
+    return output
+
+def handle_latestquote(args):
+    output = ''
+    quote_matches = Quote.objects.all().order_by('-id')
+    if len(quote_matches) > 0:
+        quote = quote_matches[0]
+        output = 'Quote #' + str(quote.id) + ' "' + quote.quote_text + '" -' + quote.quotee
+    else:
+        output = 'Quote not found'
+    return output
+
+def handle_addquote(args):
+    quote_text = ' '.join(args)
+    quotee_setting = Setting.objects.filter(key='Quotee')[0]
+    quote_object = Quote(quote_text=quote_text, quotee=quotee_setting.value)
+    quote_object.save()
+    return 'Quote #' + str(quote_object.id) + ' successfully added'
+
+def handle_delquote(args):
+    output = ''
+    if args[0].isnumeric():
+        quote_number = int(args[0])
+        quote_matches = Quote.objects.filter(id=quote_number)
+        if len(quote_matches) > 0:
+            quote_matches[0].delete()
+            output = 'Quote #' + args[0] + ' successfully deleted'
+    else:
+        output = 'Invalid quote number'
     return output
 
 handlers = {'!setgame': handle_setgame,
@@ -205,6 +257,10 @@ handlers = {'!setgame': handle_setgame,
             '!rip': handle_rip,
             '!deaths': handle_deaths,
             '!fallen': handle_fallen,
+            '!quote': handle_quote,
+            '!latestquote': handle_latestquote,
+            '!addquote': handle_addquote,
+            '!delquote': handle_delquote,
            }
 
 expected_args = {'!setgame': 1,
@@ -217,6 +273,10 @@ expected_args = {'!setgame': 1,
                  '!rip': 1,
                  '!deaths': 0,
                  '!fallen': 0,
+                 '!quote': 0,
+                 '!latestquote': 0,
+                 '!addquote': 1,
+                 '!delquote': 1,
                 }
 
 usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
@@ -229,6 +289,10 @@ usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
          '!rip': 'Usage: !rip <pokemon nickname>',
          '!deaths': 'Usage: !deaths',
          '!fallen': 'Usage: !fallen',
+         '!quote': 'Usage: !quote <optional quote number or keyword>',
+         '!latestquote': 'Usage: !latestquote',
+         '!addquote': 'Usage: !addquote <quote>',
+         '!delquote': 'Usage: !delquote <quote number>',
         }
 
 def handle_admin_command(line):
