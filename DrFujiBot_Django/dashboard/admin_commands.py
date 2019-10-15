@@ -152,8 +152,20 @@ def handle_setrun(args):
     return output
 
 def handle_rip(args):
-    output = ''
     nickname = ' '.join(args)
+
+    current_run_setting = Setting.objects.filter(key='Current Run')[0]
+    run = Run.objects.filter(name=current_run_setting.value)[0]
+
+    death_object = Death(nickname=nickname, run=run)
+    death_object.save()
+
+    death_count = Death.objects.filter(run=run).count()
+
+    output = 'Death count: ' + str(death_count) + ' - Press F to pay respects to "' + nickname + '"'
+
+    # TODO: Auto-marker
+
     return output
 
 def handle_deaths(args):

@@ -91,9 +91,9 @@ class RunAdmin(admin.ModelAdmin):
         return ['name', 'attempt_number', 'game_setting']
 
 class DeathAdmin(admin.ModelAdmin):
-    fields = ['nickname', 'respect_count', 'run']
-    readonly_fields = ['respect_count']
-    list_display = ['nickname', 'respect_count', 'get_run']
+    fields = ['nickname', 'time_of_death', 'respect_count', 'run']
+    readonly_fields = ['time_of_death', 'respect_count']
+    list_display = ['nickname', 'respect_count', 'get_run', 'time_of_death']
 
     def get_run(self, obj):
         return obj.run.name

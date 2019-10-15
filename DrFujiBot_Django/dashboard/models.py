@@ -45,5 +45,6 @@ class Run(models.Model):
 
 class Death(models.Model):
     nickname = models.CharField(max_length=200)
+    time_of_death = models.DateTimeField(default=now)
     respect_count = models.IntegerField(default=0)
     run = models.ForeignKey(Run, on_delete=models.CASCADE)
