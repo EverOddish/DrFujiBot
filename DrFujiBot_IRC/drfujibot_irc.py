@@ -41,11 +41,12 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
             token = 'oauth:' + unscramble(self.settings['twitch_oauth_token'])
 
             twitch_channel = self.settings['twitch_channel'].lower()
-            irc.bot.SingleServerIRCBot.__init__(self, [('irc.twitch.tv', 6667, token)], twitch_channel, twitch_channel)
-            self.channel = '#' + twitch_channel.lower()
-            self.session = requests.Session()
-            self.timed_message_thread = threading.Thread(target=self.timed_message_loop)
-            self.timed_message_thread.start()
+            if len(twitch_channel) > 0:
+                irc.bot.SingleServerIRCBot.__init__(self, [('irc.twitch.tv', 6667, token)], twitch_channel, twitch_channel)
+                self.channel = '#' + twitch_channel.lower()
+                self.session = requests.Session()
+                self.timed_message_thread = threading.Thread(target=self.timed_message_loop)
+                self.timed_message_thread.start()
 
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
