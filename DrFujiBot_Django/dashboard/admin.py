@@ -7,6 +7,7 @@ from westwood.models import Game
 
 class CommandAdmin(admin.ModelAdmin):
     list_display = ['command', 'get_output', 'permissions']
+    list_filter = ('is_built_in',)
 
     def get_fields(self, request, obj=None):
         if None == obj or not obj.is_built_in:
