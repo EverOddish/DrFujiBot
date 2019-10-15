@@ -5,3 +5,4 @@ pynsist==2.4
 lxml==4.4.1
 requests==2.22.0
 pyspellchecker==0.5.2
+apscheduler==3.6.1
