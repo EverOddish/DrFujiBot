@@ -7,8 +7,12 @@ def handle_pokemon(args):
     output = ''
     pokemon_name = ' '.join(args)
     pokemon_name = correct_pokemon_name(pokemon_name)
+
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
-    if pokemon_matches:
+    if len(pokemon_matches) == 0:
+        pokemon_matches = PokemonForm.objects.filter(name__iexact=pokemon_name)
+
+    if len(pokemon_matches) > 0:
         pokemon = pokemon_matches[0]
         output = pokemon.name + ': ['
 
@@ -21,6 +25,7 @@ def handle_pokemon(args):
                 if len(type_set.type2) > 0:
                     output += ', '
                     output += type_set.type2
+                break
         output += '] '
 
         for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon.stat_sets):
@@ -132,10 +137,20 @@ def handle_faster(args):
     output = ''
     pokemon_name_1 = args[0]
     pokemon_name_2 = args[1]
+
+    pokemon_name_1 = correct_pokemon_name(pokemon_name_1)
+    pokemon_name_2 = correct_pokemon_name(pokemon_name_2)
+
     pokemon_matches_1 = Pokemon.objects.filter(name__iexact=pokemon_name_1)
     pokemon_matches_2 = Pokemon.objects.filter(name__iexact=pokemon_name_2)
-    if pokemon_matches_1:
-        if pokemon_matches_2:
+
+    if len(pokemon_matches_1) == 0:
+        pokemon_matches_1 = PokemonForm.objects.filter(name__iexact=pokemon_name_1)
+    if len(pokemon_matches_2) == 0:
+        pokemon_matches_2 = PokemonForm.objects.filter(name__iexact=pokemon_name_2)
+
+    if len(pokemon_matches_1) > 0:
+        if len(pokemon_matches_2) > 0:
             pokemon_1 = pokemon_matches_1[0]
             pokemon_2 = pokemon_matches_2[0]
             speed_1 = 0
@@ -356,8 +371,12 @@ def handle_offence(args):
     output = ''
     pokemon_name = ' '.join(args)
     pokemon_name = correct_pokemon_name(pokemon_name)
+
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
-    if pokemon_matches:
+    if len(pokemon_matches) == 0:
+        pokemon_matches = PokemonForm.objects.filter(name__iexact=pokemon_name)
+
+    if len(pokemon_matches) > 0:
         pokemon = pokemon_matches[0]
         output = pokemon.name + ': '
 
@@ -378,7 +397,11 @@ def handle_defence(args):
     output = ''
     pokemon_name = ' '.join(args)
     pokemon_name = correct_pokemon_name(pokemon_name)
+
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
+    if len(pokemon_matches) == 0:
+        pokemon_matches = PokemonForm.objects.filter(name__iexact=pokemon_name)
+
     if pokemon_matches:
         pokemon = pokemon_matches[0]
         output = pokemon.name + ': '
@@ -454,8 +477,12 @@ def handle_grassknot(args):
     output = ''
     pokemon_name = ' '.join(args)
     pokemon_name = correct_pokemon_name(pokemon_name)
+
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
-    if pokemon_matches:
+    if len(pokemon_matches) == 0:
+        pokemon_matches = PokemonForm.objects.filter(name__iexact=pokemon_name)
+
+    if len(pokemon_matches) > 0:
         pokemon = pokemon_matches[0]
         output = 'Grass Knot/Low Kick has '
         if pokemon.weight < 100:
@@ -483,8 +510,12 @@ def handle_baseexp(args):
     output = ''
     pokemon_name = ' '.join(args)
     pokemon_name = correct_pokemon_name(pokemon_name)
+
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
-    if pokemon_matches:
+    if len(pokemon_matches) == 0:
+        pokemon_matches = PokemonForm.objects.filter(name__iexact=pokemon_name)
+
+    if len(pokemon_matches) > 0:
         pokemon = pokemon_matches[0]
         output = pokemon.name + ': '
         output += str(pokemon.base_exp)
@@ -497,8 +528,12 @@ def handle_evyield(args):
     output = ''
     pokemon_name = ' '.join(args)
     pokemon_name = correct_pokemon_name(pokemon_name)
+
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
-    if pokemon_matches:
+    if len(pokemon_matches) == 0:
+        pokemon_matches = PokemonForm.objects.filter(name__iexact=pokemon_name)
+
+    if len(pokemon_matches) > 0:
         pokemon = pokemon_matches[0]
         output = pokemon.name + ' EV Yield: '
         for ev_yields_list_element in EvYieldsListElement.objects.filter(list_id=pokemon.ev_yields):

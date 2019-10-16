@@ -1,7 +1,7 @@
 from django.core.cache import cache
 from spellchecker import SpellChecker
 
-from westwood.models import Ability, Game, GamesListElement, Move, Pokemon
+from westwood.models import Ability, Game, GamesListElement, Move, Pokemon, PokemonForm
 
 def is_game_name_in_game_list(current_game_name, game_list_id):
     games_list_element_objects = GamesListElement.objects.filter(list_id=game_list_id)
@@ -15,8 +15,10 @@ def correct_pokemon_name(name_to_correct):
     pokemon_corrector = cache.get('pokemon_corrector')
     if None == pokemon_corrector:
         pokemon_list = [pokemon.name for pokemon in Pokemon.objects.all()]
+        pokemon_form_list = [pokemon_form.name for pokemon_form in PokemonForm.objects.all()]
+        combined_list = pokemon_list + pokemon_form_list
         pokemon_corrector = SpellChecker(language=None, case_sensitive=False)
-        pokemon_corrector.word_frequency.load_words(pokemon_list)
+        pokemon_corrector.word_frequency.load_words(combined_list)
         cache.set('pokemon_corrector', pokemon_corrector, timeout=None)
 
     correction = pokemon_corrector.correction(name_to_correct)
