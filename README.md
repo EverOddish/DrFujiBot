@@ -38,6 +38,8 @@ DrFujiBot relies on the [Westwood](https://github.com/EverOddish/Westwood) data 
 
 If you would like to contribute, contact @EverOddish on [Twitter](https://twitter.com/EverOddish)
 
-# Disclaimer
+# Disclaimers
 
 All Pokemon data is owned by The Pokemon Company International. This project should not be used for commercial purposes.
+
+This bot logs chat messages, usernames, and time stamps from the Twitch chat channel to which it is connected. Logs are stored on the local hard drive of the host machine in a database. Anyone that uses this bot must inform their viewers that this data is recorded, and must comply with all local and international privacy laws that are applicable. The authors of this DrFujiBot software are not responsible for any privacy violations that may arise from use of the bot.

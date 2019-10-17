@@ -159,6 +159,8 @@ Section "DrFujiBot IRC"
     nsExec::ExecToLog 'sc.exe description "DrFujiBot IRC" "Connects to Twitch chat to relay commands to the local DrFujiBot Django instance"'
     nsExec::ExecToLog 'net.exe start "DrFujiBot IRC"'
 
+    File ..\..\dislaimers.txt
+
     StrCpy $0 "$INSTDIR\install.log"
     Push $0
     Call DumpLog
