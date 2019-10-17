@@ -12,7 +12,7 @@ def backup_database():
     print('Backing up database from ' + original_path + ' to ' + backup_path)
     shutil.copyfile(original_path, backup_path)
 
-def start():
+def start_backup_task():
     scheduler = BackgroundScheduler()
     scheduler.add_job(backup_database, 'interval', weeks=1)
     scheduler.start()

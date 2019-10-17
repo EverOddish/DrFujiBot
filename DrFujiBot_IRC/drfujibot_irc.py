@@ -71,34 +71,34 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
 
     def on_pubmsg(self, c, e):
         line = e.arguments[0]
-        if line.startswith("!"):
-            print(line)
-            is_broadcaster = False
-            is_moderator = False
-            is_subscriber = False
+        print(line)
+        is_broadcaster = False
+        is_moderator = False
+        is_subscriber = False
 
-            for tag in e.tags:
-                if tag['key'] == 'bits':
-                    pass
-                elif tag['key'] == 'badges':
-                    if tag['value']:
-                        badges = tag['value'].split(',')
-                        for b in badges:
-                            if b.split('/')[0] == 'broadcaster':
-                                is_broadcaster = True
-                            elif b.split('/')[0] == 'moderator':
-                                is_moderator = True
-                            elif b.split('/')[0] == 'subscriber':
-                                is_subscriber = True
+        for tag in e.tags:
+            if tag['key'] == 'bits':
+                pass
+            elif tag['key'] == 'badges':
+                if tag['value']:
+                    badges = tag['value'].split(',')
+                    for b in badges:
+                        if b.split('/')[0] == 'broadcaster':
+                            is_broadcaster = True
+                        elif b.split('/')[0] == 'moderator':
+                            is_moderator = True
+                        elif b.split('/')[0] == 'subscriber':
+                            is_subscriber = True
 
-            parameters = {'is_broadcaster': is_broadcaster, 'is_moderator': is_moderator, 'is_subscriber': is_subscriber, 'line': line}
-            try:
-                response = self.session.get('http://127.0.0.1:41945/dashboard/drfujibot', params=parameters)
-                if len(response.text) > 0:
-                    print(response.text)
-                    self.output_msg(response.text)
-            except Exception as e:
-                print(e)
+        username = e.source.nick
+        parameters = {'is_broadcaster': is_broadcaster, 'is_moderator': is_moderator, 'is_subscriber': is_subscriber, 'username': username, 'line': line}
+        try:
+            response = self.session.get('http://127.0.0.1:41945/dashboard/drfujibot', params=parameters)
+            if len(response.text) > 0:
+                print(response.text)
+                self.output_msg(response.text)
+        except Exception as e:
+            print(e)
 
     def output_msg(self, output):
         MAX_MESSAGE_SIZE = 480

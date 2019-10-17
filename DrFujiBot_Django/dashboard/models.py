@@ -52,3 +52,11 @@ class Death(models.Model):
 class Quote(models.Model):
     quote_text = models.CharField(max_length=1000)
     quotee = models.CharField(max_length=200)
+
+class ChatLog(models.Model):
+    is_broadcaster = models.BooleanField(default=False)
+    is_moderator = models.BooleanField(default=False)
+    is_subscriber = models.BooleanField(default=False)
+    username = models.CharField(max_length=100)
+    line = models.CharField(max_length=1000)
+    timestamp = models.DateTimeField(default=now)

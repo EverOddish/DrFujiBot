@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.template import loader
 
 from .models import DISABLED, BROADCASTER_ONLY, MODERATOR_ONLY, SUBSCRIBER_ONLY, EVERYONE
-from .models import Command, SimpleOutput, Setting, TimedMessage
+from .models import Command, SimpleOutput, Setting, TimedMessage, ChatLog
 from .lookup_commands import handle_lookup_command
 from .admin_commands import handle_admin_command
 
@@ -39,7 +39,11 @@ def drfujibot(request):
     is_broadcaster = request.GET.get('is_broadcaster')
     is_moderator = request.GET.get('is_moderator')
     is_subscriber = request.GET.get('is_subscriber')
+    username = request.GET.get('username')
     line = request.GET.get('line')
+
+    chat_log = ChatLog(is_broadcaster=is_broadcaster, is_moderator=is_moderator, is_subscriber=is_subscriber, username=username, line=line)
+    chat_log.save()
 
     line_pieces = line.split(' ')
     command = line_pieces[0]
