@@ -94,9 +94,12 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
         parameters = {'is_broadcaster': is_broadcaster, 'is_moderator': is_moderator, 'is_subscriber': is_subscriber, 'username': username, 'line': line}
         try:
             response = self.session.get('http://127.0.0.1:41945/dashboard/drfujibot', params=parameters)
-            if len(response.text) > 0:
-                print(response.text)
-                self.output_msg(response.text)
+            # Don't print errors from the server
+            if len(response.text) > 0 and '<!DOCTYPE html>' not in response.text:
+                lines = response.text.split('\n')
+                for line in lines:
+                    print(line)
+                    self.output_msg(line)
         except Exception as e:
             print(e)
 

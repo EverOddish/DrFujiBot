@@ -17,6 +17,8 @@ admin_commands = [('!setgame', MODERATOR_ONLY),
                   ('!latestquote', DISABLED),
                   ('!addquote', DISABLED),
                   ('!delquote', DISABLED),
+                  ('!nuke', DISABLED),
+                  ('!unnuke', DISABLED),
                  ]
 
 def create_admin_commands(apps, schema_editor):

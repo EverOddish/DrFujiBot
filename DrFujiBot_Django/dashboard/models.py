@@ -60,3 +60,6 @@ class ChatLog(models.Model):
     username = models.CharField(max_length=100)
     line = models.CharField(max_length=1000)
     timestamp = models.DateTimeField(default=now)
+
+class BannedPhrase(models.Model):
+    phrase = models.CharField(max_length=200)

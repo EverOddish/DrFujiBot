@@ -1,4 +1,4 @@
-from .models import Setting, Command, SimpleOutput, Run, Death, Quote
+from .models import Setting, Command, SimpleOutput, Run, Death, Quote, ChatLog, BannedPhrase
 from westwood.models import Game
 
 def handle_setgame(args):
@@ -247,6 +247,32 @@ def handle_delquote(args):
         output = 'Invalid quote number'
     return output
 
+def handle_nuke(args):
+    phrase = ' '.join(args)
+
+    banned_phrase = BannedPhrase(phrase=phrase)
+    banned_phrase.save()
+
+    output = ['The phrase "' + phrase + '" is now banned']
+
+    chat_log_matches = ChatLog.objects.filter(line__icontains=phrase)
+    for match in chat_log_matches:
+        output.append('/timeout ' + match.username + ' 1')
+
+    return output
+
+def handle_unnuke(args):
+    phrase = ' '.join(args)
+    output = 'Phrase "' + phrase + '" not found'
+
+    banned_phrase_matches = BannedPhrase.objects.filter(phrase__icontains=phrase)
+    if len(banned_phrase_matches) > 0:
+        for banned_phrase in banned_phrase_matches:
+            banned_phrase.delete()
+        output = 'The phrase "' + phrase + '" is no longer banned'
+
+    return output
+
 handlers = {'!setgame': handle_setgame,
             '!addcom': handle_addcom,
             '!delcom': handle_delcom,
@@ -261,6 +287,8 @@ handlers = {'!setgame': handle_setgame,
             '!latestquote': handle_latestquote,
             '!addquote': handle_addquote,
             '!delquote': handle_delquote,
+            '!nuke': handle_nuke,
+            '!unnuke': handle_unnuke,
            }
 
 expected_args = {'!setgame': 1,
@@ -277,6 +305,8 @@ expected_args = {'!setgame': 1,
                  '!latestquote': 0,
                  '!addquote': 1,
                  '!delquote': 1,
+                 '!nuke': 1,
+                 '!unnuke': 1,
                 }
 
 usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
@@ -293,6 +323,8 @@ usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
          '!latestquote': 'Usage: !latestquote',
          '!addquote': 'Usage: !addquote <quote>',
          '!delquote': 'Usage: !delquote <quote number>',
+         '!nuke': 'Usage: !nuke <word or phrase>',
+         '!unnuke': 'Usage: !nuke <word or phrase>',
         }
 
 def handle_admin_command(line):

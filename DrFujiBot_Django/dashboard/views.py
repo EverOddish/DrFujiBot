@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.template import loader
 
 from .models import DISABLED, BROADCASTER_ONLY, MODERATOR_ONLY, SUBSCRIBER_ONLY, EVERYONE
-from .models import Command, SimpleOutput, Setting, TimedMessage, ChatLog
+from .models import Command, SimpleOutput, Setting, TimedMessage, ChatLog, BannedPhrase
 from .lookup_commands import handle_lookup_command
 from .admin_commands import handle_admin_command
 
@@ -45,6 +45,13 @@ def drfujibot(request):
     chat_log = ChatLog(is_broadcaster=is_broadcaster, is_moderator=is_moderator, is_subscriber=is_subscriber, username=username, line=line)
     chat_log.save()
 
+    if 'True' != is_broadcaster and 'True' != is_moderator:
+        banned_phrase_matches = BannedPhrase.objects.all()
+        for phrase_object in banned_phrase_matches:
+            print(phrase_object.phrase.lower())
+            if phrase_object.phrase.lower() in line.lower():
+                return HttpResponse('/timeout ' + username + ' 1')
+
     line_pieces = line.split(' ')
     command = line_pieces[0]
 
@@ -59,6 +66,9 @@ def drfujibot(request):
                 response_text = handle_lookup_command(line)
                 if None == response_text or len(response_text) == 0:
                     response_text = handle_admin_command(line)
+
+    if isinstance(response_text, list):
+        response_text = '\n'.join(response_text)
 
     return HttpResponse(response_text)
 
