@@ -40,10 +40,10 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
             # Please do not use this token for any other purpose than the normal functions of DrFujiBot. Thank you.
             token = 'oauth:' + unscramble(self.settings['twitch_oauth_token'])
 
-            twitch_channel = self.settings['twitch_channel'].lower()
-            if len(twitch_channel) > 0:
-                irc.bot.SingleServerIRCBot.__init__(self, [('irc.twitch.tv', 6667, token)], twitch_channel, twitch_channel)
-                self.channel = '#' + twitch_channel.lower()
+            self.twitch_channel = self.settings['twitch_channel'].lower()
+            if len(self.twitch_channel) > 0:
+                irc.bot.SingleServerIRCBot.__init__(self, [('irc.twitch.tv', 6667, token)], self.twitch_channel, self.twitch_channel)
+                self.channel = '#' + self.twitch_channel.lower()
                 self.session = requests.Session()
                 self.timed_message_thread = threading.Thread(target=self.timed_message_loop)
                 self.timed_message_thread.start()
@@ -176,6 +176,7 @@ if '__main__' == __name__:
             print('Usage: python3 drfujibot_irc.py debug')
     elif len(sys.argv) >= 2 and 'debug' == sys.argv[1]:
         bot = DrFujiBot()
-        bot.start()
+        if len(bot.twitch_channel) > 0:
+            bot.start()
     else:
         DrFujiBotService.parse_command_line()

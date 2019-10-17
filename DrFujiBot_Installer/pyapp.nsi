@@ -57,6 +57,50 @@ FunctionEnd
 Function MyPageFuncLeave
     ${NSD_GetText} $myTextBox $twitchChannel
 FunctionEnd
+Function TrimQuotes
+Exch $R0
+Push $R1
+ 
+  StrCpy $R1 $R0 1
+  StrCmp $R1 `"` 0 +2
+    StrCpy $R0 $R0 `` 1
+  StrCpy $R1 $R0 1 -1
+  StrCmp $R1 `"` 0 +2
+    StrCpy $R0 $R0 -1
+ 
+Pop $R1
+Exch $R0
+FunctionEnd
+!macro _TrimQuotes Input Output
+  Push `${Input}`
+  Call TrimQuotes
+  Pop ${Output}
+!macroend
+!define TrimQuotes `!insertmacro _TrimQuotes`
+Section "Backup and remove old version"
+    ; Check for uninstaller.
+    ReadRegStr $0 HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "UninstallString"
+    ReadRegStr $1 HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "InstallLocation"
+    ${TrimQuotes} $0 $0
+    IfFileExists $0 0 Done
+    MessageBox MB_OK "Uninstalling old version. Your database will be automatically backed up and restored to the new version."
+    DetailPrint "Removing previous installation."    
+
+    CreateDirectory "$1\..\DrFujiBot_Backup"
+    CopyFiles "$1\DrFujiBot_Django\db.sqlite3" "$1\..\DrFujiBot_Backup\db_backup_before_uninstall.sqlite3"
+
+    ${If} ${Errors}
+        DetailPrint "Failed to back up existing database"    
+        Abort "Failed to back up existing database"
+        Goto Done
+    ${EndIf}
+
+    ; Run the uninstaller silently.
+    ExecWait '"$0" /S _?=$INSTDIR'
+    RMDir /r "$INSTDIR"
+
+    Done:
+SectionEnd
 ; End DrFujiBot add-in
 
 

@@ -1,3 +1,41 @@
+Function DumpLog
+  Exch $5
+  Push $0
+  Push $1
+  Push $2
+  Push $3
+  Push $4
+  Push $6
+ 
+  FindWindow $0 "#32770" "" $HWNDPARENT
+  GetDlgItem $0 $0 1016
+  StrCmp $0 0 exit
+  FileOpen $5 $5 "w"
+  StrCmp $5 "" exit
+    SendMessage $0 ${LVM_GETITEMCOUNT} 0 0 $6
+    System::Call '*(&t${NSIS_MAX_STRLEN})p.r3'
+    StrCpy $2 0
+    System::Call "*(i, i, i, i, i, p, i, i, i) i  (0, 0, 0, 0, 0, r3, ${NSIS_MAX_STRLEN}) .r1"
+    loop: StrCmp $2 $6 done
+      System::Call "User32::SendMessage(i, i, i, i) i ($0, ${LVM_GETITEMTEXT}, $2, r1)"
+      System::Call "*$3(&t${NSIS_MAX_STRLEN} .r4)"
+      FileWrite $5 "$4$\r$\n" ; Unicode will be translated to ANSI!
+      IntOp $2 $2 + 1
+      Goto loop
+    done:
+      FileClose $5
+      System::Free $1
+      System::Free $3
+  exit:
+    Pop $6
+    Pop $4
+    Pop $3
+    Pop $2
+    Pop $1
+    Pop $0
+    Exch $5
+FunctionEnd
+
 ; Apache Section
 !include x64.nsh
 Section "Apache HTTP Server 2.4"
@@ -84,10 +122,21 @@ Section "DrFujiBot Django"
     File /r /x db.sqlite3 /x *.pyc /x *.swp "..\..\..\DrFujiBot_Django"
     CreateDirectory "$INSTDIR\..\DrFujiBot_Backup"
 
+    IfFileExists "$INSTDIR\..\DrFujiBot_Backup\db_backup_before_uninstall.sqlite3" RestoreBackup Init
+    RestoreBackup:
+    CopyFiles "$INSTDIR\..\DrFujiBot_Backup\db_backup_before_uninstall.sqlite3" "$INSTDIR\DrFujiBot_Django\db.sqlite3"
+
+    # Run any new migrations on the old database to bring it up to date
+    nsExec::ExecToLog '"$INSTDIR\Python\python.exe" "$INSTDIR\DrFujiBot_Django\manage.py" migrate'
+    Goto Check
+
+    Init:
     ; Initialize Django
     nsExec::ExecToLog '"$INSTDIR\Python\python.exe" "$INSTDIR\DrFujiBot_Django\manage.py" migrate'
     File "..\..\..\DrFujiBot_Installer\create_super_user.bat"
     nsExec::ExecToLog '"$INSTDIR\create_super_user.bat"'
+
+    Check:
     nsExec::ExecToLog '"$INSTDIR\Python\python.exe" "$INSTDIR\DrFujiBot_Django\manage.py" check'
     Pop $0
     IfErrors 0 done
@@ -109,6 +158,10 @@ Section "DrFujiBot IRC"
     nsExec::ExecToLog 'sc.exe create "DrFujiBot IRC" start= auto binPath= "\$\"$INSTDIR\Python\python.exe\$\" \$\"$INSTDIR\DrFujiBot_IRC\drfujibot_irc.py\$\"'
     nsExec::ExecToLog 'sc.exe description "DrFujiBot IRC" "Connects to Twitch chat to relay commands to the local DrFujiBot Django instance"'
     nsExec::ExecToLog 'net.exe start "DrFujiBot IRC"'
+
+    StrCpy $0 "$INSTDIR\install.log"
+    Push $0
+    Call DumpLog
 SectionEnd
 
 ; Uninstall sections
