@@ -147,6 +147,9 @@ SectionEnd
 ; IRC Section
 Section "DrFujiBot IRC"
     File /r /x config.json /x *.swp "..\..\..\DrFujiBot_IRC"
+    ${If} ${RunningX64}
+        CopyFiles "$INSTDIR\pkgs\pywin32_system32\*.dll" "$WINDIR\SysWOW64"
+    ${EndIf}
 
     ; Create config.json
     ClearErrors
