@@ -1,5 +1,8 @@
 from .models import Setting, Command, SimpleOutput, Run, Death, Quote, ChatLog, BannedPhrase
+from apscheduler.schedulers.background import BackgroundScheduler
 from westwood.models import Game
+
+import datetime
 
 def handle_setgame(args):
     game_name = ' '.join(args)
@@ -151,6 +154,31 @@ def handle_setrun(args):
         output = 'Run "' + run_name + '" not found'
     return output
 
+def update_respects(death_object_id):
+    death_matches = Death.objects.filter(id=death_object_id)
+    if len(death_matches) > 0:
+        death_object = death_matches[0]
+
+        utc_tz = datetime.timezone.utc
+        twenty_seconds_ago = datetime.datetime.now(utc_tz) - datetime.timedelta(seconds=20)
+
+        f_matches = ChatLog.objects.filter(line__iexact='F').filter(timestamp__gte=twenty_seconds_ago)
+        f_users = set()
+        for match in f_matches:
+            f_users.add(match.username)
+            
+        pokemof_matches = ChatLog.objects.filter(line__exact='pokemoF').filter(timestamp__gte=twenty_seconds_ago)
+        pokemof_users = set()
+        for match in pokemof_matches:
+            pokemof_users.add(match.username)
+
+        respect_count = len(f_users) + len(pokemof_users)
+
+        death_object.respect_count = respect_count
+        death_object.save()
+
+        # TODO: Create a TimedMessage
+
 def handle_rip(args):
     nickname = ' '.join(args)
 
@@ -163,6 +191,12 @@ def handle_rip(args):
     death_count = Death.objects.filter(run=run).count()
 
     output = 'Death count: ' + str(death_count) + ' - Press F to pay respects to "' + nickname + '"'
+
+    utc_tz = datetime.timezone.utc
+    twenty_seconds_from_now = datetime.datetime.now(utc_tz) + datetime.timedelta(seconds=20)
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(update_respects, 'date', run_date=twenty_seconds_from_now, args=[death_object.id])
+    scheduler.start()
 
     # TODO: Auto-marker
 
