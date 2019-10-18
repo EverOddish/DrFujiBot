@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.forms import ModelForm, Select, TextInput
 
-from .models import Command, SimpleOutput, TimedMessage, Setting, Run, Death, Quote
+from .models import Command, SimpleOutput, TimedMessage, Setting, Run, Death, Quote, BannedPhrase
 from .models import DISABLED, BROADCASTER_ONLY, MODERATOR_ONLY, SUBSCRIBER_ONLY, EVERYONE
 from westwood.models import Game
 
@@ -105,6 +105,9 @@ class QuoteAdmin(admin.ModelAdmin):
     readonly_fields = ['id']
     list_display = ['id', 'quote_text', 'quotee']
 
+class BannedPhraseAdmin(admin.ModelAdmin):
+    list_display = ['phrase']
+
 admin.site.register(Command, CommandAdmin)
 admin.site.register(TimedMessage, TimedMessageAdmin)
 admin.site.register(SimpleOutput, SimpleOutputAdmin)
@@ -112,3 +115,4 @@ admin.site.register(Setting, SettingAdmin)
 admin.site.register(Run, RunAdmin)
 admin.site.register(Death, DeathAdmin)
 admin.site.register(Quote, QuoteAdmin)
+admin.site.register(BannedPhrase, BannedPhraseAdmin)
