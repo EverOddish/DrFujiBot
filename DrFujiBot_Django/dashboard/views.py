@@ -27,11 +27,11 @@ def console(request):
 def permitted(is_broadcaster, is_moderator, is_subscriber, permissions):
     if permissions == DISABLED:
         return False
-    if is_broadcaster:
+    if 'True' == is_broadcaster:
         return permissions >= BROADCASTER_ONLY
-    if is_moderator:
+    if 'True' == is_moderator:
         return permissions >= MODERATOR_ONLY
-    if is_subscriber:
+    if 'True' == is_subscriber:
         return permissions >= SUBSCRIBER_ONLY
     return permissions >= EVERYONE
 
