@@ -35,6 +35,16 @@ def permitted(is_broadcaster, is_moderator, is_subscriber, permissions):
         return permissions >= SUBSCRIBER_ONLY
     return permissions >= EVERYONE
 
+def get_permission_message(permissions):
+    if permissions == DISABLED:
+        return 'disabled'
+    elif permissions == BROADCASTER_ONLY:
+        return 'only permitted for the broadcaster'
+    elif permissions == MODERATOR_ONLY:
+        return 'only permitted for moderators'
+    elif permissions == SUBSCRIBER_ONLY:
+        return 'only permitted for subscribers'
+
 def drfujibot(request):
     is_broadcaster = request.GET.get('is_broadcaster')
     is_moderator = request.GET.get('is_moderator')
@@ -66,6 +76,9 @@ def drfujibot(request):
                 response_text = handle_lookup_command(line)
                 if None == response_text or len(response_text) == 0:
                     response_text = handle_admin_command(line)
+        else:
+            message = get_permission_message(cmd.permissions)
+            response_text = 'Sorry, ' + command + ' is ' + message +'. If you would like to use this bot on your own computer, you can find it at https://github.com/EverOddish/DrFujiBot/releases'
 
     if isinstance(response_text, list):
         response_text = '\n'.join(response_text)
