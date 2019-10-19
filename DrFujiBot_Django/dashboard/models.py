@@ -45,6 +45,8 @@ class Run(models.Model):
     name = models.CharField(max_length=200)
     attempt_number = models.IntegerField(default=1)
     game_setting = models.CharField(max_length=200)
+    last_run_output = models.ForeignKey(SimpleOutput, blank=True, null=True, on_delete=models.SET_NULL, related_name='last_run_output')
+    how_far_output = models.ForeignKey(SimpleOutput, blank=True, null=True, on_delete=models.SET_NULL, related_name='how_far_output')
     def __str__(self):
         return self.name
 

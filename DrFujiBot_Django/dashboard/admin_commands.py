@@ -4,6 +4,19 @@ from westwood.models import Game
 
 import datetime
 
+def update_run(command_name, simple_output):
+    if '!lastrun' == command_name or '!howfar' == command_name:
+        current_run_setting = Setting.objects.filter(key='Current Run')[0]
+        run_matches = Run.objects.filter(name__iexact=current_run_setting.value)
+        if len(run_matches) > 0:
+            run_object = run_matches[0]
+            if '!lastrun' == command_name:
+                run_object.last_run_output = simple_output
+                run_object.save()
+            elif '!howfar' == command_name:
+                run_object.how_far_output = simple_output
+                run_object.save()
+
 def handle_setgame(args):
     game_name = ' '.join(args)
     output = 'Game "' + game_name + '" not found'
@@ -36,6 +49,8 @@ def handle_addcom(args):
 
         command = Command(command=command_name, output=simple_output)
         command.save()
+
+        update_run(command_name, simple_output)
 
         output = 'Command "' + command_name + '" successfully created'
     else:
@@ -70,12 +85,31 @@ def handle_editcom(args):
 
     command_matches = Command.objects.filter(command__iexact=command_name)
     if len(command_matches) == 1:
-        simple_output = command_matches[0].output
-        simple_output.output_text = simple_output_text
-        simple_output.save()
+        command_object = command_matches[0]
+        simple_output = command_object.output
 
-        command = Command(command=command_name, output=simple_output)
-        command.save()
+        # We need to check if the current SimpleOutput is referenced by any Run that is not the current Run
+        need_new_simple_output = False
+        current_run_setting = Setting.objects.filter(key='Current Run')[0]
+        run_matches = Run.objects.all()
+        for run in run_matches:
+            if run.name != current_run_setting:
+                if simple_output == run.last_run_output or simple_output == run.how_far_output:
+                    need_new_simple_output = True
+
+        if need_new_simple_output:
+            # Create a new SimpleOutput and point the Command to it, in order to preserve other Run references to the current SimpleOutput
+            new_simple_output = SimpleOutput(prefix=simple_output.prefix, output_text=simple_output_text)
+            new_simple_output.save()
+            command_object.output = new_simple_output
+            command_object.save()
+            simple_output = new_simple_output
+        else:
+            # No other Run references the current SimpleOutput, so it's safe to just edit it
+            simple_output.output_text = simple_output_text
+            simple_output.save()
+
+        update_run(command_name, simple_output)
 
         output = 'Command "' + command_name + '" successfully modified'
     else:
@@ -148,6 +182,18 @@ def handle_setrun(args):
         current_run_setting = Setting.objects.filter(key='Current Run')[0]
         current_run_setting.value = run_name
         current_run_setting.save()
+
+        command_matches = Command.objects.filter(command__iexact='!lastrun')
+        if len(command_matches) > 0:
+            lastrun_command = command_matches[0]
+            lastrun_command.output = run_object.last_run_output
+            lastrun_command.save()
+
+        command_matches = Command.objects.filter(command__iexact='!howfar')
+        if len(command_matches) > 0:
+            howfar_command = command_matches[0]
+            howfar_command.output = run_object.how_far_output
+            howfar_command.save()
 
         output = 'Current run set to "' + run_object.name + '" playing ' + run_object.game_setting
     else:

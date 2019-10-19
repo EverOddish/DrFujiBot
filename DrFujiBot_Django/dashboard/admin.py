@@ -74,9 +74,24 @@ class SettingAdmin(admin.ModelAdmin):
             class Meta:
                 model = Setting
                 fields = ('value',)
+        class CurrentRunSettingAdminForm(ModelForm):
+            class Meta:
+                model = Setting
+                fields = ('value',)
+                run_objects = Run.objects.all().order_by('name')
+                run_names = [(run.name, run.name) for run in run_objects]
+                widgets={'value': Select(choices=run_names)}
+        class CurrentGameSettingAdminForm(ModelForm):
+            class Meta:
+                model = Setting
+                fields = ('value',)
                 game_objects = Game.objects.all().order_by('sequence')
                 valid_games = [(game.name, game.name) for game in game_objects]
                 widgets={'value': Select(choices=valid_games)}
+        if 'Current Game' == obj.key:
+            return CurrentGameSettingAdminForm
+        elif 'Current Run' == obj.key:
+            return CurrentRunSettingAdminForm
         return SettingAdminForm
     def get_fields(self, request, obj=None):
         return ['key', 'value']
@@ -84,18 +99,18 @@ class SettingAdmin(admin.ModelAdmin):
         return False
 
 class RunAdmin(admin.ModelAdmin):
-    list_display = ['name', 'attempt_number', 'game_setting']
+    list_display = ['name', 'attempt_number', 'game_setting', 'last_run_output', 'how_far_output']
     def get_form(self, request, obj=None, **kwargs):
         class RunAdminForm(ModelForm):
             class Meta:
                 model = Run
-                fields = ('name', 'attempt_number', 'game_setting')
+                fields = ('name', 'attempt_number', 'game_setting', 'last_run_output', 'how_far_output')
                 game_objects = Game.objects.all().order_by('sequence')
                 valid_games = [(game.name, game.name) for game in game_objects]
                 widgets={'name': TextInput(), 'attempt_number': TextInput(), 'game_setting': Select(choices=valid_games)}
         return RunAdminForm
     def get_fields(self, request, obj=None):
-        return ['name', 'attempt_number', 'game_setting']
+        return ['name', 'attempt_number', 'game_setting', 'last_run_output', 'how_far_output']
 
 class DeathAdmin(admin.ModelAdmin):
     fields = ['nickname', 'time_of_death', 'respect_count', 'run']

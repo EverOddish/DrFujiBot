@@ -18,6 +18,8 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=200)),
                 ('attempt_number', models.IntegerField(default=1)),
                 ('game_setting', models.CharField(max_length=200)),
+                ('last_run_output', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='last_run_output', to='dashboard.SimpleOutput')),
+                ('how_far_output', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='how_far_output', to='dashboard.SimpleOutput')),
             ],
         ),
         migrations.CreateModel(
