@@ -71,7 +71,10 @@ def drfujibot(request):
         cmd = command_query_set[0]
         if permitted(is_broadcaster, is_moderator, is_subscriber, cmd.permissions):
             if cmd.output:
-                response_text = cmd.output.output_text
+                if len(cmd.output.prefix) > 0:
+                    response_text = cmd.output.prefix + ' ' + cmd.output.output_text
+                else:
+                    response_text = cmd.output.output_text
             else:
                 response_text = handle_lookup_command(line)
                 if None == response_text or len(response_text) == 0:
@@ -94,7 +97,10 @@ def timed_messages(request):
     for timed_message in timed_messages:
         interval = datetime.timedelta(minutes=timed_message.minutes_interval)
         if now - timed_message.last_output_time > interval:
-            response_text = timed_message.message.output_text
+            if len(cmd.output.prefix) > 0:
+                response_text = timed_message.message.prefix + ' ' + timed_message.message.output_text
+            else:
+                response_text = timed_message.message.output_text
             timed_message.last_output_time = now
             if timed_message.max_output_count > 0:
                 timed_message.current_output_count += 1

@@ -16,7 +16,13 @@ class CommandAdmin(admin.ModelAdmin):
             return ('command', 'permissions')
 
     def get_output(self, obj):
-        return obj.output.output_text if None != obj.output else ''
+        if None != obj.output:
+            if len(obj.output.prefix) > 0:
+                return obj.output.prefix + ' ' + obj.output.output_text
+            else:
+                return obj.output.output_text
+        else:
+            return ''
     get_output.admin_order_field = 'output'
     get_output.short_description = 'Output Text'
 
@@ -58,7 +64,7 @@ class TimedMessageAdmin(admin.ModelAdmin):
     get_message.short_description = 'Message'
 
 class SimpleOutputAdmin(admin.ModelAdmin):
-    list_display = ['output_text']
+    list_display = ['output_text', 'prefix']
 
 class SettingAdmin(admin.ModelAdmin):
     list_display = ['key', 'value']

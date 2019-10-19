@@ -16,6 +16,7 @@ class Migration(migrations.Migration):
             name='SimpleOutput',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('prefix', models.CharField(max_length=5000, default='', blank=True)),
                 ('output_text', models.CharField(max_length=5000)),
             ],
         ),

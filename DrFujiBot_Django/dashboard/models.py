@@ -18,9 +18,10 @@ PERMISSIONS_CHOICES = (
 )
 
 class SimpleOutput(models.Model):
+    prefix = models.CharField(max_length=5000, default='', blank=True)
     output_text = models.CharField(max_length=5000)
     def __str__(self):
-        return self.output_text
+        return self.prefix + ' ' + self.output_text
 
 class Command(models.Model):
     command = models.CharField(max_length=200, validators=[RegexValidator(regex='^![a-zA-Z0-9]+$', message='Command must start with ! and contain only alphanumeric characters')])
