@@ -44,6 +44,8 @@ class Run(models.Model):
     name = models.CharField(max_length=200)
     attempt_number = models.IntegerField(default=1)
     game_setting = models.CharField(max_length=200)
+    def __str__(self):
+        return self.name
 
 class Death(models.Model):
     nickname = models.CharField(max_length=200)
