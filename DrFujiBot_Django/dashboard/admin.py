@@ -106,7 +106,7 @@ class QuoteAdmin(admin.ModelAdmin):
     list_display = ['id', 'quote_text', 'quotee']
 
 class BannedPhraseAdmin(admin.ModelAdmin):
-    list_display = ['phrase']
+    list_display = ['phrase', 'expiry']
 
 admin.site.register(Command, CommandAdmin)
 admin.site.register(TimedMessage, TimedMessageAdmin)

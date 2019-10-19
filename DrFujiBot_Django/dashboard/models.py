@@ -67,3 +67,4 @@ class ChatLog(models.Model):
 
 class BannedPhrase(models.Model):
     phrase = models.CharField(max_length=200)
+    expiry = models.DateTimeField(null=True)

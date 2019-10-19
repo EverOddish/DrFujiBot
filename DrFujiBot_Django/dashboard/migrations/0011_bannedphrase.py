@@ -15,6 +15,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('phrase', models.CharField(max_length=200)),
+                ('expiry', models.DateTimeField(null=True)),
             ],
         ),
     ]

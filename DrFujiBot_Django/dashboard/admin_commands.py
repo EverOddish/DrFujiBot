@@ -287,12 +287,23 @@ def handle_delquote(args):
     return output
 
 def handle_nuke(args):
+    expiry = None
+    expiry_minutes = 0
+    maybe_expiry = args[0]
     phrase = ' '.join(args)
+    if maybe_expiry.isnumeric():
+        expiry_minutes = int(maybe_expiry)
+        phrase = ' '.join(args[1:])
+        utc_tz = datetime.timezone.utc
+        expiry = datetime.datetime.now(utc_tz) + datetime.timedelta(minutes=expiry_minutes)
 
-    banned_phrase = BannedPhrase(phrase=phrase)
+    banned_phrase = BannedPhrase(phrase=phrase, expiry=expiry)
     banned_phrase.save()
 
-    output = ['The phrase "' + phrase + '" is now banned']
+    output_text = 'The phrase "' + phrase + '" is now banned'
+    if expiry_minutes > 0:
+        output_text += ' for ' + str(expiry_minutes) + ' minutes'
+    output = [output_text]
 
     chat_log_matches = ChatLog.objects.filter(line__icontains=phrase)
     for match in chat_log_matches:
