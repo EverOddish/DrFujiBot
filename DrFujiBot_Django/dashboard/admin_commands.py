@@ -93,7 +93,7 @@ def handle_editcom(args):
         current_run_setting = Setting.objects.filter(key='Current Run')[0]
         run_matches = Run.objects.all()
         for run in run_matches:
-            if run.name != current_run_setting:
+            if run.name != current_run_setting.value:
                 if simple_output == run.last_run_output or simple_output == run.how_far_output:
                     need_new_simple_output = True
 
@@ -198,6 +198,42 @@ def handle_setrun(args):
         output = 'Current run set to "' + run_object.name + '" playing ' + run_object.game_setting
     else:
         output = 'Run "' + run_name + '" not found'
+    return output
+
+def handle_riprun(args):
+    output = ''
+    last_run_text = ' '.join(args)
+
+    current_run_setting = Setting.objects.filter(key='Current Run')[0]
+
+    run_matches = Run.objects.filter(name__iexact=current_run_setting.value)
+    if len(run_matches) > 0:
+        current_run_object = run_matches[0]
+        current_run_object.attempt_number += 1
+
+        last_run_simple_output = None
+        command_matches = Command.objects.filter(command__iexact='!lastrun')
+        if len(command_matches) > 0:
+            lastrun_command = command_matches[0]
+
+            prefix = ''
+            if lastrun_command.output:
+                prefix = lastrun_command.output.prefix
+            last_run_simple_output = SimpleOutput(prefix=prefix, output_text=last_run_text)
+            last_run_simple_output.save()
+
+            lastrun_command.output = last_run_simple_output
+            lastrun_command.save()
+        else:
+            last_run_simple_output = SimpleOutput(output_text=last_run_text)
+            last_run_simple_output.save()
+
+        current_run_object.last_run_output = last_run_simple_output
+        current_run_object.save()
+
+        output = 'Attempt number for "' + current_run_object.name + '" run is now ' + str(current_run_object.attempt_number) + ', and !lastrun was updated'
+    else:
+        output = 'Run "' + current_run_setting.value + '" not found'
     return output
 
 def update_respects(death_object_id):
@@ -376,6 +412,7 @@ handlers = {'!setgame': handle_setgame,
             '!alias': handle_alias,
             '!addrun': handle_addrun,
             '!setrun': handle_setrun,
+            '!riprun': handle_riprun,
             '!rip': handle_rip,
             '!deaths': handle_deaths,
             '!fallen': handle_fallen,
@@ -394,6 +431,7 @@ expected_args = {'!setgame': 1,
                  '!alias': 2,
                  '!addrun': 1,
                  '!setrun': 1,
+                 '!riprun': 1,
                  '!rip': 1,
                  '!deaths': 0,
                  '!fallen': 0,
@@ -412,6 +450,7 @@ usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
          '!alias': 'Usage: !alias <existing command> <new command>',
          '!addrun': 'Usage: !addrun <run name>',
          '!setrun': 'Usage: !setrun <run name>',
+         '!riprun': 'Usage: !riprun <run name>',
          '!rip': 'Usage: !rip <pokemon nickname>',
          '!deaths': 'Usage: !deaths',
          '!fallen': 'Usage: !fallen',
