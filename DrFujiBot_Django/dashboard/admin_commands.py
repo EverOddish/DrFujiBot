@@ -1,4 +1,4 @@
-from .models import Setting, Command, SimpleOutput, Run, Death, Quote, ChatLog, BannedPhrase
+from .models import Setting, Command, SimpleOutput, Run, Death, Quote, ChatLog, BannedPhrase, TimedMessage
 from apscheduler.schedulers.background import BackgroundScheduler
 from westwood.models import Game
 
@@ -177,7 +177,12 @@ def update_respects(death_object_id):
         death_object.respect_count = respect_count
         death_object.save()
 
-        # TODO: Create a TimedMessage
+        output = str(respect_count) + ' respects for ' + death_object.nickname
+        respects_output = SimpleOutput(output_text=output)
+        respects_output.save()
+        two_minutes_ago = datetime.datetime.now(utc_tz) - datetime.timedelta(minutes=2)
+        respects_message = TimedMessage(minutes_interval=1, last_output_time=two_minutes_ago, max_output_count=1, message=respects_output)
+        respects_message.save()
 
 def handle_rip(args):
     nickname = ' '.join(args)

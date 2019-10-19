@@ -96,7 +96,14 @@ def timed_messages(request):
         if now - timed_message.last_output_time > interval:
             response_text = timed_message.message.output_text
             timed_message.last_output_time = now
+            if timed_message.max_output_count > 0:
+                timed_message.current_output_count += 1
             timed_message.save()
+
+            if timed_message.max_output_count > 0 and timed_message.current_output_count >= timed_message.max_output_count:
+                timed_message.message.delete()
+                timed_message.delete()
+
             # Only output one timed message at a time. Others will be picked up next time around.
             break
 

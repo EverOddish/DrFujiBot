@@ -36,6 +36,8 @@ class Setting(models.Model):
 class TimedMessage(models.Model):
     minutes_interval = models.IntegerField(default=15)
     last_output_time = models.DateTimeField(default=now)
+    current_output_count = models.IntegerField(default=0)
+    max_output_count = models.IntegerField(default=0)
     message = models.ForeignKey(SimpleOutput, on_delete=models.CASCADE)
 
 class Run(models.Model):
