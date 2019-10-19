@@ -79,6 +79,8 @@ def drfujibot(request):
                 response_text = handle_lookup_command(line)
                 if None == response_text or len(response_text) == 0:
                     response_text = handle_admin_command(line)
+            cmd.invocation_count += 1
+            cmd.save()
         else:
             message = get_permission_message(cmd.permissions)
             response_text = 'Sorry, ' + command + ' is ' + message +'. If you would like to use this bot on your own computer, you can find it at https://github.com/EverOddish/DrFujiBot/releases'

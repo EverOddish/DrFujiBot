@@ -6,14 +6,15 @@ from .models import DISABLED, BROADCASTER_ONLY, MODERATOR_ONLY, SUBSCRIBER_ONLY,
 from westwood.models import Game
 
 class CommandAdmin(admin.ModelAdmin):
-    list_display = ['command', 'get_output', 'permissions']
+    list_display = ['command', 'get_output', 'permissions', 'invocation_count']
     list_filter = ('is_built_in',)
+    readonly_fields = ['invocation_count']
 
     def get_fields(self, request, obj=None):
         if None == obj or not obj.is_built_in:
-            return ('command', 'permissions', 'output')
+            return ('command', 'permissions', 'invocation_count', 'output')
         elif obj.is_built_in:
-            return ('command', 'permissions')
+            return ('command', 'permissions', 'invocation_count')
 
     def get_output(self, obj):
         if None != obj.output:
