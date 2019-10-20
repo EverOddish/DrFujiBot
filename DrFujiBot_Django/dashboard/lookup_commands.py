@@ -223,7 +223,6 @@ def handle_evolve(args):
                         if len(evolution_record.method) > 0:
                             output += ' ' + evolution_record.method
                         output += '. '
-                    break
         else:
             output = pokemon.name + ' does not evolve.'
     else:
