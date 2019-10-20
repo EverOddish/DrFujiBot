@@ -217,8 +217,12 @@ def handle_evolve(args):
                 if is_game_name_in_game_list(current_game_name.value, evolution_set.games):
                     for evolution_records_list_element in EvolutionRecordsListElement.objects.filter(list_id=evolution_set.evolution_records):
                         evolution_record = evolution_records_list_element.element
+                        output += pokemon.name + ' evolves into ' + str(evolution_record.evolves_to)
                         if evolution_record.level > 0:
-                            output += pokemon.name + ' evolves into ' + str(evolution_record.evolves_to) + ' at level ' + str(evolution_record.level) + '. '
+                             + ' at level ' + str(evolution_record.level)
+                        if len(evolution_record.method) > 0:
+                            output += ' ' + evolution_record.method
+                        output += '. '
                     break
         else:
             output = pokemon.name + ' does not evolve.'
