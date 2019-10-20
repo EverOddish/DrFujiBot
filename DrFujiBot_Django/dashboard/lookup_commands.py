@@ -63,13 +63,20 @@ def handle_move(args):
     move_matches = Move.objects.filter(name__iexact=move_name)
     if move_matches:
         move = move_matches[0]
-        output = move.name + ': [' + move.type_1 + '] '
-        output += 'BasePower(' + str(move.base_power) + ') '
-        output += 'Class(' + move.damage_category + ') '
-        output += 'Accuracy(' + str(move.accuracy) + ') '
-        output += 'PP(' + str(move.power_points) + ') '
-        output += 'Priority(' + str(move.priority) + ') '
-        #output += move.description
+
+        current_game_name = Setting.objects.filter(key='Current Game')[0]
+
+        for move_records_list_element in MoveRecordsListElement.objects.filter(list_id=move.move_records):
+            move_record = move_records_list_element.element
+            if is_game_name_in_game_list(current_game_name.value, move_record.games):
+                move_definition = move_record.move_definition
+                output = move.name + ': [' + move_definition.type_1 + '] '
+                output += 'BasePower(' + str(move_definition.base_power) + ') '
+                output += 'Class(' + move_definition.damage_category + ') '
+                output += 'Accuracy(' + str(move_definition.accuracy) + ') '
+                output += 'PP(' + str(move_definition.power_points) + ') '
+                output += 'Priority(' + str(move_definition.priority) + ') '
+                #output += move.description
     else:
         output = '"' + move_name + '" was not found'
     return output
