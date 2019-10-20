@@ -27,7 +27,7 @@ def create_admin_commands(apps, schema_editor):
 
     commands = []
     for admin_command in admin_commands:
-        cmd = Command(command=admin_command[0], permissions=admin_command[1], invocation_count=0, is_built_in=True, output=None)
+        cmd = Command(command=admin_command[0], permissions=admin_command[1], invocation_count=0, is_built_in=True, cooldown=False, output=None)
         commands.append(cmd)
 
     Command.objects.bulk_create(commands)

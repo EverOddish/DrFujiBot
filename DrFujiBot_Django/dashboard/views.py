@@ -70,17 +70,30 @@ def drfujibot(request):
     if len(command_query_set) >= 1:
         cmd = command_query_set[0]
         if permitted(is_broadcaster, is_moderator, is_subscriber, cmd.permissions):
-            if cmd.output:
-                if len(cmd.output.prefix) > 0:
-                    response_text = cmd.output.prefix + ' ' + cmd.output.output_text
-                else:
-                    response_text = cmd.output.output_text
+            now = datetime.datetime.now(datetime.timezone.utc)
+
+            should_output = False
+            if cmd.cooldown:
+                cooldown_setting = Setting.objects.filter(key='Cooldown Seconds')[0]
+                cooldown_seconds = int(cooldown_setting.value)
+                if now - cmd.last_output_time >= datetime.timedelta(seconds=cooldown_seconds):
+                    should_output = True
             else:
-                response_text = handle_lookup_command(line)
-                if None == response_text or len(response_text) == 0:
-                    response_text = handle_admin_command(line)
-            cmd.invocation_count += 1
-            cmd.save()
+                should_output = True
+
+            if should_output:
+                if cmd.output:
+                    if len(cmd.output.prefix) > 0:
+                        response_text = cmd.output.prefix + ' ' + cmd.output.output_text
+                    else:
+                        response_text = cmd.output.output_text
+                else:
+                    response_text = handle_lookup_command(line)
+                    if None == response_text or len(response_text) == 0:
+                        response_text = handle_admin_command(line)
+                cmd.invocation_count += 1
+                cmd.last_output_time = now
+                cmd.save()
         else:
             message = get_permission_message(cmd.permissions)
             response_text = 'Sorry, ' + command + ' is ' + message +'. If you would like to use this bot on your own computer, you can find it at https://github.com/EverOddish/DrFujiBot/releases'

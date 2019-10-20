@@ -6,15 +6,15 @@ from .models import DISABLED, BROADCASTER_ONLY, MODERATOR_ONLY, SUBSCRIBER_ONLY,
 from westwood.models import Game
 
 class CommandAdmin(admin.ModelAdmin):
-    list_display = ['command', 'get_output', 'permissions', 'invocation_count']
+    list_display = ['command', 'get_output', 'permissions', 'invocation_count', 'cooldown']
     list_filter = ('is_built_in',)
     readonly_fields = ['invocation_count']
 
     def get_fields(self, request, obj=None):
         if None == obj or not obj.is_built_in:
-            return ('command', 'permissions', 'invocation_count', 'output')
+            return ('command', 'permissions', 'invocation_count', 'cooldown', 'output')
         elif obj.is_built_in:
-            return ('command', 'permissions', 'invocation_count')
+            return ('command', 'permissions', 'invocation_count', 'cooldown')
 
     def get_output(self, obj):
         if None != obj.output:
@@ -53,7 +53,15 @@ class CommandAdmin(admin.ModelAdmin):
         queryset.update(permissions=EVERYONE)
     permit_everyone.short_description = 'Set selected commands to Everyone'
 
-    actions = [permit_disabled, permit_broadcaster, permit_moderator, permit_subscriber, permit_everyone]
+    def add_cooldown(modeladmin, request, queryset):
+        queryset.update(cooldown=True)
+    add_cooldown.short_description = 'Add cooldown to selected commands'
+
+    def remove_cooldown(modeladmin, request, queryset):
+        queryset.update(cooldown=False)
+    remove_cooldown.short_description = 'Remove cooldown from selected commands'
+
+    actions = [permit_disabled, permit_broadcaster, permit_moderator, permit_subscriber, permit_everyone, add_cooldown, remove_cooldown]
 
 class TimedMessageAdmin(admin.ModelAdmin):
     fields = ['message', 'minutes_interval']
@@ -89,10 +97,17 @@ class SettingAdmin(admin.ModelAdmin):
                 game_objects = Game.objects.all().order_by('sequence')
                 valid_games = [(game.name, game.name) for game in game_objects]
                 widgets={'value': Select(choices=valid_games)}
+        class CooldownSecondsAdminForm(ModelForm):
+            class Meta:
+                model = Setting
+                fields = ('value',)
+                widgets={'value': TextInput(attrs={'type': 'number'})}
         if 'Current Game' == obj.key:
             return CurrentGameSettingAdminForm
         elif 'Current Run' == obj.key:
             return CurrentRunSettingAdminForm
+        elif 'Cooldown Seconds' == obj.key:
+            return CooldownSecondsAdminForm
         return SettingAdminForm
     def get_fields(self, request, obj=None):
         return ['key', 'value']

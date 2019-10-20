@@ -28,6 +28,8 @@ class Command(models.Model):
     permissions = models.IntegerField(choices=PERMISSIONS_CHOICES, default=EVERYONE)
     invocation_count = models.IntegerField(default=0)
     is_built_in = models.BooleanField(default=False)
+    cooldown = models.BooleanField(default=True)
+    last_output_time = models.DateTimeField(default=now)
     output = models.ForeignKey(SimpleOutput, blank=True, null=True, on_delete=models.CASCADE)
 
 class Setting(models.Model):
