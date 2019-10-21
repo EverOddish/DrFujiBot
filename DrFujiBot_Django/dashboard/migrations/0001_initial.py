@@ -16,6 +16,7 @@ class Migration(migrations.Migration):
             name='SimpleOutput',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('prefix', models.CharField(max_length=5000, default='', blank=True)),
                 ('output_text', models.CharField(max_length=5000)),
             ],
         ),
@@ -27,6 +28,8 @@ class Migration(migrations.Migration):
                 ('permissions', models.IntegerField(choices=[(0, 'Disabled'), (1, 'Broadcaster Only'), (2, 'Moderator Only'), (3, 'Subscriber Only'), (4, 'Everyone')], default=4)),
                 ('invocation_count', models.IntegerField(default=0)),
                 ('is_built_in', models.BooleanField(default=False)),
+                ('cooldown', models.BooleanField(default=True)),
+                ('last_output_time', models.DateTimeField(default=django.utils.timezone.now)),
                 ('output', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='dashboard.SimpleOutput')),
             ],
         ),

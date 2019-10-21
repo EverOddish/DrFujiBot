@@ -63,13 +63,20 @@ def handle_move(args):
     move_matches = Move.objects.filter(name__iexact=move_name)
     if move_matches:
         move = move_matches[0]
-        output = move.name + ': [' + move.type_1 + '] '
-        output += 'BasePower(' + str(move.base_power) + ') '
-        output += 'Class(' + move.damage_category + ') '
-        output += 'Accuracy(' + str(move.accuracy) + ') '
-        output += 'PP(' + str(move.power_points) + ') '
-        output += 'Priority(' + str(move.priority) + ') '
-        #output += move.description
+
+        current_game_name = Setting.objects.filter(key='Current Game')[0]
+
+        for move_records_list_element in MoveRecordsListElement.objects.filter(list_id=move.move_records):
+            move_record = move_records_list_element.element
+            if is_game_name_in_game_list(current_game_name.value, move_record.games):
+                move_definition = move_record.move_definition
+                output = move.name + ': [' + move_definition.type_1 + '] '
+                output += 'BasePower(' + str(move_definition.base_power) + ') '
+                output += 'Class(' + move_definition.damage_category + ') '
+                output += 'Accuracy(' + str(move_definition.accuracy) + ') '
+                output += 'PP(' + str(move_definition.power_points) + ') '
+                output += 'Priority(' + str(move_definition.priority) + ') '
+                #output += move.description
     else:
         output = '"' + move_name + '" was not found'
     return output
@@ -210,9 +217,12 @@ def handle_evolve(args):
                 if is_game_name_in_game_list(current_game_name.value, evolution_set.games):
                     for evolution_records_list_element in EvolutionRecordsListElement.objects.filter(list_id=evolution_set.evolution_records):
                         evolution_record = evolution_records_list_element.element
+                        output += pokemon.name + ' evolves into ' + str(evolution_record.evolves_to)
                         if evolution_record.level > 0:
-                            output += pokemon.name + ' evolves into ' + str(evolution_record.evolves_to) + ' at level ' + str(evolution_record.level) + '. '
-                    break
+                             + ' at level ' + str(evolution_record.level)
+                        if len(evolution_record.method) > 0:
+                            output += ' ' + evolution_record.method
+                        output += '. '
         else:
             output = pokemon.name + ' does not evolve.'
     else:

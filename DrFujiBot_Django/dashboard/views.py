@@ -35,6 +35,16 @@ def permitted(is_broadcaster, is_moderator, is_subscriber, permissions):
         return permissions >= SUBSCRIBER_ONLY
     return permissions >= EVERYONE
 
+def get_permission_message(permissions):
+    if permissions == DISABLED:
+        return 'disabled'
+    elif permissions == BROADCASTER_ONLY:
+        return 'only permitted for the broadcaster'
+    elif permissions == MODERATOR_ONLY:
+        return 'only permitted for moderators'
+    elif permissions == SUBSCRIBER_ONLY:
+        return 'only permitted for subscribers'
+
 def drfujibot(request):
     is_broadcaster = request.GET.get('is_broadcaster')
     is_moderator = request.GET.get('is_moderator')
@@ -60,12 +70,33 @@ def drfujibot(request):
     if len(command_query_set) >= 1:
         cmd = command_query_set[0]
         if permitted(is_broadcaster, is_moderator, is_subscriber, cmd.permissions):
-            if cmd.output:
-                response_text = cmd.output.output_text
+            now = datetime.datetime.now(datetime.timezone.utc)
+
+            should_output = False
+            if cmd.cooldown:
+                cooldown_setting = Setting.objects.filter(key='Cooldown Seconds')[0]
+                cooldown_seconds = int(cooldown_setting.value)
+                if now - cmd.last_output_time >= datetime.timedelta(seconds=cooldown_seconds):
+                    should_output = True
             else:
-                response_text = handle_lookup_command(line)
-                if None == response_text or len(response_text) == 0:
-                    response_text = handle_admin_command(line)
+                should_output = True
+
+            if should_output:
+                if cmd.output:
+                    if len(cmd.output.prefix) > 0:
+                        response_text = cmd.output.prefix + ' ' + cmd.output.output_text
+                    else:
+                        response_text = cmd.output.output_text
+                else:
+                    response_text = handle_lookup_command(line)
+                    if None == response_text or len(response_text) == 0:
+                        response_text = handle_admin_command(line)
+                cmd.invocation_count += 1
+                cmd.last_output_time = now
+                cmd.save()
+        else:
+            message = get_permission_message(cmd.permissions)
+            response_text = 'Sorry, ' + command + ' is ' + message +'. If you would like to use this bot on your own computer, you can find it at https://github.com/EverOddish/DrFujiBot/releases'
 
     if isinstance(response_text, list):
         response_text = '\n'.join(response_text)
@@ -81,9 +112,19 @@ def timed_messages(request):
     for timed_message in timed_messages:
         interval = datetime.timedelta(minutes=timed_message.minutes_interval)
         if now - timed_message.last_output_time > interval:
-            response_text = timed_message.message.output_text
+            if len(cmd.output.prefix) > 0:
+                response_text = timed_message.message.prefix + ' ' + timed_message.message.output_text
+            else:
+                response_text = timed_message.message.output_text
             timed_message.last_output_time = now
+            if timed_message.max_output_count > 0:
+                timed_message.current_output_count += 1
             timed_message.save()
+
+            if timed_message.max_output_count > 0 and timed_message.current_output_count >= timed_message.max_output_count:
+                timed_message.message.delete()
+                timed_message.delete()
+
             # Only output one timed message at a time. Others will be picked up next time around.
             break
 

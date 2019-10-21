@@ -34,7 +34,7 @@ def create_lookup_commands(apps, schema_editor):
 
     commands = []
     for lookup_command in lookup_commands:
-        cmd = Command(command=lookup_command, permissions=MODERATOR_ONLY, invocation_count=0, is_built_in=True, output=None)
+        cmd = Command(command=lookup_command, permissions=MODERATOR_ONLY, invocation_count=0, is_built_in=True, cooldown=False, output=None)
         commands.append(cmd)
 
     Command.objects.bulk_create(commands)

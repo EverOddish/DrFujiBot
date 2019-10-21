@@ -18,15 +18,18 @@ PERMISSIONS_CHOICES = (
 )
 
 class SimpleOutput(models.Model):
+    prefix = models.CharField(max_length=5000, default='', blank=True)
     output_text = models.CharField(max_length=5000)
     def __str__(self):
-        return self.output_text
+        return self.prefix + ' ' + self.output_text
 
 class Command(models.Model):
     command = models.CharField(max_length=200, validators=[RegexValidator(regex='^![a-zA-Z0-9]+$', message='Command must start with ! and contain only alphanumeric characters')])
     permissions = models.IntegerField(choices=PERMISSIONS_CHOICES, default=EVERYONE)
     invocation_count = models.IntegerField(default=0)
     is_built_in = models.BooleanField(default=False)
+    cooldown = models.BooleanField(default=True)
+    last_output_time = models.DateTimeField(default=now)
     output = models.ForeignKey(SimpleOutput, blank=True, null=True, on_delete=models.CASCADE)
 
 class Setting(models.Model):
@@ -36,12 +39,18 @@ class Setting(models.Model):
 class TimedMessage(models.Model):
     minutes_interval = models.IntegerField(default=15)
     last_output_time = models.DateTimeField(default=now)
+    current_output_count = models.IntegerField(default=0)
+    max_output_count = models.IntegerField(default=0)
     message = models.ForeignKey(SimpleOutput, on_delete=models.CASCADE)
 
 class Run(models.Model):
     name = models.CharField(max_length=200)
     attempt_number = models.IntegerField(default=1)
     game_setting = models.CharField(max_length=200)
+    last_run_output = models.ForeignKey(SimpleOutput, blank=True, null=True, on_delete=models.SET_NULL, related_name='last_run_output')
+    how_far_output = models.ForeignKey(SimpleOutput, blank=True, null=True, on_delete=models.SET_NULL, related_name='how_far_output')
+    def __str__(self):
+        return self.name
 
 class Death(models.Model):
     nickname = models.CharField(max_length=200)
@@ -63,3 +72,4 @@ class ChatLog(models.Model):
 
 class BannedPhrase(models.Model):
     phrase = models.CharField(max_length=200)
+    expiry = models.DateTimeField(null=True)

@@ -1,5 +1,21 @@
-from .models import Setting, Command, SimpleOutput, Run, Death, Quote, ChatLog, BannedPhrase
+from .models import Setting, Command, SimpleOutput, Run, Death, Quote, ChatLog, BannedPhrase, TimedMessage
+from apscheduler.schedulers.background import BackgroundScheduler
 from westwood.models import Game
+
+import datetime
+
+def update_run(command_name, simple_output):
+    if '!lastrun' == command_name or '!howfar' == command_name:
+        current_run_setting = Setting.objects.filter(key='Current Run')[0]
+        run_matches = Run.objects.filter(name__iexact=current_run_setting.value)
+        if len(run_matches) > 0:
+            run_object = run_matches[0]
+            if '!lastrun' == command_name:
+                run_object.last_run_output = simple_output
+                run_object.save()
+            elif '!howfar' == command_name:
+                run_object.how_far_output = simple_output
+                run_object.save()
 
 def handle_setgame(args):
     game_name = ' '.join(args)
@@ -34,6 +50,8 @@ def handle_addcom(args):
         command = Command(command=command_name, output=simple_output)
         command.save()
 
+        update_run(command_name, simple_output)
+
         output = 'Command "' + command_name + '" successfully created'
     else:
         output = 'Command "' + command_name + '" already exists'
@@ -67,12 +85,31 @@ def handle_editcom(args):
 
     command_matches = Command.objects.filter(command__iexact=command_name)
     if len(command_matches) == 1:
-        simple_output = command_matches[0].output
-        simple_output.output_text = simple_output_text
-        simple_output.save()
+        command_object = command_matches[0]
+        simple_output = command_object.output
 
-        command = Command(command=command_name, output=simple_output)
-        command.save()
+        # We need to check if the current SimpleOutput is referenced by any Run that is not the current Run
+        need_new_simple_output = False
+        current_run_setting = Setting.objects.filter(key='Current Run')[0]
+        run_matches = Run.objects.all()
+        for run in run_matches:
+            if run.name != current_run_setting.value:
+                if simple_output == run.last_run_output or simple_output == run.how_far_output:
+                    need_new_simple_output = True
+
+        if need_new_simple_output:
+            # Create a new SimpleOutput and point the Command to it, in order to preserve other Run references to the current SimpleOutput
+            new_simple_output = SimpleOutput(prefix=simple_output.prefix, output_text=simple_output_text)
+            new_simple_output.save()
+            command_object.output = new_simple_output
+            command_object.save()
+            simple_output = new_simple_output
+        else:
+            # No other Run references the current SimpleOutput, so it's safe to just edit it
+            simple_output.output_text = simple_output_text
+            simple_output.save()
+
+        update_run(command_name, simple_output)
 
         output = 'Command "' + command_name + '" successfully modified'
     else:
@@ -146,10 +183,88 @@ def handle_setrun(args):
         current_run_setting.value = run_name
         current_run_setting.save()
 
+        command_matches = Command.objects.filter(command__iexact='!lastrun')
+        if len(command_matches) > 0:
+            lastrun_command = command_matches[0]
+            lastrun_command.output = run_object.last_run_output
+            lastrun_command.save()
+
+        command_matches = Command.objects.filter(command__iexact='!howfar')
+        if len(command_matches) > 0:
+            howfar_command = command_matches[0]
+            howfar_command.output = run_object.how_far_output
+            howfar_command.save()
+
         output = 'Current run set to "' + run_object.name + '" playing ' + run_object.game_setting
     else:
         output = 'Run "' + run_name + '" not found'
     return output
+
+def handle_riprun(args):
+    output = ''
+    last_run_text = ' '.join(args)
+
+    current_run_setting = Setting.objects.filter(key='Current Run')[0]
+
+    run_matches = Run.objects.filter(name__iexact=current_run_setting.value)
+    if len(run_matches) > 0:
+        current_run_object = run_matches[0]
+        current_run_object.attempt_number += 1
+
+        last_run_simple_output = None
+        command_matches = Command.objects.filter(command__iexact='!lastrun')
+        if len(command_matches) > 0:
+            lastrun_command = command_matches[0]
+
+            prefix = ''
+            if lastrun_command.output:
+                prefix = lastrun_command.output.prefix
+            last_run_simple_output = SimpleOutput(prefix=prefix, output_text=last_run_text)
+            last_run_simple_output.save()
+
+            lastrun_command.output = last_run_simple_output
+            lastrun_command.save()
+        else:
+            last_run_simple_output = SimpleOutput(output_text=last_run_text)
+            last_run_simple_output.save()
+
+        current_run_object.last_run_output = last_run_simple_output
+        current_run_object.save()
+
+        output = 'Attempt number for "' + current_run_object.name + '" run is now ' + str(current_run_object.attempt_number) + ', and !lastrun was updated'
+    else:
+        output = 'Run "' + current_run_setting.value + '" not found'
+    return output
+
+def update_respects(death_object_id):
+    death_matches = Death.objects.filter(id=death_object_id)
+    if len(death_matches) > 0:
+        death_object = death_matches[0]
+
+        utc_tz = datetime.timezone.utc
+        twenty_seconds_ago = datetime.datetime.now(utc_tz) - datetime.timedelta(seconds=20)
+
+        f_matches = ChatLog.objects.filter(line__iexact='F').filter(timestamp__gte=twenty_seconds_ago)
+        f_users = set()
+        for match in f_matches:
+            f_users.add(match.username)
+            
+        pokemof_matches = ChatLog.objects.filter(line__exact='pokemoF').filter(timestamp__gte=twenty_seconds_ago)
+        pokemof_users = set()
+        for match in pokemof_matches:
+            pokemof_users.add(match.username)
+
+        respect_count = len(f_users) + len(pokemof_users)
+
+        death_object.respect_count = respect_count
+        death_object.save()
+
+        output = str(respect_count) + ' respects for ' + death_object.nickname
+        respects_output = SimpleOutput(output_text=output)
+        respects_output.save()
+        two_minutes_ago = datetime.datetime.now(utc_tz) - datetime.timedelta(minutes=2)
+        respects_message = TimedMessage(minutes_interval=1, last_output_time=two_minutes_ago, max_output_count=1, message=respects_output)
+        respects_message.save()
 
 def handle_rip(args):
     nickname = ' '.join(args)
@@ -163,6 +278,12 @@ def handle_rip(args):
     death_count = Death.objects.filter(run=run).count()
 
     output = 'Death count: ' + str(death_count) + ' - Press F to pay respects to "' + nickname + '"'
+
+    utc_tz = datetime.timezone.utc
+    twenty_seconds_from_now = datetime.datetime.now(utc_tz) + datetime.timedelta(seconds=20)
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(update_respects, 'date', run_date=twenty_seconds_from_now, args=[death_object.id])
+    scheduler.start()
 
     # TODO: Auto-marker
 
@@ -248,12 +369,23 @@ def handle_delquote(args):
     return output
 
 def handle_nuke(args):
+    expiry = None
+    expiry_minutes = 0
+    maybe_expiry = args[0]
     phrase = ' '.join(args)
+    if maybe_expiry.isnumeric():
+        expiry_minutes = int(maybe_expiry)
+        phrase = ' '.join(args[1:])
+        utc_tz = datetime.timezone.utc
+        expiry = datetime.datetime.now(utc_tz) + datetime.timedelta(minutes=expiry_minutes)
 
-    banned_phrase = BannedPhrase(phrase=phrase)
+    banned_phrase = BannedPhrase(phrase=phrase, expiry=expiry)
     banned_phrase.save()
 
-    output = ['The phrase "' + phrase + '" is now banned']
+    output_text = 'The phrase "' + phrase + '" is now banned'
+    if expiry_minutes > 0:
+        output_text += ' for ' + str(expiry_minutes) + ' minutes'
+    output = [output_text]
 
     chat_log_matches = ChatLog.objects.filter(line__icontains=phrase)
     for match in chat_log_matches:
@@ -280,6 +412,7 @@ handlers = {'!setgame': handle_setgame,
             '!alias': handle_alias,
             '!addrun': handle_addrun,
             '!setrun': handle_setrun,
+            '!riprun': handle_riprun,
             '!rip': handle_rip,
             '!deaths': handle_deaths,
             '!fallen': handle_fallen,
@@ -298,6 +431,7 @@ expected_args = {'!setgame': 1,
                  '!alias': 2,
                  '!addrun': 1,
                  '!setrun': 1,
+                 '!riprun': 1,
                  '!rip': 1,
                  '!deaths': 0,
                  '!fallen': 0,
@@ -316,6 +450,7 @@ usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
          '!alias': 'Usage: !alias <existing command> <new command>',
          '!addrun': 'Usage: !addrun <run name>',
          '!setrun': 'Usage: !setrun <run name>',
+         '!riprun': 'Usage: !riprun <!lastrun text>',
          '!rip': 'Usage: !rip <pokemon nickname>',
          '!deaths': 'Usage: !deaths',
          '!fallen': 'Usage: !fallen',

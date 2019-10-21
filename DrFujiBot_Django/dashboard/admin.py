@@ -6,17 +6,24 @@ from .models import DISABLED, BROADCASTER_ONLY, MODERATOR_ONLY, SUBSCRIBER_ONLY,
 from westwood.models import Game
 
 class CommandAdmin(admin.ModelAdmin):
-    list_display = ['command', 'get_output', 'permissions']
+    list_display = ['command', 'get_output', 'permissions', 'invocation_count', 'cooldown']
     list_filter = ('is_built_in',)
+    readonly_fields = ['invocation_count']
 
     def get_fields(self, request, obj=None):
         if None == obj or not obj.is_built_in:
-            return ('command', 'permissions', 'output')
+            return ('command', 'permissions', 'invocation_count', 'cooldown', 'output')
         elif obj.is_built_in:
-            return ('command', 'permissions')
+            return ('command', 'permissions', 'invocation_count', 'cooldown')
 
     def get_output(self, obj):
-        return obj.output.output_text if None != obj.output else ''
+        if None != obj.output:
+            if len(obj.output.prefix) > 0:
+                return obj.output.prefix + ' ' + obj.output.output_text
+            else:
+                return obj.output.output_text
+        else:
+            return ''
     get_output.admin_order_field = 'output'
     get_output.short_description = 'Output Text'
 
@@ -46,7 +53,15 @@ class CommandAdmin(admin.ModelAdmin):
         queryset.update(permissions=EVERYONE)
     permit_everyone.short_description = 'Set selected commands to Everyone'
 
-    actions = [permit_disabled, permit_broadcaster, permit_moderator, permit_subscriber, permit_everyone]
+    def add_cooldown(modeladmin, request, queryset):
+        queryset.update(cooldown=True)
+    add_cooldown.short_description = 'Add cooldown to selected commands'
+
+    def remove_cooldown(modeladmin, request, queryset):
+        queryset.update(cooldown=False)
+    remove_cooldown.short_description = 'Remove cooldown from selected commands'
+
+    actions = [permit_disabled, permit_broadcaster, permit_moderator, permit_subscriber, permit_everyone, add_cooldown, remove_cooldown]
 
 class TimedMessageAdmin(admin.ModelAdmin):
     fields = ['message', 'minutes_interval']
@@ -58,7 +73,7 @@ class TimedMessageAdmin(admin.ModelAdmin):
     get_message.short_description = 'Message'
 
 class SimpleOutputAdmin(admin.ModelAdmin):
-    list_display = ['output_text']
+    list_display = ['output_text', 'prefix']
 
 class SettingAdmin(admin.ModelAdmin):
     list_display = ['key', 'value']
@@ -68,9 +83,31 @@ class SettingAdmin(admin.ModelAdmin):
             class Meta:
                 model = Setting
                 fields = ('value',)
+        class CurrentRunSettingAdminForm(ModelForm):
+            class Meta:
+                model = Setting
+                fields = ('value',)
+                run_objects = Run.objects.all().order_by('name')
+                run_names = [(run.name, run.name) for run in run_objects]
+                widgets={'value': Select(choices=run_names)}
+        class CurrentGameSettingAdminForm(ModelForm):
+            class Meta:
+                model = Setting
+                fields = ('value',)
                 game_objects = Game.objects.all().order_by('sequence')
                 valid_games = [(game.name, game.name) for game in game_objects]
                 widgets={'value': Select(choices=valid_games)}
+        class CooldownSecondsAdminForm(ModelForm):
+            class Meta:
+                model = Setting
+                fields = ('value',)
+                widgets={'value': TextInput(attrs={'type': 'number'})}
+        if 'Current Game' == obj.key:
+            return CurrentGameSettingAdminForm
+        elif 'Current Run' == obj.key:
+            return CurrentRunSettingAdminForm
+        elif 'Cooldown Seconds' == obj.key:
+            return CooldownSecondsAdminForm
         return SettingAdminForm
     def get_fields(self, request, obj=None):
         return ['key', 'value']
@@ -78,18 +115,18 @@ class SettingAdmin(admin.ModelAdmin):
         return False
 
 class RunAdmin(admin.ModelAdmin):
-    list_display = ['name', 'attempt_number', 'game_setting']
+    list_display = ['name', 'attempt_number', 'game_setting', 'last_run_output', 'how_far_output']
     def get_form(self, request, obj=None, **kwargs):
         class RunAdminForm(ModelForm):
             class Meta:
                 model = Run
-                fields = ('name', 'attempt_number', 'game_setting')
+                fields = ('name', 'attempt_number', 'game_setting', 'last_run_output', 'how_far_output')
                 game_objects = Game.objects.all().order_by('sequence')
                 valid_games = [(game.name, game.name) for game in game_objects]
                 widgets={'name': TextInput(), 'attempt_number': TextInput(), 'game_setting': Select(choices=valid_games)}
         return RunAdminForm
     def get_fields(self, request, obj=None):
-        return ['name', 'attempt_number', 'game_setting']
+        return ['name', 'attempt_number', 'game_setting', 'last_run_output', 'how_far_output']
 
 class DeathAdmin(admin.ModelAdmin):
     fields = ['nickname', 'time_of_death', 'respect_count', 'run']
@@ -106,7 +143,7 @@ class QuoteAdmin(admin.ModelAdmin):
     list_display = ['id', 'quote_text', 'quotee']
 
 class BannedPhraseAdmin(admin.ModelAdmin):
-    list_display = ['phrase']
+    list_display = ['phrase', 'expiry']
 
 admin.site.register(Command, CommandAdmin)
 admin.site.register(TimedMessage, TimedMessageAdmin)

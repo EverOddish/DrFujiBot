@@ -5,6 +5,7 @@ from django.db import migrations
 default_settings = [('Current Game', 'Pokemon Ultra Sun'),
                     ('Current Run', '(default)'),
                     ('Quotee', 'Someone'),
+                    ('Cooldown Seconds', '10'),
                     ('IRC Service', 'Running'),
                    ]
 
