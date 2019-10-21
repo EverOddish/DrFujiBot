@@ -102,12 +102,20 @@ class SettingAdmin(admin.ModelAdmin):
                 model = Setting
                 fields = ('value',)
                 widgets={'value': TextInput(attrs={'type': 'number'})}
+        class IRCServiceSettingAdminForm(ModelForm):
+            class Meta:
+                model = Setting
+                fields = ('value',)
+                valid_options = [('Running', 'Running'), ('Stopped', 'Stopped')]
+                widgets={'value': Select(choices=valid_options)}
         if 'Current Game' == obj.key:
             return CurrentGameSettingAdminForm
         elif 'Current Run' == obj.key:
             return CurrentRunSettingAdminForm
         elif 'Cooldown Seconds' == obj.key:
             return CooldownSecondsAdminForm
+        elif 'IRC Service' == obj.key:
+            return IRCServiceSettingAdminForm
         return SettingAdminForm
     def get_fields(self, request, obj=None):
         return ['key', 'value']

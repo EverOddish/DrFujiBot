@@ -8,8 +8,5 @@ def start():
     # Start Apache
     subprocess.call([httpd_path, '-n', '"DrFujiBot Apache"', '-k', 'start'])
 
-    # Start IRC
-    subprocess.call(['net.exe', 'start', '"DrFujiBot IRC"'])
-
     # Open dashboard
     subprocess.call(['explorer.exe', 'http://localhost:41945/admin'])
