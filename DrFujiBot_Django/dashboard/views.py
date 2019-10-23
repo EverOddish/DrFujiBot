@@ -1,6 +1,9 @@
 import datetime
 import json
+import jwt
 import os
+import requests
+import urllib
 
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
@@ -138,17 +141,37 @@ def authorize(request):
 
 def save_access_token(request):
     access_token = request.GET.get('access_token')
+    id_token = request.GET.get('id_token')
 
-    if access_token:
-        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'DrFujiBot_IRC', 'config.json')
-        config = {}
+    client_id = 'cnus4j6y1dvr60vkqsgvto5almy5j8'
 
-        with open(config_path, 'r') as config_file:
-            config = json.load(config_file)
+    if access_token and id_token:
+        web_key_response = requests.get('https://id.twitch.tv/oauth2/keys')
+        if web_key_response.status_code == 200:
+            web_keys = json.loads(web_key_response.content)
+            for web_key in web_keys['keys']:
+                if web_key['alg'] == 'RS256':
+                    key = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(web_key))
+                    token = jwt.decode(id_token, key, algorithms='RS256', audience=client_id)
 
-        config['twitch_oauth_token'] = 'oauth:' + access_token
+                    # Convert user ID to username
+                    user_id = token['sub']
+                    request = urllib.request.Request('https://api.twitch.tv/helix/users?id=' + user_id)
+                    request.add_header('Client-ID', client_id)
+                    response = urllib.request.urlopen(request)
+                    user_data = json.loads(response.read().decode('utf-8'))
+                    channel = user_data['data'][0]['login']
 
-        with open(config_path, 'w') as config_file:
-            config_file.write(json.dumps(config))
+                    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'DrFujiBot_IRC', 'config.json')
+                    config = {}
+
+                    with open(config_path, 'r') as config_file:
+                        config = json.load(config_file)
+
+                    config['twitch_oauth_token'] = 'oauth:' + access_token
+                    config['twitch_channel'] = channel
+
+                    with open(config_path, 'w') as config_file:
+                        config_file.write(json.dumps(config))
 
     return redirect('/admin/')

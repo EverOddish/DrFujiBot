@@ -17,8 +17,9 @@ a {
   <script>
   function saveToken() {
       var hash_values = window.location.hash.split('&');
-      var token = hash_values[0].split('=')[1];
-      var url = 'http://localhost:41945/dashboard/save_access_token?access_token=' + token;
+      var access_token = hash_values[0].split('=')[1];
+      var id_token = hash_values[1].split('=')[1];
+      var url = 'http://localhost:41945/dashboard/save_access_token?access_token=' + access_token + '&id_token=' + id_token;
       window.location.replace(url);
   }
   </script>
