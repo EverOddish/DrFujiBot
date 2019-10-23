@@ -1,7 +1,9 @@
 import datetime
+import json
+import os
 
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.template import loader
 
 from .models import DISABLED, BROADCASTER_ONLY, MODERATOR_ONLY, SUBSCRIBER_ONLY, EVERYONE
@@ -129,3 +131,24 @@ def timed_messages(request):
             break
 
     return HttpResponse(response_text)
+
+def authorize(request):
+    context = {}
+    return render(request, 'dashboard/authorize.html', context)
+
+def save_access_token(request):
+    access_token = request.GET.get('access_token')
+
+    if access_token:
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'DrFujiBot_IRC', 'config.json')
+        config = {}
+
+        with open(config_path, 'r') as config_file:
+            config = json.load(config_file)
+
+        config['twitch_oauth_token'] = 'oauth:' + access_token
+
+        with open(config_path, 'w') as config_file:
+            config_file.write(json.dumps(config))
+
+    return redirect('/admin/')

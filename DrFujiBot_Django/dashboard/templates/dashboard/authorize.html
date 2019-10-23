@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <head>
+      {% load static %}
+      <style>
+body {
+    font-family: "Roboto","Lucida Grande","DejaVu Sans","Bitstream Vera Sans",Verdana,Arial,sans-serif;
+}
+a {
+    color: rgba(196, 8, 8, 0.99);
+}
+      </style>
+  </head>
+  <body>
+  DrFujiBot has been authorized. Click "Complete Authorization" to save the token:<br/><br/>
+  <button onclick="saveToken()">Complete Authorization</button>
+  <script>
+  function saveToken() {
+      var hash_values = window.location.hash.split('&');
+      var token = hash_values[0].split('=')[1];
+      var url = 'http://localhost:41945/dashboard/save_access_token?access_token=' + token;
+      window.location.replace(url);
+  }
+  </script>
+  </body>
+</html>

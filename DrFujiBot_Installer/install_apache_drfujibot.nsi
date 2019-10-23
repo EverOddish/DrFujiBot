@@ -155,12 +155,11 @@ Section "DrFujiBot IRC"
     ClearErrors
     FileOpen $4 "$INSTDIR\DrFujiBot_IRC\config.json" w
     FileSeek $4 0 END
-    FileWrite $4 "{$\"twitch_channel$\": $\"$twitchChannel$\", $\"twitch_oauth_token$\": $\"6nqy3hwjxnijah2oi6ya7wijxctrct$\", $\"comment$\": $\"Please do not use this token for any other purpose than the normal functions of DrFujiBot. Thank you.$\"}"
+    FileWrite $4 "{$\"twitch_channel$\": $\"$twitchChannel$\", $\"twitch_oauth_token$\": $\"$\"}"
     FileClose $4
 
     nsExec::ExecToLog 'sc.exe create "DrFujiBot IRC" start= auto binPath= "\$\"$INSTDIR\Python\python.exe\$\" \$\"$INSTDIR\DrFujiBot_IRC\drfujibot_irc.py\$\"'
     nsExec::ExecToLog 'sc.exe description "DrFujiBot IRC" "Connects to Twitch chat to relay commands to the local DrFujiBot Django instance"'
-    nsExec::ExecToLog 'net.exe start "DrFujiBot IRC"'
 
     File ..\..\disclaimers.txt
 
