@@ -1,5 +1,9 @@
 # DrFujiBot
 
+If you are using DrFujiBot and need help, check the [FAQ page](https://github.com/EverOddish/DrFujiBot/wiki/Frequently-Asked-Questions)
+
+# Description
+
 DrFujiBot is a client-side Twitch chat bot that provides a command-based interface to Pokemon data. This repository represents the re-write of the original server-side version of the bot ([OpenFuji](https://github.com/EverOddish/OpenFuji)). The code and data are significantly more readable, extendable, and easier to work on. The intention of the re-write was to eliminate the need for a server to host the bot, and to make rapid updates much easier to implement.
 
 The primary goal of DrFujiBot is to be as easy to install and use as possible. Very little configuration is required out-of-the-box, but customization is possible for advanced users.
