@@ -155,7 +155,7 @@ Section "DrFujiBot IRC"
     ClearErrors
     FileOpen $4 "$INSTDIR\DrFujiBot_IRC\config.json" w
     FileSeek $4 0 END
-    FileWrite $4 "{$\"twitch_channel$\": $\"$twitchChannel$\", $\"twitch_oauth_token$\": $\"$\"}"
+    FileWrite $4 "{$\"twitch_channel$\": $\"$\", $\"twitch_oauth_token$\": $\"$\"}"
     FileClose $4
 
     nsExec::ExecToLog 'sc.exe create "DrFujiBot IRC" start= auto binPath= "\$\"$INSTDIR\Python\python.exe\$\" \$\"$INSTDIR\DrFujiBot_IRC\drfujibot_irc.py\$\"'

@@ -6,6 +6,7 @@ lxml==4.4.1
 requests==2.22.0
 pyspellchecker==0.5.2
 apscheduler==3.6.1
+certifi==2019.9.11
 cffi==1.13.1
 pycparser==2.19
 cryptography==2.8

@@ -80,20 +80,11 @@
         {% block sidebar %}{% endblock %}
         {% if title == 'Site administration' %}
         <div id="guide" style="margin: 10px;">
-            <h3><a href="../dashboard/console">DrFujiBot web console</a></h3>
+            <h3><a href="../dashboard/console">DrFujiBot Web Console</a></h3>
             <h3><a href="https://id.twitch.tv/oauth2/authorize?client_id=cnus4j6y1dvr60vkqsgvto5almy5j8&redirect_uri=http://localhost:41945/dashboard/authorize&response_type=token+id_token&scope=openid%20chat:read%20chat:edit">Re-authorize DrFujiBot with Twitch</a></h3>
-            <br/>
-            <h3>Quick Start Guide:</h3>
-            <ul>
-                <li>A Command defines the text that a Twitch user types to invoke a command (starting with "!")</li>
-                <li>DrFujiBot comes with a set of built-in Commands, and custom Commands can be defined</li>
-                <li>Each Command has a permission value and an optional "Simple output"</li>
-                <li>Each Command's permission value includes all permissions above it (for example, a Subscriber Only command can be used by a Moderator)
-                <li>Simple outputs are defined separately from Commands, but can be defined at the same time as a new Command</li>
-                <li>Several Commands can point to the same Simple output (command aliases)</li>
-                <li>Timed messages point to a Simple output and contain an interval in minutes for repeated output</li>
-                <li>A Command and a Timed message can point to the same Simple output</li>
-            </ul>
+            <h3><a href="https://github.com/EverOddish/DrFujiBot/wiki/Quick-Start-Guide" target="_blank">Quick Start Guide</a></h3>
+            <h3><a href="https://github.com/EverOddish/DrFujiBot/wiki/Command-Documentation" target="_blank">Command Documentation</a></h3>
+            <h3><a href="https://github.com/EverOddish/DrFujiBot/wiki/Frequently-Asked-Questions" target="_blank">Frequently Asked Questions</a></h3>
         </div>
         {% endif %}
         <br class="clear">
