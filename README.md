@@ -36,7 +36,70 @@ DrFujiBot relies on the [Westwood](https://github.com/EverOddish/Westwood) data 
 
 # Contributing
 
-If you would like to contribute, contact @EverOddish on [Twitter](https://twitter.com/EverOddish)
+If you aren't familiar with Git or GitHub, read through the [Getting Started with GitHub Desktop](https://help.github.com/en/desktop/getting-started-with-github-desktop) guide.
+
+If you want to contribute to Westwood, see the [Westwood](https://github.com/EverOddish/Westwood) project for instructions.
+
+## Setup for the Django component
+
+1. Install Python 3 and GitHub Desktop (or other Git software)
+
+2. Install all Python dependecies
+
+    pip install -r requirements.txt
+
+3. Clone this repository
+
+    git clone git@github.com:EverOddish/DrFujiBot.git
+
+4. Make sure the Westwood submodule is updated
+
+    git submodule update --recursive --remote
+
+5. Copy the Westwood Django app into the DrFujiBot_Django directory
+
+    cp -r Westwood/django-westwood/westwood DrFujiBot_Django/
+
+6. Move into the DrFujiBot_Django directory and initialize Django (the Westwood data import will take some time)
+
+    python3 manage.py migrate
+    python3 manage.py migrate --database=westwood
+    python3 manage.py import_westwood_data
+    python3 manage.py createsuperuser
+
+7. Start the Django development server
+
+    python3 manage.py runserver 0.0.0.0:41945
+
+8. You should now be able to make changes to the Python files and the server will automatically restart itself. The dashboard should be available by browsing to [http://localhost:41945/admin](http://localhost:41945/admin)
+
+## Setup for the IRC component
+
+1. Open a terminal or command prompt and navigate to the DrFujiBot_IRC directory
+
+    cd DrFujiBot_IRC
+
+2. Run the IRC component
+
+    python3 drfujibot_irc.py debug
+
+## Setup for the installer component
+
+1. Open a command prompt and navigate to the DrFujitBot_Installer directory
+
+    cd DrFujiBot_Installer
+
+2. Ensure that the Westwood database has been created as described in the Django setup instructions
+
+3. Run the build script (this takes some time)
+
+    build_installer.bat
+
+4. The resulting installer will be found under DrFujiBot_Installer\build\nsis\DrFujiBot_2.0.0.exe
+
+## Other questions
+
+If you have any other questions, contact @EverOddish on [Twitter](https://twitter.com/EverOddish)
 
 # Disclaimers
 
