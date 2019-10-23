@@ -8,11 +8,11 @@ Improvements over the original OpenFuji:
 
  * No server or access requests, just download, install and run
  * Web-based configuration dashboard
-   * Easy configuration of timed messages, custom command output, and per-command permissions
- * Configuration backup
- * More specific data per generation or game
+   * Easy configuration of timed messages, custom command output, per-command permissions, and many other settings
+ * Automatic configuration backup
+ * More specific data per generation or game, extra data not available in other data sets
  * Fully up-to-date database including Pokemon Sword & Shield data (Generation 8)
- * ROM hack data (Drayano hacks)
+ * ROM hack data (Drayano hacks, Kaizo hacks, etc.)
 
 # Components
 
@@ -62,6 +62,7 @@ If you want to contribute to Westwood, see the [Westwood](https://github.com/Eve
 
 6. Move into the DrFujiBot_Django directory and initialize Django (the Westwood data import will take some time)
 
+    cd DrFujiBot_Django
     python3 manage.py migrate
     python3 manage.py migrate --database=westwood
     python3 manage.py import_westwood_data
@@ -99,7 +100,7 @@ If you want to contribute to Westwood, see the [Westwood](https://github.com/Eve
 
 ## Other questions
 
-If you have any other questions, contact @EverOddish on [Twitter](https://twitter.com/EverOddish)
+If you have any other questions, contact @EverOddish on [Twitter](https://twitter.com/EverOddish) or join the [PokemonChallenges Discord](http://discord.gg/pchal) and ask to be added to the #drfuji-workshop channel.
 
 # Disclaimers
 
