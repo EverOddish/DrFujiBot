@@ -7,6 +7,7 @@ default_settings = [('Current Game', 'Pokemon Ultra Sun'),
                     ('Quotee', 'Someone'),
                     ('Cooldown Seconds', '10'),
                     ('IRC Service', 'Running'),
+                    ('Twitch Username', ''),
                    ]
 
 def create_default_settings(apps, schema_editor):

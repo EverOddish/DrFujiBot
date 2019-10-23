@@ -3,6 +3,7 @@ import json
 import jwt
 import os
 import requests
+import subprocess
 import urllib
 
 from django.http import HttpResponse
@@ -161,6 +162,7 @@ def save_access_token(request):
                     response = urllib.request.urlopen(request)
                     user_data = json.loads(response.read().decode('utf-8'))
                     channel = user_data['data'][0]['login']
+                    display_name = user_data['data'][0]['display_name']
 
                     config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'DrFujiBot_IRC', 'config.json')
                     config = {}
@@ -173,5 +175,18 @@ def save_access_token(request):
 
                     with open(config_path, 'w') as config_file:
                         config_file.write(json.dumps(config))
+
+                    username_setting = Setting.objects.filter(key='Twitch Username')[0]
+                    username_setting.value = display_name
+                    username_setting.save()
+
+                    try:
+                        # Restart the IRC service
+                        args = ['net', 'stop', 'DrFujiBot IRC']
+                        subprocess.run(args)
+                        args = ['net', 'start', 'DrFujiBot IRC']
+                        subprocess.run(args)
+                    except:
+                        pass
 
     return redirect('/admin/')

@@ -108,6 +108,11 @@ class SettingAdmin(admin.ModelAdmin):
                 fields = ('value',)
                 valid_options = [('Running', 'Running'), ('Stopped', 'Stopped')]
                 widgets={'value': Select(choices=valid_options)}
+        class TwitchUsernameSettingAdminForm(ModelForm):
+            class Meta:
+                model = Setting
+                fields = ('value',)
+                widgets={'value': TextInput(attrs={'readonly': 'readonly'})}
         if 'Current Game' == obj.key:
             return CurrentGameSettingAdminForm
         elif 'Current Run' == obj.key:
@@ -116,6 +121,8 @@ class SettingAdmin(admin.ModelAdmin):
             return CooldownSecondsAdminForm
         elif 'IRC Service' == obj.key:
             return IRCServiceSettingAdminForm
+        elif 'Twitch Username' == obj.key:
+            return TwitchUsernameSettingAdminForm
         return SettingAdminForm
     def get_fields(self, request, obj=None):
         return ['key', 'value']
