@@ -27,7 +27,7 @@ a {
       $('#drfujibot_console').terminal(function(command) {
           if (command !== '') {
               drfujibot_console = this;
-              $.ajax({url: "http://localhost:41945/dashboard/drfujibot?is_broadcaster=True&is_moderator=True&is_subscriber=True&line=" + command, success: function(result){
+              $.ajax({url: "http://localhost:41945/dashboard/drfujibot?is_broadcaster=True&is_moderator=True&is_subscriber=True&username=web_console&line=" + command, success: function(result){
                   drfujibot_console.echo(String(result));
               }});
           }
