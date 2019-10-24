@@ -1,25 +1,73 @@
 from django.core.cache import cache
 from spellchecker import SpellChecker
 
-from westwood.models import Ability, Game, GamesListElement, Move, Pokemon, PokemonForm, RomHack
+from westwood.models import Ability, Game, GamesListElement, Move, Pokemon, PokemonForm, RomHack, StatSetsListElement
 
-def is_game_name_in_game_list(current_game_name, game_list_id):
+def is_game_name_in_game_list(current_game_name, game_list_id, check_base_game=True):
     games_list_element_objects = GamesListElement.objects.filter(list_id=game_list_id)
     for games_list_element in games_list_element_objects:
         game = games_list_element.element
         if game.name == current_game_name:
             return True
 
-    # Check if any ROM hacks match
+    if check_base_game:
+        # Check if any ROM hack base games match
+        rom_hack_matches = RomHack.objects.filter(title__iexact=current_game_name)
+        if len(rom_hack_matches) > 0:
+            base_game = rom_hack_matches[0].base_game
+            for games_list_element in games_list_element_objects:
+                game = games_list_element.element
+                if game.name == base_game:
+                    return True
+
+    return False
+
+def get_modified_stats(current_game_name, rom_hack_stat_set, pokemon_stat_sets_id):
+    modified_stats = {'hp': '', 'attack': '', 'defense': '', 'special_attack': '', 'special_defense': '', 'speed': ''}
+
+    # Check if the current game is a ROM hack
     rom_hack_matches = RomHack.objects.filter(title__iexact=current_game_name)
     if len(rom_hack_matches) > 0:
         base_game = rom_hack_matches[0].base_game
-        for games_list_element in games_list_element_objects:
-            game = games_list_element.element
-            if game.name == base_game:
-                return True
 
-    return False
+        # Find the stat set for the base game so we can compare
+        for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon_stat_sets_id):
+            base_game_stat_set = stat_sets_list_element.element
+            if is_game_name_in_game_list(base_game, base_game_stat_set.games):
+                # Found the base game
+                if rom_hack_stat_set.hp < base_game_stat_set.hp:
+                    modified_stats['hp'] = '-'
+                elif rom_hack_stat_set.hp > base_game_stat_set.hp:
+                    modified_stats['hp'] = '+'
+
+                if rom_hack_stat_set.attack < base_game_stat_set.attack:
+                    modified_stats['attack'] = '-'
+                elif rom_hack_stat_set.attack > base_game_stat_set.attack:
+                    modified_stats['attack'] = '+'
+
+                if rom_hack_stat_set.defense < base_game_stat_set.defense:
+                    modified_stats['defense'] = '-'
+                elif rom_hack_stat_set.defense > base_game_stat_set.defense:
+                    modified_stats['defense'] = '+'
+
+                if rom_hack_stat_set.special_attack < base_game_stat_set.special_attack:
+                    modified_stats['special_attack'] = '-'
+                elif rom_hack_stat_set.special_attack > base_game_stat_set.special_attack:
+                    modified_stats['special_attack'] = '+'
+
+                if rom_hack_stat_set.special_defense < base_game_stat_set.special_defense:
+                    modified_stats['special_defense'] = '-'
+                elif rom_hack_stat_set.special_defense > base_game_stat_set.special_defense:
+                    modified_stats['special_defense'] = '+'
+
+                if rom_hack_stat_set.speed < base_game_stat_set.speed:
+                    modified_stats['speed'] = '-'
+                elif rom_hack_stat_set.speed > base_game_stat_set.speed:
+                    modified_stats['speed'] = '+'
+
+                break
+
+    return modified_stats
 
 def correct_pokemon_name(name_to_correct):
     pokemon_corrector = cache.get('pokemon_corrector')

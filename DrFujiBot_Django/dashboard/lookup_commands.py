@@ -30,13 +30,15 @@ def handle_pokemon(args):
 
         for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon.stat_sets):
             stat_set = stat_sets_list_element.element
-            if is_game_name_in_game_list(current_game_name.value, stat_set.games):
-                output += 'HP(' + str(stat_set.hp) + ') '
-                output += 'Attack(' + str(stat_set.attack) + ') '
-                output += 'Defense(' + str(stat_set.defense) + ') '
-                output += 'Sp. Atk(' + str(stat_set.special_attack) + ') '
-                output += 'Sp. Def(' + str(stat_set.special_defense) + ') '
-                output += 'Speed(' + str(stat_set.speed) + ') '
+            # Don't ask for base game stats if ROM hack stats aren't found, because they could be present in a later stat set
+            if is_game_name_in_game_list(current_game_name.value, stat_set.games, check_base_game=False):
+                modified_stats = get_modified_stats(current_game_name.value, stat_set, pokemon.stat_sets)
+                output += 'HP(' + str(stat_set.hp) + ')' + modified_stats['hp'] + ' '
+                output += 'Attack(' + str(stat_set.attack) + ')' + modified_stats['attack'] + ' '
+                output += 'Defense(' + str(stat_set.defense) + ')' + modified_stats['defense'] + ' '
+                output += 'Sp. Atk(' + str(stat_set.special_attack) + ')' + modified_stats['special_attack'] + ' '
+                output += 'Sp. Def(' + str(stat_set.special_defense) + ')' + modified_stats['special_defense'] + ' '
+                output += 'Speed(' + str(stat_set.speed) + ')' + modified_stats['speed'] + ' '
                 break
                 
         output += 'Abilities: '
