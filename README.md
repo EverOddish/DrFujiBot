@@ -106,7 +106,7 @@ If you want to contribute to Westwood, see the [Westwood](https://github.com/Eve
 
 ## Other questions
 
-If you have any other questions, contact @EverOddish on [Twitter](https://twitter.com/EverOddish) or join the [PokemonChallenges Discord](http://discord.gg/pchal) and ask to be added to the #drfuji-workshop channel.
+If you have any other questions, contact [EverOddish](https://twitter.com/EverOddish) on Twitter or join the [PokemonChallenges Discord](http://discord.gg/pchal) and ask to be added to the #drfuji-workshop channel.
 
 # Disclaimers
 
