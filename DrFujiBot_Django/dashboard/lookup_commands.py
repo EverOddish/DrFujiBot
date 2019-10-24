@@ -28,18 +28,26 @@ def handle_pokemon(args):
                 break
         output += '] '
 
-        for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon.stat_sets):
-            stat_set = stat_sets_list_element.element
-            # Don't ask for base game stats if ROM hack stats aren't found, because they could be present in a later stat set
-            if is_game_name_in_game_list(current_game_name.value, stat_set.games, check_base_game=False):
-                modified_stats = get_modified_stats(current_game_name.value, stat_set, pokemon.stat_sets)
-                output += 'HP(' + str(stat_set.hp) + ')' + modified_stats['hp'] + ' '
-                output += 'Attack(' + str(stat_set.attack) + ')' + modified_stats['attack'] + ' '
-                output += 'Defense(' + str(stat_set.defense) + ')' + modified_stats['defense'] + ' '
-                output += 'Sp. Atk(' + str(stat_set.special_attack) + ')' + modified_stats['special_attack'] + ' '
-                output += 'Sp. Def(' + str(stat_set.special_defense) + ')' + modified_stats['special_defense'] + ' '
-                output += 'Speed(' + str(stat_set.speed) + ')' + modified_stats['speed'] + ' '
-                break
+        # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
+        # If not a ROM hack, stats should be found on the first pass every time.
+        try_again = True
+        check_base_game = False
+        while try_again:
+            for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon.stat_sets):
+                stat_set = stat_sets_list_element.element
+                # Don't ask for base game stats if ROM hack stats aren't found, because they could be present in a later stat set
+                if is_game_name_in_game_list(current_game_name.value, stat_set.games, check_base_game=check_base_game):
+                    modified_stats = get_modified_stats(current_game_name.value, stat_set, pokemon.stat_sets)
+                    output += 'HP(' + str(stat_set.hp) + ')' + modified_stats['hp'] + ' '
+                    output += 'Attack(' + str(stat_set.attack) + ')' + modified_stats['attack'] + ' '
+                    output += 'Defense(' + str(stat_set.defense) + ')' + modified_stats['defense'] + ' '
+                    output += 'Sp. Atk(' + str(stat_set.special_attack) + ')' + modified_stats['special_attack'] + ' '
+                    output += 'Sp. Def(' + str(stat_set.special_defense) + ')' + modified_stats['special_defense'] + ' '
+                    output += 'Speed(' + str(stat_set.speed) + ')' + modified_stats['speed'] + ' '
+                    try_again = False
+                    break
+            if try_again:
+                check_base_game = True
                 
         output += 'Abilities: '
         for ability_sets_list_element in AbilitySetsListElement.objects.filter(list_id=pokemon.ability_sets):
@@ -167,17 +175,32 @@ def handle_faster(args):
 
             current_game_name = Setting.objects.filter(key='Current Game')[0]
 
-            for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon_1.stat_sets):
-                stat_set = stat_sets_list_element.element
-                if is_game_name_in_game_list(current_game_name.value, stat_set.games):
-                    speed_1 = stat_set.speed
-                    break
+            # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
+            # If not a ROM hack, stats should be found on the first pass every time.
+            try_again = True
+            check_base_game = False
+            while try_again:
+                for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon_1.stat_sets):
+                    stat_set = stat_sets_list_element.element
+                    # Don't ask for base game stats if ROM hack stats aren't found, because they could be present in a later stat set
+                    if is_game_name_in_game_list(current_game_name.value, stat_set.games, check_base_game=check_base_game):
+                        speed_1 = stat_set.speed
+                        try_again = False
+                        break
+                if try_again:
+                    check_base_game = True
 
-            for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon_2.stat_sets):
-                stat_set = stat_sets_list_element.element
-                if is_game_name_in_game_list(current_game_name.value, stat_set.games):
-                    speed_2 = stat_set.speed
-                    break
+            try_again = True
+            check_base_game = False
+            while try_again:
+                for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon_2.stat_sets):
+                    stat_set = stat_sets_list_element.element
+                    if is_game_name_in_game_list(current_game_name.value, stat_set.games):
+                        speed_2 = stat_set.speed
+                        try_again = False
+                        break
+                if try_again:
+                    check_base_game = True
 
             if speed_1 == speed_2:
                 output = pokemon_1.name + ' and ' + pokemon_2.name + ' are tied for speed (' + str(speed_1)
@@ -394,13 +417,23 @@ def handle_offence(args):
 
         current_game_name = Setting.objects.filter(key='Current Game')[0]
 
-        for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon.stat_sets):
-            stat_set = stat_sets_list_element.element
-            if is_game_name_in_game_list(current_game_name.value, stat_set.games):
-                output += 'Attack(' + str(stat_set.attack) + ') '
-                output += 'Defense(' + str(stat_set.defense) + ') '
-                output += 'Speed(' + str(stat_set.speed) + ') '
-                break
+        # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
+        # If not a ROM hack, stats should be found on the first pass every time.
+        try_again = True
+        check_base_game = False
+        while try_again:
+            for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon.stat_sets):
+                stat_set = stat_sets_list_element.element
+                # Don't ask for base game stats if ROM hack stats aren't found, because they could be present in a later stat set
+                if is_game_name_in_game_list(current_game_name.value, stat_set.games, check_base_game=check_base_game):
+                    modified_stats = get_modified_stats(current_game_name.value, stat_set, pokemon.stat_sets)
+                    output += 'Attack(' + str(stat_set.attack) + ')' + modified_stats['attack'] + ' '
+                    output += 'Sp. Atk(' + str(stat_set.special_attack) + ')' + modified_stats['special_attack'] + ' '
+                    output += 'Speed(' + str(stat_set.speed) + ')' + modified_stats['speed'] + ' '
+                    try_again = False
+                    break
+            if try_again:
+                check_base_game = True
     else:
         output = '"' + pokemon_name + '" was not found'
     return output
@@ -420,13 +453,23 @@ def handle_defence(args):
 
         current_game_name = Setting.objects.filter(key='Current Game')[0]
 
-        for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon.stat_sets):
-            stat_set = stat_sets_list_element.element
-            if is_game_name_in_game_list(current_game_name.value, stat_set.games):
-                output += 'HP(' + str(stat_set.hp) + ') '
-                output += 'Sp. Atk(' + str(stat_set.special_attack) + ') '
-                output += 'Sp. Def(' + str(stat_set.special_defense) + ') '
-                break
+        # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
+        # If not a ROM hack, stats should be found on the first pass every time.
+        try_again = True
+        check_base_game = False
+        while try_again:
+            for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon.stat_sets):
+                stat_set = stat_sets_list_element.element
+                # Don't ask for base game stats if ROM hack stats aren't found, because they could be present in a later stat set
+                if is_game_name_in_game_list(current_game_name.value, stat_set.games, check_base_game=check_base_game):
+                    modified_stats = get_modified_stats(current_game_name.value, stat_set, pokemon.stat_sets)
+                    output += 'HP(' + str(stat_set.hp) + ')' + modified_stats['hp'] + ' '
+                    output += 'Defense(' + str(stat_set.defense) + ')' + modified_stats['defense'] + ' '
+                    output += 'Sp. Def(' + str(stat_set.special_defense) + ')' + modified_stats['special_defense'] + ' '
+                    try_again = False
+                    break
+            if try_again:
+                check_base_game = True
     else:
         output = '"' + pokemon_name + '" was not found'
     return output
