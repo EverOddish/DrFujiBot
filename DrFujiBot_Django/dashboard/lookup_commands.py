@@ -76,17 +76,28 @@ def handle_move(args):
 
         current_game_name = Setting.objects.filter(key='Current Game')[0]
 
-        for move_records_list_element in MoveRecordsListElement.objects.filter(list_id=move.move_records):
-            move_record = move_records_list_element.element
-            if is_game_name_in_game_list(current_game_name.value, move_record.games):
-                move_definition = move_record.move_definition
-                output = move.name + ': [' + move_definition.type_1 + '] '
-                output += 'BasePower(' + str(move_definition.base_power) + ') '
-                output += 'Class(' + move_definition.damage_category + ') '
-                output += 'Accuracy(' + str(move_definition.accuracy) + ') '
-                output += 'PP(' + str(move_definition.power_points) + ') '
-                output += 'Priority(' + str(move_definition.priority) + ') '
-                #output += move.description
+        # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
+        # If not a ROM hack, stats should be found on the first pass every time.
+        try_again = True
+        check_base_game = False
+        while try_again:
+            for move_records_list_element in MoveRecordsListElement.objects.filter(list_id=move.move_records):
+                move_record = move_records_list_element.element
+                # Don't ask for base game stats if ROM hack stats aren't found, because they could be present in a later stat set
+                if is_game_name_in_game_list(current_game_name.value, move_record.games, check_base_game=check_base_game):
+                    move_definition = move_record.move_definition
+                    modified_move_details = get_modified_move_details(current_game_name.value, move_definition, move.move_records)
+                    output = move.name + ': [' + move_definition.type_1 + ']' + modified_move_details['type'] + ' '
+                    output += 'BasePower(' + str(move_definition.base_power) + ')' + modified_move_details['base_power'] + ' '
+                    output += 'Class(' + move_definition.damage_category + ')' + modified_move_details['damage_category'] + ' '
+                    output += 'Accuracy(' + str(move_definition.accuracy) + ')' + modified_move_details['accuracy'] + ' '
+                    output += 'PP(' + str(move_definition.power_points) + ')' + modified_move_details['power_points'] + ' '
+                    output += 'Priority(' + str(move_definition.priority) + ')' + modified_move_details['priority'] + ' '
+                    #output += move.description
+                    try_again = False
+                    break
+            if try_again:
+                check_base_game = True
     else:
         output = '"' + move_name + '" was not found'
     return output

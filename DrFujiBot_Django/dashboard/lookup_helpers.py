@@ -1,7 +1,7 @@
 from django.core.cache import cache
 from spellchecker import SpellChecker
 
-from westwood.models import Ability, Game, GamesListElement, Move, Pokemon, PokemonForm, RomHack, StatSetsListElement
+from westwood.models import Ability, Game, GamesListElement, Move, Pokemon, PokemonForm, RomHack, StatSetsListElement, MoveRecordsListElement
 
 def is_game_name_in_game_list(current_game_name, game_list_id, check_base_game=True):
     games_list_element_objects = GamesListElement.objects.filter(list_id=game_list_id)
@@ -68,6 +68,50 @@ def get_modified_stats(current_game_name, rom_hack_stat_set, pokemon_stat_sets_i
                 break
 
     return modified_stats
+
+def get_modified_move_details(current_game_name, rom_hack_move_definition, move_records_id):
+    modified_move_details = {'type': '', 'base_power': '', 'damage_category': '', 'accuracy': '', 'power_points': '', 'priority': ''}
+
+    # Check if the current game is a ROM hack
+    rom_hack_matches = RomHack.objects.filter(title__iexact=current_game_name)
+    if len(rom_hack_matches) > 0:
+        base_game = rom_hack_matches[0].base_game
+
+        # Find the move record for the base game so we can compare
+        for move_records_list_element in MoveRecordsListElement.objects.filter(list_id=move_records_id):
+            base_game_move_record = move_records_list_element.element
+            if is_game_name_in_game_list(base_game, base_game_move_record.games):
+                # Found the base game
+                base_game_move_definition = base_game_move_record.move_definition
+                if rom_hack_move_definition.type_1 != base_game_move_definition.type_1:
+                    modified_move_details['type'] = '*'
+
+                if rom_hack_move_definition.base_power < base_game_move_definition.base_power:
+                    modified_move_details['base_power'] = '-'
+                elif rom_hack_move_definition.base_power > base_game_move_definition.base_power:
+                    modified_move_details['base_power'] = '+'
+
+                if rom_hack_move_definition.damage_category != base_game_move_definition.damage_category:
+                    modified_move_details['damage_category'] = '*'
+
+                if rom_hack_move_definition.accuracy < base_game_move_definition.accuracy:
+                    modified_move_details['accuracy'] = '-'
+                elif rom_hack_move_definition.accuracy > base_game_move_definition.accuracy:
+                    modified_move_details['accuracy'] = '+'
+
+                if rom_hack_move_definition.power_points < base_game_move_definition.power_points:
+                    modified_move_details['power_points'] = '-'
+                elif rom_hack_move_definition.power_points > base_game_move_definition.power_points:
+                    modified_move_details['power_points'] = '+'
+
+                if rom_hack_move_definition.priority < base_game_move_definition.priority:
+                    modified_move_details['priority'] = '-'
+                elif rom_hack_move_definition.priority > base_game_move_definition.priority:
+                    modified_move_details['priority'] = '+'
+
+                break
+
+    return modified_move_details
 
 def correct_pokemon_name(name_to_correct):
     pokemon_corrector = cache.get('pokemon_corrector')
