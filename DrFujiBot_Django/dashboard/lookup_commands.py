@@ -503,8 +503,21 @@ def handle_whatis(args):
 
 def handle_does(args):
     output = ''
-    pokemon_name = args[0]
-    move_name = args[2]
+    pokemon_name = []
+    move_name = []
+    found_learn = False
+
+    for arg in args:
+        if 'learn' == arg:
+            found_learn = True
+        else:
+            if not found_learn:
+                pokemon_name.append(arg)
+            else:
+                move_name.append(arg)
+
+    pokemon_name = ' '.join(pokemon_name)
+    move_name = ' '.join(move_name)
 
     pokemon_learnset_matches = PokemonLearnsets.objects.filter(name__iexact=pokemon_name)
     if pokemon_learnset_matches:
@@ -533,6 +546,20 @@ def handle_does(args):
                             tmset_move = tmset_moves_list_element.element
                             if tmset_move.name.lower() == move_name.lower():
                                 output = pokemon_name.capitalize() + ' learns ' + tmset_move.name + ' by TM/HM'
+                        break
+
+        if len(output) == 0:
+            pokemon_tutor_set_matches = PokemonTutorSets.objects.filter(name__iexact=pokemon_name)
+            if pokemon_tutor_set_matches:
+                pokemon_tutor_set = pokemon_tutor_set_matches[0]
+
+                for tutor_sets_list_element in TutorSetsListElement.objects.filter(list_id=pokemon_tutor_set.tutor_sets):
+                    tutor_set = tutor_sets_list_element.element
+                    if is_game_name_in_game_list(current_game_name.value, tutor_set.games):
+                        for tutor_set_moves_list_element in TutorSetMovesListElement.objects.filter(list_id=tutor_set.tutor_set_moves):
+                            tutor_set_move = tutor_set_moves_list_element.element
+                            if tutor_set_move.name.lower() == move_name.lower():
+                                output = pokemon_name.capitalize() + ' learns ' + tutor_set_move.name + ' by Move Tutor'
                         break
     else:
         output = 'Learnsets for "' + pokemon_name + '" were not found'
