@@ -195,6 +195,7 @@ def handle_faster(args):
                     stat_set = stat_sets_list_element.element
                     # Don't ask for base game stats if ROM hack stats aren't found, because they could be present in a later stat set
                     if is_game_name_in_game_list(current_game_name.value, stat_set.games, check_base_game=check_base_game):
+                        modified_stats_1 = get_modified_stats(current_game_name.value, stat_set, pokemon_1.stat_sets)
                         speed_1 = stat_set.speed
                         try_again = False
                         break
@@ -206,7 +207,8 @@ def handle_faster(args):
             while try_again:
                 for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon_2.stat_sets):
                     stat_set = stat_sets_list_element.element
-                    if is_game_name_in_game_list(current_game_name.value, stat_set.games):
+                    if is_game_name_in_game_list(current_game_name.value, stat_set.games, check_base_game=check_base_game):
+                        modified_stats_2 = get_modified_stats(current_game_name.value, stat_set, pokemon_2.stat_sets)
                         speed_2 = stat_set.speed
                         try_again = False
                         break
@@ -216,9 +218,9 @@ def handle_faster(args):
             if speed_1 == speed_2:
                 output = pokemon_1.name + ' and ' + pokemon_2.name + ' are tied for speed (' + str(speed_1)
             elif speed_1 > speed_2:
-                output = pokemon_1.name + ' (' + str(speed_1) + ') is faster than ' + pokemon_2.name + ' (' + str(speed_2) + ')'
+                output = pokemon_1.name + ' (' + str(speed_1) + ')' + modified_stats_1['speed'] + ' is faster than ' + pokemon_2.name + ' (' + str(speed_2) + ')' + modified_stats_2['speed']
             elif speed_1 < speed_2:
-                output = pokemon_1.name + ' (' + str(speed_1) + ') is slower than ' + pokemon_2.name + ' (' + str(speed_2) + ')'
+                output = pokemon_1.name + ' (' + str(speed_1) + ')' + modified_stats_1['speed'] + ' is slower than ' + pokemon_2.name + ' (' + str(speed_2) + ')' + modified_stats_2['speed']
         else:
             output = '"' + pokemon_name_2 + '" was not found'
     else:
