@@ -126,13 +126,21 @@ def handle_learnset(args):
         current_game_name = Setting.objects.filter(key='Current Game')[0]
 
         output += pokemon_learnset.name + ' '
-        for learnsets_list_element in LearnsetsListElement.objects.filter(list_id=pokemon_learnset.learnsets):
-            learnset = learnsets_list_element.element
-            if is_game_name_in_game_list(current_game_name.value, learnset.games):
-                for learnset_moves_list_element in LearnsetMovesListElement.objects.filter(list_id=learnset.learnset_moves):
-                    learnset_move = learnset_moves_list_element.element
-                    output += '| ' + str(learnset_move.level) + ' ' + learnset_move.name + ' '
-                break
+        # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
+        # If not a ROM hack, stats should be found on the first pass every time.
+        try_again = True
+        check_base_game = False
+        while try_again:
+            for learnsets_list_element in LearnsetsListElement.objects.filter(list_id=pokemon_learnset.learnsets):
+                learnset = learnsets_list_element.element
+                if is_game_name_in_game_list(current_game_name.value, learnset.games, check_base_game=check_base_game):
+                    for learnset_moves_list_element in LearnsetMovesListElement.objects.filter(list_id=learnset.learnset_moves):
+                        learnset_move = learnset_moves_list_element.element
+                        output += '| ' + str(learnset_move.level) + ' ' + learnset_move.name + ' '
+                    try_again = False
+                    break
+            if try_again:
+                check_base_game = True
     else:
         output = 'Learnsets for "' + pokemon_name + '" were not found'
     return output
@@ -148,13 +156,21 @@ def handle_tmset(args):
         current_game_name = Setting.objects.filter(key='Current Game')[0]
 
         output += pokemon_tmset.name + ': '
-        for tmsets_list_element in TmSetsListElement.objects.filter(list_id=pokemon_tmset.tm_sets):
-            tm_set = tmsets_list_element.element
-            if is_game_name_in_game_list(current_game_name.value, tm_set.games):
-                for tmset_moves_list_element in TmsetMovesListElement.objects.filter(list_id=tm_set.tmset_moves):
-                    tmset_move = tmset_moves_list_element.element
-                    output += tmset_move.name + ', '
-                break
+        # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
+        # If not a ROM hack, stats should be found on the first pass every time.
+        try_again = True
+        check_base_game = False
+        while try_again:
+            for tmsets_list_element in TmSetsListElement.objects.filter(list_id=pokemon_tmset.tm_sets):
+                tm_set = tmsets_list_element.element
+                if is_game_name_in_game_list(current_game_name.value, tm_set.games, check_base_game=check_base_game):
+                    for tmset_moves_list_element in TmsetMovesListElement.objects.filter(list_id=tm_set.tmset_moves):
+                        tmset_move = tmset_moves_list_element.element
+                        output += tmset_move.name + ', '
+                    try_again = False
+                    break
+            if try_again:
+                check_base_game = True
         if output.endswith(', '):
             output = output[:-2]
     else:
@@ -527,42 +543,70 @@ def handle_does(args):
 
         current_game_name = Setting.objects.filter(key='Current Game')[0]
 
-        for learnsets_list_element in LearnsetsListElement.objects.filter(list_id=pokemon_learnset.learnsets):
-            learnset = learnsets_list_element.element
-            if is_game_name_in_game_list(current_game_name.value, learnset.games):
-                for learnset_moves_list_element in LearnsetMovesListElement.objects.filter(list_id=learnset.learnset_moves):
-                    learnset_move = learnset_moves_list_element.element
-                    if learnset_move.name.lower() == move_name.lower():
-                        output = pokemon_name.capitalize() + ' learns ' + learnset_move.name + ' at level ' + str(learnset_move.level)
-                break
+        # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
+        # If not a ROM hack, stats should be found on the first pass every time.
+        try_again = True
+        check_base_game = False
+        while try_again:
+            for learnsets_list_element in LearnsetsListElement.objects.filter(list_id=pokemon_learnset.learnsets):
+                learnset = learnsets_list_element.element
+                if is_game_name_in_game_list(current_game_name.value, learnset.games, check_base_game=check_base_game):
+                    for learnset_moves_list_element in LearnsetMovesListElement.objects.filter(list_id=learnset.learnset_moves):
+                        learnset_move = learnset_moves_list_element.element
+                        if learnset_move.name.lower() == move_name.lower():
+                            output = pokemon_name.capitalize() + ' learns ' + learnset_move.name + ' at level ' + str(learnset_move.level)
+                    try_again = False
+                    break
+            if try_again:
+                check_base_game = True
 
         if len(output) == 0:
             pokemon_tmset_matches = PokemonTmSets.objects.filter(name__iexact=pokemon_name)
             if pokemon_tmset_matches:
                 pokemon_tmset = pokemon_tmset_matches[0]
 
-                for tmsets_list_element in TmSetsListElement.objects.filter(list_id=pokemon_tmset.tm_sets):
-                    tm_set = tmsets_list_element.element
-                    if is_game_name_in_game_list(current_game_name.value, tm_set.games):
-                        for tmset_moves_list_element in TmsetMovesListElement.objects.filter(list_id=tm_set.tmset_moves):
-                            tmset_move = tmset_moves_list_element.element
-                            if tmset_move.name.lower() == move_name.lower():
-                                output = pokemon_name.capitalize() + ' learns ' + tmset_move.name + ' by TM/HM'
-                        break
+                # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
+                # If not a ROM hack, stats should be found on the first pass every time.
+                try_again = True
+                check_base_game = False
+                while try_again:
+                    for tmsets_list_element in TmSetsListElement.objects.filter(list_id=pokemon_tmset.tm_sets):
+                        tm_set = tmsets_list_element.element
+                        if is_game_name_in_game_list(current_game_name.value, tm_set.games, check_base_game=check_base_game):
+                            for tmset_moves_list_element in TmsetMovesListElement.objects.filter(list_id=tm_set.tmset_moves):
+                                tmset_move = tmset_moves_list_element.element
+                                if tmset_move.name.lower() == move_name.lower():
+                                    output = pokemon_name.capitalize() + ' learns ' + tmset_move.name + ' by TM/HM'
+                            try_again = False
+                            break
+                    if try_again:
+                        check_base_game = True
 
         if len(output) == 0:
             pokemon_tutor_set_matches = PokemonTutorSets.objects.filter(name__iexact=pokemon_name)
             if pokemon_tutor_set_matches:
                 pokemon_tutor_set = pokemon_tutor_set_matches[0]
 
-                for tutor_sets_list_element in TutorSetsListElement.objects.filter(list_id=pokemon_tutor_set.tutor_sets):
-                    tutor_set = tutor_sets_list_element.element
-                    if is_game_name_in_game_list(current_game_name.value, tutor_set.games):
-                        for tutor_set_moves_list_element in TutorSetMovesListElement.objects.filter(list_id=tutor_set.tutor_set_moves):
-                            tutor_set_move = tutor_set_moves_list_element.element
-                            if tutor_set_move.name.lower() == move_name.lower():
-                                output = pokemon_name.capitalize() + ' learns ' + tutor_set_move.name + ' by Move Tutor'
-                        break
+                # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
+                # If not a ROM hack, stats should be found on the first pass every time.
+                try_again = True
+                check_base_game = False
+                while try_again:
+                    for tutor_sets_list_element in TutorSetsListElement.objects.filter(list_id=pokemon_tutor_set.tutor_sets):
+                        tutor_set = tutor_sets_list_element.element
+                        if is_game_name_in_game_list(current_game_name.value, tutor_set.games, check_base_game=check_base_game):
+                            for tutor_set_moves_list_element in TutorSetMovesListElement.objects.filter(list_id=tutor_set.tutor_set_moves):
+                                tutor_set_move = tutor_set_moves_list_element.element
+                                if tutor_set_move.name.lower() == move_name.lower():
+                                    output = pokemon_name.capitalize() + ' learns ' + tutor_set_move.name + ' by Move Tutor'
+                            try_again = False
+                            break
+                    if try_again:
+                        check_base_game = True
+
+        print(output)
+        if len(output) == 0:
+            output = pokemon_name.title() + ' does not learn ' + move_name.title()
     else:
         output = 'Learnsets for "' + pokemon_name + '" were not found'
 
