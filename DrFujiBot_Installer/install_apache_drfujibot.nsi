@@ -179,6 +179,8 @@ Section "Uninstall"
     Delete "$INSTDIR\ReadMe.txt"
     Delete "$INSTDIR\httpd-2.4.41-win32-VC15.zip"
 
+    CopyFiles "$INSTDIR\DrFujiBot_Django\db.sqlite3" "$INSTDIR\..\DrFujiBot_Backup\db_backup_before_removal.sqlite3"
+
     ; DrFujiBot Django
     RMDir /r "$INSTDIR\DrFujiBot_Django"
 
