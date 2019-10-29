@@ -350,9 +350,14 @@ def handle_latestquote(args):
     return output
 
 def handle_addquote(args):
-    quote_text = ' '.join(args)
-    quotee_setting = Setting.objects.filter(key='Quotee')[0]
-    quote_object = Quote(quote_text=quote_text, quotee=quotee_setting.value)
+    if args[0] == "-q":
+        quotee = args[1]
+        quote_text = ' '.join(args[2:])
+        quote_object = Quote(quote_text=quote_text, quotee=quotee)
+    else:
+        quote_text = ' '.join(args)
+        quotee_setting = Setting.objects.get(key='Quotee')
+        quote_object = Quote(quote_text=quote_text, quotee=quotee_setting.value)
     quote_object.save()
     return 'Quote #' + str(quote_object.id) + ' successfully added'
 
