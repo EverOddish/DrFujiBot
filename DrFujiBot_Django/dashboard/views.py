@@ -176,9 +176,13 @@ def save_access_token(request):
                 with open(config_path, 'w') as config_file:
                     config_file.write(json.dumps(config))
 
-                username_setting = Setting.objects.filter(key='Twitch Username')[0]
+                username_setting = Setting.objects.get(key='Twitch Username')
                 username_setting.value = display_name
                 username_setting.save()
+
+                quotee_setting = Setting.objects.get(key='Quotee')
+                quotee_setting.value = display_name
+                quotee_setting.save()
 
                 try:
                     # Restart the IRC service
