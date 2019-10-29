@@ -356,7 +356,7 @@ def handle_addquote(args):
         quote_object = Quote(quote_text=quote_text, quotee=quotee)
     else:
         quote_text = ' '.join(args)
-        quotee_setting = Setting.objects.filter(key='Quotee')[0]
+        quotee_setting = Setting.objects.get(key='Quotee')
         quote_object = Quote(quote_text=quote_text, quotee=quotee_setting.value)
     quote_object.save()
     return 'Quote #' + str(quote_object.id) + ' successfully added'
