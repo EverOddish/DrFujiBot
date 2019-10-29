@@ -142,12 +142,11 @@ def authorize(request):
     return render(request, 'dashboard/authorize.html', context)
 
 def save_access_token(request):
-    access_token = request.GET.get('access_token')
     id_token = request.GET.get('id_token')
 
     client_id = 'cnus4j6y1dvr60vkqsgvto5almy5j8'
 
-    if access_token and id_token:
+    if id_token:
         web_key_request = urllib.request.Request('https://id.twitch.tv/oauth2/keys')
         web_key_response = urllib.request.urlopen(web_key_request, cafile=certifi.where())
         web_key_content = web_key_response.read().decode('utf-8')
@@ -172,7 +171,6 @@ def save_access_token(request):
                 with open(config_path, 'r') as config_file:
                     config = json.load(config_file)
 
-                config['twitch_oauth_token'] = 'oauth:' + access_token
                 config['twitch_channel'] = channel
 
                 with open(config_path, 'w') as config_file:
