@@ -18,14 +18,20 @@ def handle_pokemon(args):
 
         current_game_name = Setting.objects.filter(key='Current Game')[0]
 
-        for type_sets_list_element in TypeSetsListElement.objects.filter(list_id=pokemon.type_sets):
-            type_set = type_sets_list_element.element
-            if is_game_name_in_game_list(current_game_name.value, type_set.games):
-                output += type_set.type1
-                if len(type_set.type2) > 0:
-                    output += ', '
-                    output += type_set.type2
-                break
+        try_again = True
+        check_base_game = False
+        while try_again:
+            for type_sets_list_element in TypeSetsListElement.objects.filter(list_id=pokemon.type_sets):
+                type_set = type_sets_list_element.element
+                if is_game_name_in_game_list(current_game_name.value, type_set.games, check_base_game=check_base_game):
+                    output += type_set.type1
+                    if len(type_set.type2) > 0:
+                        output += ', '
+                        output += type_set.type2
+                    try_again = False
+                    break
+            if try_again:
+                check_base_game = True
         output += '] '
 
         # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
