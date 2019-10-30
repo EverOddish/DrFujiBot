@@ -279,7 +279,7 @@ def handle_evolve(args):
                         evolution_record = evolution_records_list_element.element
                         output += pokemon.name + ' evolves into ' + str(evolution_record.evolves_to)
                         if evolution_record.level > 0:
-                             + ' at level ' + str(evolution_record.level)
+                             output += ' at level ' + str(evolution_record.level)
                         if len(evolution_record.method) > 0:
                             output += ' ' + evolution_record.method
                         output += '. '
