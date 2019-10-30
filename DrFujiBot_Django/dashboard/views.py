@@ -119,7 +119,7 @@ def timed_messages(request):
     for timed_message in timed_messages:
         interval = datetime.timedelta(minutes=timed_message.minutes_interval)
         if now - timed_message.last_output_time > interval:
-            if len(cmd.output.prefix) > 0:
+            if len(timed_message.message.prefix) > 0:
                 response_text = timed_message.message.prefix + ' ' + timed_message.message.output_text
             else:
                 response_text = timed_message.message.output_text
