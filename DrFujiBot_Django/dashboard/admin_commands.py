@@ -297,7 +297,10 @@ def handle_deaths(args):
     death_objects = Death.objects.filter(run=run).order_by('-time_of_death')[:3]
     death_names = [death.nickname for death in death_objects]
 
-    output = 'There have been ' + str(death_count) + ' deaths so far. Most recent deaths (latest first): '
+    if death_count == 1:
+        output = 'There has been ' + str(death_count) + ' death so far. Most recent deaths (latest first): '
+    else:
+        output = 'There have been ' + str(death_count) + ' deaths so far. Most recent deaths (latest first): '
     output += ', '.join(death_names)
 
     return output
