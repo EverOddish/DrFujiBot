@@ -293,8 +293,8 @@ def handle_deaths(args):
     current_run_setting = Setting.objects.filter(key='Current Run')[0]
     run = Run.objects.filter(name=current_run_setting.value)[0]
 
-    death_count = Death.objects.filter(run=run).count()
-    death_objects = Death.objects.filter(run=run).order_by('-time_of_death')[:3]
+    death_count = Death.objects.filter(run=run).filter(attempt=run.attempt_number).count()
+    death_objects = Death.objects.filter(run=run).filter(attempt=run.attempt_number).order_by('-time_of_death')[:3]
     death_names = [death.nickname for death in death_objects]
 
     if death_count == 1:

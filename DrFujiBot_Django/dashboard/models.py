@@ -57,6 +57,7 @@ class Death(models.Model):
     time_of_death = models.DateTimeField(default=now)
     respect_count = models.IntegerField(default=0)
     run = models.ForeignKey(Run, on_delete=models.CASCADE)
+    attempt = models.IntegerField(default=1)
 
 class Quote(models.Model):
     quote_text = models.CharField(max_length=1000)
