@@ -251,7 +251,7 @@ def handle_faster(args):
 
 def handle_item(args):
     output = ''
-    item_name = args[0]
+    item_name = ' '.join(args)
     item_matches = Item.objects.filter(name__iexact=item_name)
     if item_matches:
         item = item_matches[0]
