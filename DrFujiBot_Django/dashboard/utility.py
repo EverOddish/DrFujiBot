@@ -28,3 +28,17 @@ def get_stream_start_time():
                 start_time = iso8601.parse_date(stream_data['data'][0]['started_at'])
 
     return start_time
+
+def get_viewer_list():
+    from .models import Setting
+    viewer_list = []
+    username = Setting.objects.get(key='Twitch Username').value
+    if len(username) > 0:
+        url = 'https://tmi.twitch.tv/group/user/' + username + '/chatters'
+        chatters_data = twitch_api_request(url)
+        if chatters_data:
+            for key in chatters_data['chatters']:
+                users = chatters_data['chatters'][key]
+                for user in users:
+                    viewer_list.append(user)
+    return viewer_list
