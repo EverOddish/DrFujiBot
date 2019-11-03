@@ -1,4 +1,5 @@
 from .models import Setting, Command, SimpleOutput, Run, Death, Quote, ChatLog, BannedPhrase, TimedMessage
+from scheduled_tasks.uptime_check import get_uptime
 from apscheduler.schedulers.background import BackgroundScheduler
 from westwood.models import Game
 
@@ -413,6 +414,22 @@ def handle_unnuke(args):
 
     return output
 
+def handle_uptime(args):
+    output = 'Stream is offline'
+
+    uptime = get_uptime()
+    if uptime:
+        output = 'The current stream uptime is '
+        if uptime.days > 0:
+            output += f'{uptime.days} days, '
+        hours = uptime.seconds // 3600
+        if hours > 0:
+            output += f'{hours} hours, '
+        minutes = (uptime.seconds // 60) % 60
+        output += f'{minutes} minutes'
+
+    return output
+
 handlers = {'!setgame': handle_setgame,
             '!addcom': handle_addcom,
             '!delcom': handle_delcom,
@@ -430,6 +447,7 @@ handlers = {'!setgame': handle_setgame,
             '!delquote': handle_delquote,
             '!nuke': handle_nuke,
             '!unnuke': handle_unnuke,
+            '!uptime': handle_uptime,
            }
 
 expected_args = {'!setgame': 1,
@@ -449,6 +467,7 @@ expected_args = {'!setgame': 1,
                  '!delquote': 1,
                  '!nuke': 1,
                  '!unnuke': 1,
+                 '!uptime': 0,
                 }
 
 usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
@@ -468,6 +487,7 @@ usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
          '!delquote': 'Usage: !delquote <quote number>',
          '!nuke': 'Usage: !nuke <word or phrase>',
          '!unnuke': 'Usage: !nuke <word or phrase>',
+         '!uptime': 'Usage: !uptime',
         }
 
 def handle_admin_command(line):

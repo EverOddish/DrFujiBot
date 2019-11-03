@@ -11,10 +11,11 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.template import loader
 
+from .admin_commands import handle_admin_command
+from .lookup_commands import handle_lookup_command
 from .models import DISABLED, BROADCASTER_ONLY, MODERATOR_ONLY, SUBSCRIBER_ONLY, EVERYONE
 from .models import Command, SimpleOutput, Setting, TimedMessage, ChatLog, BannedPhrase
-from .lookup_commands import handle_lookup_command
-from .admin_commands import handle_admin_command
+from .utility import twitch_api_request, CLIENT_ID
 
 def index(request):
     settings_list = Setting.objects.order_by('key')
@@ -144,8 +145,6 @@ def authorize(request):
 def save_access_token(request):
     id_token = request.GET.get('id_token')
 
-    client_id = 'cnus4j6y1dvr60vkqsgvto5almy5j8'
-
     if id_token:
         web_key_request = urllib.request.Request('https://id.twitch.tv/oauth2/keys')
         web_key_response = urllib.request.urlopen(web_key_request, cafile=certifi.where())
@@ -154,14 +153,12 @@ def save_access_token(request):
         for web_key in web_keys['keys']:
             if web_key['alg'] == 'RS256':
                 key = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(web_key))
-                token = jwt.decode(id_token, key, algorithms='RS256', audience=client_id)
+                token = jwt.decode(id_token, key, algorithms='RS256', audience=CLIENT_ID)
 
                 # Convert user ID to username
                 user_id = token['sub']
-                request = urllib.request.Request('https://api.twitch.tv/helix/users?id=' + user_id)
-                request.add_header('Client-ID', client_id)
-                response = urllib.request.urlopen(request, cafile=certifi.where())
-                user_data = json.loads(response.read().decode('utf-8'))
+                url = 'https://api.twitch.tv/helix/users?id=' + user_id
+                user_data = twitch_api_request(url)
                 channel = user_data['data'][0]['login']
                 display_name = user_data['data'][0]['display_name']
 
@@ -177,7 +174,7 @@ def save_access_token(request):
                     config_file.write(json.dumps(config))
 
                 username_setting = Setting.objects.get(key='Twitch Username')
-                username_setting.value = display_name
+                username_setting.value = channel
                 username_setting.save()
 
                 quotee_setting = Setting.objects.get(key='Quotee')
