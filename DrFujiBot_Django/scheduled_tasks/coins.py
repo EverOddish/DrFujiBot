@@ -6,13 +6,11 @@ def award_coins():
     from dashboard.models import Setting, CoinEntry
 
     coins_per_minute = int(Setting.objects.get(key='Coins Per Minute').value)
-    print(coins_per_minute)
 
     start_time = get_stream_start_time()
     if start_time:
         # Stream is live, award coins
         viewer_list = get_viewer_list()
-        print('Awarding coins to ' + str(len(viewer_list)) + ' users')
         for viewer in viewer_list:
             coin_entries = CoinEntry.objects.filter(username__iexact=viewer)
             if len(coin_entries) == 0:

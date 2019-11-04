@@ -23,7 +23,7 @@ def get_stream_start_time():
     if len(username) > 0:
         url = 'https://api.twitch.tv/helix/streams?user_login=' + username
         stream_data = twitch_api_request(url)
-        if stream_data:
+        if stream_data and len(stream_data['data']) > 0:
             if 'live' == stream_data['data'][0]['type']:
                 start_time = iso8601.parse_date(stream_data['data'][0]['started_at'])
 

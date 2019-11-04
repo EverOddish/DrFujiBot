@@ -13,6 +13,7 @@ from django.template import loader
 
 from .admin_commands import handle_admin_command
 from .lookup_commands import handle_lookup_command
+from .coin_commands import handle_coin_command
 from .models import DISABLED, BROADCASTER_ONLY, MODERATOR_ONLY, SUBSCRIBER_ONLY, EVERYONE
 from .models import Command, SimpleOutput, Setting, TimedMessage, ChatLog, BannedPhrase
 from .utility import twitch_api_request, CLIENT_ID
@@ -99,6 +100,8 @@ def drfujibot(request):
                     response_text = handle_lookup_command(line)
                     if None == response_text or len(response_text) == 0:
                         response_text = handle_admin_command(line)
+                        if None == response_text or len(response_text) == 0:
+                            response_text = handle_coin_command(line, username)
                 cmd.invocation_count += 1
                 cmd.last_output_time = now
                 cmd.save()
