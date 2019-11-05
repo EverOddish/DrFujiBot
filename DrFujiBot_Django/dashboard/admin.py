@@ -112,7 +112,7 @@ class SettingAdmin(admin.ModelAdmin):
             class Meta:
                 model = Setting
                 fields = ('value',)
-                widgets={'value': TextInput()}
+                widgets={'value': TextInput(attrs={'readonly': 'readonly'})}
         class CoinsPerMinuteAdminForm(ModelForm):
             class Meta:
                 model = Setting

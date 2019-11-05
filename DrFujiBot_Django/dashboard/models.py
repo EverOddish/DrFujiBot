@@ -78,3 +78,4 @@ class BannedPhrase(models.Model):
 class CoinEntry(models.Model):
     username = models.CharField(max_length=200)
     coins = models.IntegerField(default=0)
+    last_daily = models.DateTimeField(default=now)
