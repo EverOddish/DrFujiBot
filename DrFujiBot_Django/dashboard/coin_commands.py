@@ -1,4 +1,4 @@
-from .models import Setting, CoinEntry
+from .models import CoinEntry, ChatLog
 from apscheduler.schedulers.background import BackgroundScheduler
 from scheduled_tasks.uptime_check import get_uptime
 
@@ -120,6 +120,24 @@ def handle_leaderboard(username, args):
 
 def handle_resetcoins(username, args):
     output = ''
+
+    reset_matches = ChatLog.objects.filter(line__iexact='!resetcoins').filter(username__iexact=username)
+    if len(reset_matches) > 1:
+        # The same user has already done !resetcoins once and is now confirming the reset
+
+        coin_entries = CoinEntry.objects.all()
+        for entry in coin_entries:
+            entry.delete()
+
+        # Delete the !resetcoins chat logs in case a user wants to do it again immediately
+        for reset in reset_matches:
+            reset.delete()
+
+        output = 'All coins have been reset!'
+    else:
+        # The same user has not yet done a second !resetcoins, so ask for confirmation
+        output = '@' + username + ' Are you sure you want to reset coins? Do !resetcoins again to confirm.'
+
     return output
 
 handlers = {'!open': handle_open,
