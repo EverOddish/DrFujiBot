@@ -1,5 +1,6 @@
-from .models import CoinEntry, ChatLog
+from .models import CoinEntry, ChatLog, BettingEvent, Bet, OPEN, CLOSED, RESOLVED, CANCELLED
 from apscheduler.schedulers.background import BackgroundScheduler
+from django.db.models import Q
 from scheduled_tasks.uptime_check import get_uptime
 
 import datetime
@@ -15,18 +16,120 @@ def is_num(num):
 
 def handle_open(username, args):
     output = ''
+    event_name = args[0]
+    prize_coins = args[1]
+    if is_num(prize_coins):
+        existing_events = BettingEvent.objects.filter(name__iexact=event_name, status=OPEN)
+        if len(existing_events) == 0:
+            betting_event = BettingEvent(name=event_name, prize_coins=prize_coins)
+            betting_event.save()
+            output = 'Betting has opened! Use !bet <guess> to play!'
+        else:
+            output = 'An open event named "' + event_name + '" already exists!'
+    else:
+        output = 'Please enter a valid number of prize coins'
     return output
 
 def handle_close(username, args):
     output = ''
+    event_name = args[0]
+    existing_events = BettingEvent.objects.filter(name__iexact=event_name, status=OPEN)
+    if len(existing_events) > 0:
+        betting_event = existing_events[0]
+        betting_event.status = CLOSED
+        betting_event.closed_timestamp = datetime.datetime.now(datetime.timezone.utc)
+        betting_event.save()
+        output = 'Betting for the "' + event_name + '" event has now closed!'
+    else:
+        output = 'Open event "' + event_name + '" not found!'
     return output
 
 def handle_resolve(username, args):
     output = ''
+    event_name = args[0]
+    result = args[1]
+
+    # For now, the result can only be 0-6 (number of deaths in the party)
+    if is_num(result) and int(result) >= 0 and int(result) <= 6:
+        existing_events = BettingEvent.objects.filter(name__iexact=event_name).filter(Q(status=OPEN) | Q(status=CLOSED))
+        if len(existing_events) > 0:
+            betting_event = existing_events[0]
+            betting_event.status = RESOLVED
+            betting_event.resolved_timestamp = datetime.datetime.now(datetime.timezone.utc)
+
+            winners = Bet.objects.filter(value__iexact=result)
+
+            betting_event.num_winners = len(winners)
+            betting_event.save()
+
+            if len(winners) > 0:
+                prize = int(betting_event.prize_coins / len(winners))
+                winner_usernames = []
+                first_time_winners = []
+                for winner in winners:
+                    coin_entries = CoinEntry.objects.filter(username=winner.username)
+                    if len(coin_entries) == 0:
+                        last_daily = datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=1)
+                        coin_entry = CoinEntry(username=winner.username, last_daily=last_daily)
+                    else:
+                        coin_entry = coin_entries[0]
+
+                    bonus_amount = 0
+                    if not coin_entry.has_won:
+                        first_time_winners.append(winner.username)
+                        bonus_amount = 1000
+
+                    coin_entry.coins += prize + bonus_amount
+                    coin_entry.has_won = True
+                    coin_entry.save()
+
+                    winner_usernames.append(winner.username)
+                output = []
+                output.append('"' + event_name + '" event had ' + str(len(winners)) + ' winners that got a payout of ' + str(prize) + ' coins each!')
+                output.append('Winners: ' + ', '.join(winner_usernames))
+                output.append('First-time winners receiving a 1000 coin bonus: ' + ', '.join(first_time_winners))
+            else:
+                output = 'Unfortuantely, there were no winners for the "' + event_name + '" event'
+        else:
+            output = 'Event "' + event_name + '" not found!'
+    else:
+        output = 'Please specify a valid result'
     return output
 
 def handle_cancel(username, args):
     output = ''
+    event_name = args[0]
+    existing_events = BettingEvent.objects.filter(name__iexact=event_name, status=OPEN)
+    if len(existing_events) > 0:
+        betting_event = existing_events[0]
+        betting_event.status = CANCELLED
+        betting_event.cancelled_timestamp = datetime.datetime.now(datetime.timezone.utc)
+        betting_event.save()
+        output = 'The "' + event_name + '" event has been cancelled!'
+    else:
+        output = 'Open event "' + event_name + '" not found!'
+    return output
+
+def handle_bet(username, args):
+    output = ''
+    guess = args[0]
+
+    existing_events = BettingEvent.objects.filter(status=OPEN)
+    if len(existing_events) > 0:
+        # For now, the result can only be 0-6 (number of deaths in the party)
+        if is_num(guess) and int(guess) >= 0 and int(guess) <= 6:
+            existing_bets = Bet.objects.filter(username__iexact=username)
+            if len(existing_bets) > 0:
+                bet = existing_bets[0]
+                bet.value = guess
+                bet.save()
+            else:
+                bet = Bet(username=username, value=guess, event=existing_events[0])
+                bet.save()
+        else:
+            output = 'Valid guesses are 0 to 6 (number of deaths)'
+    else:
+        output = 'There are no open events!'
     return output
 
 def handle_daily(username, args):
@@ -145,6 +248,7 @@ handlers = {'!open': handle_open,
             '!close': handle_close,
             '!resolve': handle_resolve,
             '!cancel': handle_cancel,
+            '!bet': handle_bet,
             '!daily': handle_daily,
             '!credit': handle_credit,
             '!balance': handle_balance,
@@ -153,11 +257,12 @@ handlers = {'!open': handle_open,
             '!resetcoins': handle_resetcoins,
            }
 
-expected_args = {'!open': 1,
-                 '!event': 1,
+expected_args = {'!open': 2,
+                 '!event': 2,
                  '!close': 1,
-                 '!resolve': 1,
+                 '!resolve': 2,
                  '!cancel': 1,
+                 '!bet': 1,
                  '!daily': 0,
                  '!credit': 2,
                  '!balance': 0,
@@ -166,11 +271,12 @@ expected_args = {'!open': 1,
                  '!resetcoins': 0,
                 }
 
-usage = {'!open': 'Usage: !open <event name>',
-         '!event': 'Usage: !event <event name>',
+usage = {'!open': 'Usage: !open <event name> <prize coins>',
+         '!event': 'Usage: !event <event name> <prize coins>',
          '!close': 'Usage: !close <event name>',
-         '!resolve': 'Usage: !resolve <event name>',
+         '!resolve': 'Usage: !resolve <event name> <result>',
          '!cancel': 'Usage: !cancel <event name>',
+         '!bet': 'Usage: !bet <guess>',
          '!daily': 'Usage: !daily',
          '!credit': 'Usage: !credit <username> <number of coins>',
          '!balance': 'Usage: !balance',

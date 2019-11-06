@@ -23,6 +23,7 @@ class Migration(migrations.Migration):
                 ('username', models.CharField(max_length=200)),
                 ('coins', models.IntegerField(default=0)),
                 ('last_daily', models.DateTimeField(default=now)),
+                ('has_won', models.BooleanField(default=False)),
             ],
         ),
         migrations.RunPython(coins_per_minute_setting),

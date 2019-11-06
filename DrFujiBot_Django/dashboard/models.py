@@ -79,3 +79,31 @@ class CoinEntry(models.Model):
     username = models.CharField(max_length=200)
     coins = models.IntegerField(default=0)
     last_daily = models.DateTimeField(default=now)
+    has_won = models.BooleanField(default=False)
+
+OPEN = 1
+CLOSED = 2
+RESOLVED = 3
+CANCELLED = 4
+
+EVENT_STATUS_CHOICES = (
+    (OPEN, 'Open'),
+    (CLOSED, 'Closed'),
+    (RESOLVED, 'Resolved'),
+    (CANCELLED, 'Cancelled'),
+)
+
+class BettingEvent(models.Model):
+    name = models.CharField(max_length=200)
+    prize_coins = models.IntegerField(default=0)
+    status = models.IntegerField(choices=EVENT_STATUS_CHOICES, default=OPEN)
+    open_timestamp = models.DateTimeField(default=now)
+    closed_timestamp = models.DateTimeField(blank=True, null=True)
+    resolved_timestamp = models.DateTimeField(blank=True, null=True)
+    cancelled_timestamp = models.DateTimeField(blank=True, null=True)
+    num_winners = models.IntegerField(default=0)
+
+class Bet(models.Model):
+    username = models.CharField(max_length=200)
+    value = models.CharField(max_length=200)
+    event = models.ForeignKey(BettingEvent, on_delete=models.CASCADE)
