@@ -6,7 +6,7 @@ from django.utils.timezone import now
 def coins_per_minute_setting(apps, schema_editor):
     Setting = apps.get_model('dashboard', 'Setting')
 
-    setting_object = Setting(key='Coins Per Minute', value='1')
+    setting_object = Setting(key='Coins Per Minute', value='0')
     setting_object.save()
 
 class Migration(migrations.Migration):

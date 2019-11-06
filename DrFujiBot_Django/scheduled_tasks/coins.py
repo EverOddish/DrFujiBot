@@ -7,18 +7,19 @@ def award_coins():
 
     coins_per_minute = int(Setting.objects.get(key='Coins Per Minute').value)
 
-    start_time = get_stream_start_time()
-    if start_time:
-        # Stream is live, award coins
-        viewer_list = get_viewer_list()
-        for viewer in viewer_list:
-            coin_entries = CoinEntry.objects.filter(username__iexact=viewer)
-            if len(coin_entries) == 0:
-                coin_entry = CoinEntry(username=viewer)
-            else:
-                coin_entry = coin_entries[0]
-            coin_entry.coins += coins_per_minute
-            coin_entry.save()
+    if coins_per_minute > 0:
+        start_time = get_stream_start_time()
+        if start_time:
+            # Stream is live, award coins
+            viewer_list = get_viewer_list()
+            for viewer in viewer_list:
+                coin_entries = CoinEntry.objects.filter(username__iexact=viewer)
+                if len(coin_entries) == 0:
+                    coin_entry = CoinEntry(username=viewer)
+                else:
+                    coin_entry = coin_entries[0]
+                coin_entry.coins += coins_per_minute
+                coin_entry.save()
 
 def start_coins_task():
     scheduler = BackgroundScheduler()
