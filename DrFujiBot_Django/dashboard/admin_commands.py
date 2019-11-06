@@ -237,6 +237,20 @@ def handle_riprun(args):
         output = 'Run "' + current_run_setting.value + '" not found'
     return output
 
+def handle_listruns(args):
+    output = ''
+
+    run_matches = Run.objects.all()
+    if len(run_matches) > 0:
+        runs = []
+        output = 'Runs: '
+        for run in run_matches:
+            runs.append(f'"{run.name}" (attempt {run.attempt_number})')
+        output += ', '.join(runs)
+    else:
+        output = 'No runs were found'
+    return output
+
 def update_respects(death_object_id):
     death_matches = Death.objects.filter(id=death_object_id)
     if len(death_matches) > 0:
@@ -448,6 +462,7 @@ handlers = {'!setgame': handle_setgame,
             '!nuke': handle_nuke,
             '!unnuke': handle_unnuke,
             '!uptime': handle_uptime,
+            '!listruns': handle_listruns,
            }
 
 expected_args = {'!setgame': 1,
@@ -468,6 +483,7 @@ expected_args = {'!setgame': 1,
                  '!nuke': 1,
                  '!unnuke': 1,
                  '!uptime': 0,
+                 '!listruns': 0,
                 }
 
 usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
@@ -488,6 +504,7 @@ usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
          '!nuke': 'Usage: !nuke <word or phrase>',
          '!unnuke': 'Usage: !nuke <word or phrase>',
          '!uptime': 'Usage: !uptime',
+         '!listruns': 'Usage: !listruns',
         }
 
 def handle_admin_command(line):
