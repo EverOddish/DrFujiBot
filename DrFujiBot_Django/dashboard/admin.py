@@ -64,8 +64,8 @@ class CommandAdmin(admin.ModelAdmin):
     actions = [permit_disabled, permit_broadcaster, permit_moderator, permit_subscriber, permit_everyone, add_cooldown, remove_cooldown]
 
 class TimedMessageAdmin(admin.ModelAdmin):
-    fields = ['message', 'minutes_interval', 'current_output_count', 'max_output_count']
-    list_display = ['get_message', 'minutes_interval', 'current_output_count', 'max_output_count']
+    fields = ['message', 'minutes_interval', 'current_output_count', 'max_output_count', 'stream_status']
+    list_display = ['get_message', 'minutes_interval', 'current_output_count', 'max_output_count', 'stream_status']
 
     def get_message(self, obj):
         return obj.message.output_text

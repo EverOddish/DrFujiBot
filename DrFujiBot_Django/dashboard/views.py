@@ -10,11 +10,13 @@ import urllib
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.template import loader
+from scheduled_tasks.uptime_check import get_uptime
 
 from .admin_commands import handle_admin_command
 from .lookup_commands import handle_lookup_command
 from .coin_commands import handle_coin_command
 from .models import DISABLED, BROADCASTER_ONLY, MODERATOR_ONLY, SUBSCRIBER_ONLY, EVERYONE
+from .models import UNSPECIFIED, ONLINE_ONLY, OFFLINE_ONLY
 from .models import Command, SimpleOutput, Setting, TimedMessage, ChatLog, BannedPhrase
 from .utility import twitch_api_request, CLIENT_ID
 
@@ -123,21 +125,37 @@ def timed_messages(request):
     for timed_message in timed_messages:
         interval = datetime.timedelta(minutes=timed_message.minutes_interval)
         if now - timed_message.last_output_time > interval:
-            if len(timed_message.message.prefix) > 0:
-                response_text = timed_message.message.prefix + ' ' + timed_message.message.output_text
+            should_output = False
+
+            if timed_message.stream_status == UNSPECIFIED:
+                should_output = True
             else:
-                response_text = timed_message.message.output_text
-            timed_message.last_output_time = now
-            if timed_message.max_output_count > 0:
-                timed_message.current_output_count += 1
-            timed_message.save()
+                uptime = get_uptime()
+                if uptime:
+                    # Stream is live
+                    if timed_message.stream_status == ONLINE_ONLY:
+                        should_output = True
+                else:
+                    # Stream is not live
+                    if timed_message.stream_status == OFFLINE_ONLY:
+                        should_output = True
 
-            if timed_message.max_output_count > 0 and timed_message.current_output_count >= timed_message.max_output_count:
-                timed_message.message.delete()
-                timed_message.delete()
+            if should_output:
+                if len(timed_message.message.prefix) > 0:
+                    response_text = timed_message.message.prefix + ' ' + timed_message.message.output_text
+                else:
+                    response_text = timed_message.message.output_text
+                timed_message.last_output_time = now
+                if timed_message.max_output_count > 0:
+                    timed_message.current_output_count += 1
+                timed_message.save()
 
-            # Only output one timed message at a time. Others will be picked up next time around.
-            break
+                if timed_message.max_output_count > 0 and timed_message.current_output_count >= timed_message.max_output_count:
+                    timed_message.message.delete()
+                    timed_message.delete()
+
+                # Only output one timed message at a time. Others will be picked up next time around.
+                break
 
     return HttpResponse(response_text)
 

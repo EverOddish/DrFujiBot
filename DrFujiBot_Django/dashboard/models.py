@@ -36,12 +36,23 @@ class Setting(models.Model):
     key = models.CharField(max_length=200)
     value = models.CharField(max_length=200)
 
+UNSPECIFIED = 1
+ONLINE_ONLY = 2
+OFFLINE_ONLY = 3
+
+STREAM_STATUS_CHOICES = (
+    (UNSPECIFIED, 'Unspecified'),
+    (ONLINE_ONLY, 'Online Only'),
+    (OFFLINE_ONLY, 'Offline Only'),
+)
+
 class TimedMessage(models.Model):
     minutes_interval = models.IntegerField(default=15)
     last_output_time = models.DateTimeField(default=now)
     current_output_count = models.IntegerField(default=0)
     max_output_count = models.IntegerField(default=0)
     message = models.ForeignKey(SimpleOutput, on_delete=models.CASCADE)
+    stream_status = models.IntegerField(choices=STREAM_STATUS_CHOICES, default=UNSPECIFIED)
 
 class Run(models.Model):
     name = models.CharField(max_length=200)
