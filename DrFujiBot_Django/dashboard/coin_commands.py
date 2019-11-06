@@ -59,6 +59,7 @@ def handle_resolve(username, args):
 
             winners = Bet.objects.filter(value__iexact=result)
 
+            betting_event.result = result
             betting_event.num_winners = len(winners)
             betting_event.save()
 
@@ -94,6 +95,31 @@ def handle_resolve(username, args):
             output = 'Event "' + event_name + '" not found!'
     else:
         output = 'Please specify a valid result'
+    return output
+
+def handle_unresolve(username, args):
+    output = ''
+    event_name = args[0]
+
+    existing_events = BettingEvent.objects.filter(name__iexact=event_name, status=RESOLVED).order_by('-resolved_timestamp')
+    if len(existing_events) > 0:
+        betting_event = existing_events[0]
+        betting_event.status = CLOSED
+        betting_event.save()
+
+        if betting_event.num_winners > 0:
+            winners = Bet.objects.filter(value__iexact=betting_event.result, event=betting_event)
+
+            prize = int(betting_event.prize_coins / betting_event.num_winners)
+            for winner in winners:
+                coin_entry = CoinEntry.objects.get(username=winner.username)
+                if coin_entry:
+                    coin_entry.coins -= prize
+                    coin_entry.save()
+
+        output = 'Event "' + event_name + '" has been un-resolved. You may now resolve the event again.'
+    else:
+        output = 'Resolved event "' + event_name + '" not found!'
     return output
 
 def handle_cancel(username, args):
@@ -247,6 +273,7 @@ handlers = {'!open': handle_open,
             '!event': handle_open,
             '!close': handle_close,
             '!resolve': handle_resolve,
+            '!unresolve': handle_unresolve,
             '!cancel': handle_cancel,
             '!bet': handle_bet,
             '!daily': handle_daily,
@@ -261,6 +288,7 @@ expected_args = {'!open': 2,
                  '!event': 2,
                  '!close': 1,
                  '!resolve': 2,
+                 '!unresolve': 1,
                  '!cancel': 1,
                  '!bet': 1,
                  '!daily': 0,
@@ -275,6 +303,7 @@ usage = {'!open': 'Usage: !open <event name> <prize coins>',
          '!event': 'Usage: !event <event name> <prize coins>',
          '!close': 'Usage: !close <event name>',
          '!resolve': 'Usage: !resolve <event name> <result>',
+         '!unresolve': 'Usage: !unresolve <event name>',
          '!cancel': 'Usage: !cancel <event name>',
          '!bet': 'Usage: !bet <guess>',
          '!daily': 'Usage: !daily',

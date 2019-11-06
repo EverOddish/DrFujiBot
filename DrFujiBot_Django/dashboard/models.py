@@ -101,6 +101,7 @@ class BettingEvent(models.Model):
     closed_timestamp = models.DateTimeField(blank=True, null=True)
     resolved_timestamp = models.DateTimeField(blank=True, null=True)
     cancelled_timestamp = models.DateTimeField(blank=True, null=True)
+    result = models.CharField(max_length=200)
     num_winners = models.IntegerField(default=0)
 
 class Bet(models.Model):
