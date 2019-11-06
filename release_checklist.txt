@@ -1,0 +1,21 @@
+Release Checklist:
+
+ * Add any new required Python modules to DrFujiBot_Installer\install_python.cfg
+ * Update the version in DrFujiBot_Installer\install_python.cfg
+ * Update the version in DrFujiBot_Django\scheduled_tasks\backup_task.py
+ * Make sure Westwood is up to date and the data base exists at DrFujiBot_Django\westwood.sqlite3
+ * Build and test the installer
+ * Create a release on GitHub with this format:
+
+     DrFujiBot 2.0.2 fixes and additions:
+
+ * Update the link to the latest version on the Start Here wiki page on GitHub
+ * Tweet the new release with this format:
+
+     DrFujiBot 2.0.2 is released! ...
+
+ * Post the new release in #drfuji-workshop and pin it, unpin the old one. Use this format:
+
+     Version 2.0.2 is released (link)
+
+ * Write up any manual post-install instructions (enabling new commands, etc.)
