@@ -13,7 +13,11 @@ class DashboardConfig(AppConfig):
 
     def ready(self):
         # Don't run during manage commands
-        if not 'manage.py' in sys.argv or 'runserver' in sys.argv:
+        is_manage = False
+        for arg in sys.argv:
+            if 'manage.py' in arg:
+                is_manage = True
+        if not is_manage or 'runserver' in sys.argv:
             backup_task.start_backup_task()
             chat_history.start_prune_task()
             banned_phrase_expiry.start_expiry_task()
