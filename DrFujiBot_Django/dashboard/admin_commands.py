@@ -67,8 +67,11 @@ def handle_delcom(args):
 
     command_matches = Command.objects.filter(command__iexact=command_name)
     if len(command_matches) == 1:
-        command_matches[0].delete()
-        output = 'Command "' + command_name + '" successfully deleted'
+        if not command_matches[0].is_built_in:
+            command_matches[0].delete()
+            output = 'Command "' + command_name + '" successfully deleted'
+        else:
+            output = 'Cannot delete built-in command "' + command_name + '"'
     else:
         output = 'Command "' + command_name + '" not found'
     return output
@@ -87,32 +90,35 @@ def handle_editcom(args):
     command_matches = Command.objects.filter(command__iexact=command_name)
     if len(command_matches) == 1:
         command_object = command_matches[0]
-        simple_output = command_object.output
+        if not command_object.is_built_in:
+            simple_output = command_object.output
 
-        # We need to check if the current SimpleOutput is referenced by any Run that is not the current Run
-        need_new_simple_output = False
-        current_run_setting = Setting.objects.filter(key='Current Run')[0]
-        run_matches = Run.objects.all()
-        for run in run_matches:
-            if run.name != current_run_setting.value:
-                if simple_output == run.last_run_output or simple_output == run.how_far_output:
-                    need_new_simple_output = True
+            # We need to check if the current SimpleOutput is referenced by any Run that is not the current Run
+            need_new_simple_output = False
+            current_run_setting = Setting.objects.filter(key='Current Run')[0]
+            run_matches = Run.objects.all()
+            for run in run_matches:
+                if run.name != current_run_setting.value:
+                    if simple_output == run.last_run_output or simple_output == run.how_far_output:
+                        need_new_simple_output = True
 
-        if need_new_simple_output:
-            # Create a new SimpleOutput and point the Command to it, in order to preserve other Run references to the current SimpleOutput
-            new_simple_output = SimpleOutput(prefix=simple_output.prefix, output_text=simple_output_text)
-            new_simple_output.save()
-            command_object.output = new_simple_output
-            command_object.save()
-            simple_output = new_simple_output
+            if need_new_simple_output:
+                # Create a new SimpleOutput and point the Command to it, in order to preserve other Run references to the current SimpleOutput
+                new_simple_output = SimpleOutput(prefix=simple_output.prefix, output_text=simple_output_text)
+                new_simple_output.save()
+                command_object.output = new_simple_output
+                command_object.save()
+                simple_output = new_simple_output
+            else:
+                # No other Run references the current SimpleOutput, so it's safe to just edit it
+                simple_output.output_text = simple_output_text
+                simple_output.save()
+
+            update_run(command_name, simple_output)
+
+            output = 'Command "' + command_name + '" successfully modified'
         else:
-            # No other Run references the current SimpleOutput, so it's safe to just edit it
-            simple_output.output_text = simple_output_text
-            simple_output.save()
-
-        update_run(command_name, simple_output)
-
-        output = 'Command "' + command_name + '" successfully modified'
+            output = 'Cannot modify built-in command "' + command_name + '"'
     else:
         output = 'Command "' + command_name + '" not found'
     return output
