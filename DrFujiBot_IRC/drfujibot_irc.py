@@ -31,7 +31,8 @@ def unscramble(scrambled):
     return unscrambled
 
 class DrFujiBot(irc.bot.SingleServerIRCBot):
-    def __init__(self):
+    def __init__(self, debug):
+        self.debug = debug
         config_path = os.path.join(os.path.dirname(__file__), 'config.json')
         with open(config_path) as f:
             self.settings = json.load(f)
@@ -54,7 +55,8 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
     def on_welcome(self, c, e):
         self.c = c
         c.join(self.channel)
-        print('Joined chat for ' + self.channel)
+        if self.debug:
+            print('Joined chat for ' + self.channel)
         c.cap('REQ', ":twitch.tv/tags")
 
     def on_privmsg(self, c, e):
@@ -71,7 +73,8 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
 
     def on_pubmsg(self, c, e):
         line = e.arguments[0]
-        print(line)
+        if self.debug:
+            print(line)
         is_broadcaster = False
         is_moderator = False
         is_subscriber = False
@@ -101,7 +104,8 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
                     print(line)
                     self.output_msg(line)
         except Exception as e:
-            print(e)
+            if self.debug:
+                print(str(e))
 
     def output_msg(self, output):
         MAX_MESSAGE_SIZE = 480
@@ -123,7 +127,8 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
                     print(response.text)
                     self.output_msg(response.text)
             except Exception as e:
-                print(e)
+                if self.debug:
+                    print(str(e))
             time.sleep(30)
 
 try:
@@ -156,19 +161,24 @@ try:
 
         def SvcDoRun(self):
             self.log('Service is starting.')
-            self.bot = DrFujiBot()
+            self.bot = DrFujiBot(debug=False)
             servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
                                   servicemanager.PYS_SERVICE_STARTED,
                                   (self._svc_name_, ''))
             self.ReportServiceStatus(win32service.SERVICE_RUNNING)
             self.log('Service is running.')
-            self.bot.start()
+            while True:
+                try:
+                    self.bot.start()
+                except e as Exception:
+                    self.log(str(e))
+                time.sleep(5)
+
 
 except NameError:
     pass
 
 if '__main__' == __name__:
-    print('Welcome to DrFujiBot 2.0')
     if len(sys.argv) == 1:
         try:
             servicemanager.Initialize()
@@ -178,7 +188,8 @@ if '__main__' == __name__:
             print('Running on non-Windows, only debug mode is available!')
             print('Usage: python3 drfujibot_irc.py debug')
     elif len(sys.argv) >= 2 and 'debug' == sys.argv[1]:
-        bot = DrFujiBot()
+        print('Welcome to DrFujiBot 2.0')
+        bot = DrFujiBot(debug=True)
         if len(bot.twitch_channel) > 0:
             bot.start()
     else:
