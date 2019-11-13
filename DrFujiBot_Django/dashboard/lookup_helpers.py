@@ -1,7 +1,8 @@
 from django.core.cache import cache
 from spellchecker import SpellChecker
 
-from westwood.models import Ability, Game, GamesListElement, Move, Pokemon, PokemonForm, RomHack, StatSetsListElement, MoveRecordsListElement
+from dashboard.models import Setting
+from westwood.models import Ability, Game, GamesListElement, Move, Pokemon, PokemonForm, RomHack, StatSetsListElement, MoveRecordsListElement, TypeSetsListElement
 
 def is_game_name_in_game_list(current_game_name, game_list_id, check_base_game=True):
     games_list_element_objects = GamesListElement.objects.filter(list_id=game_list_id)
@@ -147,3 +148,33 @@ def correct_ability_name(name_to_correct):
 
     correction = ability_corrector.correction(name_to_correct)
     return correction if len(correction) > 0 else name_to_correct
+
+def pokemon_not_present(pokemon_name):
+    pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
+    if len(pokemon_matches) == 0:
+        pokemon_matches = PokemonForm.objects.filter(name__iexact=pokemon_name)
+
+    if len(pokemon_matches) > 0:
+        pokemon = pokemon_matches[0]
+
+        current_game_name = Setting.objects.get(key='Current Game')
+
+        for type_sets_list_element in TypeSetsListElement.objects.filter(list_id=pokemon.type_sets):
+            type_set = type_sets_list_element.element
+            if is_game_name_in_game_list(current_game_name.value, type_set.games, check_base_game=True):
+                return False
+    return True
+
+def move_not_present(move_name):
+    move_matches = Move.objects.filter(name__iexact=move_name)
+
+    if len(move_matches) > 0:
+        move = move_matches[0]
+
+        current_game_name = Setting.objects.get(key='Current Game')
+
+        for move_records_list_element in MoveRecordsListElement.objects.filter(list_id=move.move_records):
+            move_record = move_records_list_element.element
+            if is_game_name_in_game_list(current_game_name.value, move_record.games, check_base_game=True):
+                return False
+    return True

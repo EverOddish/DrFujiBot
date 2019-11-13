@@ -8,12 +8,16 @@ def handle_pokemon(args):
     pokemon_name = ' '.join(args)
     pokemon_name = correct_pokemon_name(pokemon_name)
 
+    if pokemon_not_present(pokemon_name):
+        return pokemon_name.title() + ' is not present in the current game'
+
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
     if len(pokemon_matches) == 0:
         pokemon_matches = PokemonForm.objects.filter(name__iexact=pokemon_name)
 
     if len(pokemon_matches) > 0:
         pokemon = pokemon_matches[0]
+
         output = pokemon.name + ': ['
 
         current_game_name = Setting.objects.filter(key='Current Game')[0]
@@ -76,6 +80,10 @@ def handle_move(args):
     output = ''
     move_name = ' '.join(args)
     move_name = correct_move_name(move_name)
+
+    if move_not_present(move_name):
+        return move_name.title() + ' is not present in the current game'
+
     move_matches = Move.objects.filter(name__iexact=move_name)
     if move_matches:
         move = move_matches[0]
@@ -125,6 +133,10 @@ def handle_learnset(args):
     output = ''
     pokemon_name = ' '.join(args)
     pokemon_name = correct_pokemon_name(pokemon_name)
+
+    if pokemon_not_present(pokemon_name):
+        return pokemon_name.title() + ' is not present in the current game'
+
     pokemon_learnset_matches = PokemonLearnsets.objects.filter(name__iexact=pokemon_name)
     if pokemon_learnset_matches:
         pokemon_learnset = pokemon_learnset_matches[0]
@@ -155,6 +167,10 @@ def handle_tmset(args):
     output = ''
     pokemon_name = ' '.join(args)
     pokemon_name = correct_pokemon_name(pokemon_name)
+
+    if pokemon_not_present(pokemon_name):
+        return pokemon_name.title() + ' is not present in the current game'
+
     pokemon_tmset_matches = PokemonTmSets.objects.filter(name__iexact=pokemon_name)
     if pokemon_tmset_matches:
         pokemon_tmset = pokemon_tmset_matches[0]
@@ -190,6 +206,11 @@ def handle_faster(args):
 
     pokemon_name_1 = correct_pokemon_name(pokemon_name_1)
     pokemon_name_2 = correct_pokemon_name(pokemon_name_2)
+
+    if pokemon_not_present(pokemon_name_1):
+        return pokemon_name_1.title() + ' is not present in the current game'
+    if pokemon_not_present(pokemon_name_2):
+        return pokemon_name_2.title() + ' is not present in the current game'
 
     pokemon_matches_1 = Pokemon.objects.filter(name__iexact=pokemon_name_1)
     pokemon_matches_2 = Pokemon.objects.filter(name__iexact=pokemon_name_2)
@@ -264,6 +285,10 @@ def handle_evolve(args):
     output = ''
     pokemon_name = ' '.join(args)
     pokemon_name = correct_pokemon_name(pokemon_name)
+
+    if pokemon_not_present(pokemon_name):
+        return pokemon_name.title() + ' is not present in the current game'
+
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
     if pokemon_matches:
         pokemon = pokemon_matches[0]
@@ -415,6 +440,10 @@ def handle_catch_rate(args):
     output = ''
     pokemon_name = ' '.join(args)
     pokemon_name = correct_pokemon_name(pokemon_name)
+
+    if pokemon_not_present(pokemon_name):
+        return pokemon_name.title() + ' is not present in the current game'
+
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
     if pokemon_matches:
         pokemon = pokemon_matches[0]
@@ -423,11 +452,15 @@ def handle_catch_rate(args):
     else:
         output = '"' + pokemon_name + '" was not found'
     return output
-
+ 
 def handle_exp_curve(args):
     output = ''
     pokemon_name = ' '.join(args)
     pokemon_name = correct_pokemon_name(pokemon_name)
+    
+    if pokemon_not_present(pokemon_name):
+        return pokemon_name.title() + ' is not present in the current game'
+
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
     if pokemon_matches:
         pokemon = pokemon_matches[0]
@@ -441,6 +474,9 @@ def handle_offence(args):
     output = ''
     pokemon_name = ' '.join(args)
     pokemon_name = correct_pokemon_name(pokemon_name)
+
+    if pokemon_not_present(pokemon_name):
+        return pokemon_name.title() + ' is not present in the current game'
 
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
     if len(pokemon_matches) == 0:
@@ -477,6 +513,9 @@ def handle_defence(args):
     output = ''
     pokemon_name = ' '.join(args)
     pokemon_name = correct_pokemon_name(pokemon_name)
+
+    if pokemon_not_present(pokemon_name):
+        return pokemon_name.title() + ' is not present in the current game'
 
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
     if len(pokemon_matches) == 0:
@@ -516,6 +555,10 @@ def handle_whatis(args):
     move_name = correct_move_name(move_or_ability_name)
     move_matches = Move.objects.filter(name__iexact=move_name)
     if move_matches:
+
+        if move_not_present(move_name):
+            return move_name.title() + ' is not present in the current game'
+
         output = 'Move: '
         return output + handle_move(args)
 
@@ -543,8 +586,14 @@ def handle_does(args):
     pokemon_name = ' '.join(pokemon_name)
     pokemon_name = correct_pokemon_name(pokemon_name)
 
+    if pokemon_not_present(pokemon_name):
+        return pokemon_name.title() + ' is not present in the current game'
+
     move_name = ' '.join(move_name)
     move_name = correct_move_name(move_name)
+
+    if move_not_present(move_name):
+        return move_name.title() + ' is not present in the current game'
 
     pokemon_learnset_matches = PokemonLearnsets.objects.filter(name__iexact=pokemon_name)
     if pokemon_learnset_matches:
@@ -626,6 +675,9 @@ def handle_grassknot(args):
     pokemon_name = ' '.join(args)
     pokemon_name = correct_pokemon_name(pokemon_name)
 
+    if pokemon_not_present(pokemon_name):
+        return pokemon_name.title() + ' is not present in the current game'
+
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
     if len(pokemon_matches) == 0:
         pokemon_matches = PokemonForm.objects.filter(name__iexact=pokemon_name)
@@ -659,6 +711,9 @@ def handle_baseexp(args):
     pokemon_name = ' '.join(args)
     pokemon_name = correct_pokemon_name(pokemon_name)
 
+    if pokemon_not_present(pokemon_name):
+        return pokemon_name.title() + ' is not present in the current game'
+
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
     if len(pokemon_matches) == 0:
         pokemon_matches = PokemonForm.objects.filter(name__iexact=pokemon_name)
@@ -676,6 +731,9 @@ def handle_evyield(args):
     output = ''
     pokemon_name = ' '.join(args)
     pokemon_name = correct_pokemon_name(pokemon_name)
+
+    if pokemon_not_present(pokemon_name):
+        return pokemon_name.title() + ' is not present in the current game'
 
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
     if len(pokemon_matches) == 0:
