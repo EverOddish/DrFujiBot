@@ -614,7 +614,7 @@ def handle_does(args):
         if len(output) == 0:
             output = pokemon_name.title() + ' does not learn ' + move_name.title()
     else:
-        output = 'Learnsets for "' + pokemon_name + '" were not found'
+        output = 'Move data for "' + pokemon_name + '" was not found in the current game'
 
     return output
 
