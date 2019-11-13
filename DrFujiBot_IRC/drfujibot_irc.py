@@ -32,6 +32,7 @@ def unscramble(scrambled):
 
 class DrFujiBot(irc.bot.SingleServerIRCBot):
     def __init__(self, debug):
+        self.c = None
         self.debug = debug
         config_path = os.path.join(os.path.dirname(__file__), 'config.json')
         with open(config_path) as f:
@@ -115,7 +116,8 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
         for ch in chunks:
             if len(chunks) > 1:
                 ch = '(' + str(j) + '/' + str(len(chunks)) + ') ' + ch
-            self.c.privmsg(self.channel, ch)
+            if self.c:
+                self.c.privmsg(self.channel, ch)
             j += 1
 
     def timed_message_loop(self):
@@ -148,12 +150,16 @@ try:
             self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
             socket.setdefaulttimeout(60)
             self.bot = None
+            self.stopping = False
 
         def log(self, msg):
             servicemanager.LogInfoMsg(str(msg))
 
         def SvcStop(self):
             self.log('Service is stopping.')
+
+            self.stopping = True
+
             if self.bot:
                 self.bot.disconnect()
 
@@ -172,8 +178,11 @@ try:
                     self.bot.start()
                 except e as Exception:
                     self.log(str(e))
-                time.sleep(5)
 
+                if self.stopping:
+                    break
+
+                time.sleep(5)
 
 except NameError:
     pass
