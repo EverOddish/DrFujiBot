@@ -541,7 +541,10 @@ def handle_does(args):
                 move_name.append(arg)
 
     pokemon_name = ' '.join(pokemon_name)
+    pokemon_name = correct_pokemon_name(pokemon_name)
+
     move_name = ' '.join(move_name)
+    move_name = correct_move_name(move_name)
 
     pokemon_learnset_matches = PokemonLearnsets.objects.filter(name__iexact=pokemon_name)
     if pokemon_learnset_matches:
