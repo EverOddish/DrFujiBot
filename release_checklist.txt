@@ -9,7 +9,6 @@ Release Checklist:
 
      DrFujiBot 2.0.2 fixes and additions:
 
- * Update the link to the latest version on the Start Here wiki page on GitHub
  * Tweet the new release with this format:
 
      DrFujiBot 2.0.2 is released! ...
