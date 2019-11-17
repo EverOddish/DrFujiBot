@@ -198,14 +198,26 @@ def handle_setrun(args):
         command_matches = Command.objects.filter(command__iexact='!lastrun')
         if len(command_matches) > 0:
             lastrun_command = command_matches[0]
+            aliased_commands = Command.objects.filter(output=lastrun_command.output)
+
             lastrun_command.output = run_object.last_run_output
             lastrun_command.save()
+
+            for cmd in aliased_commands:
+                cmd.output = run_object.last_run_output
+                cmd.save()
 
         command_matches = Command.objects.filter(command__iexact='!howfar')
         if len(command_matches) > 0:
             howfar_command = command_matches[0]
+            aliased_commands = Command.objects.filter(output=howfar_command.output)
+
             howfar_command.output = run_object.how_far_output
             howfar_command.save()
+
+            for cmd in aliased_commands:
+                cmd.output = run_object.how_far_output
+                cmd.save()
 
         output = 'Current run set to "' + run_object.name + '" playing ' + run_object.game_setting
     else:
