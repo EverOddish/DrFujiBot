@@ -450,6 +450,11 @@ def handle_uptime(args):
 
     return output
 
+def handle_shoutout(args):
+    twitch_username = args[0]
+    output = 'Go check out @' + twitch_username + ' at twitch.tv/' + twitch_username + ' They make great content and if you enjoy this stream, you will enjoy them as well!'
+    return output
+
 handlers = {'!setgame': handle_setgame,
             '!addcom': handle_addcom,
             '!delcom': handle_delcom,
@@ -469,6 +474,8 @@ handlers = {'!setgame': handle_setgame,
             '!unnuke': handle_unnuke,
             '!uptime': handle_uptime,
             '!listruns': handle_listruns,
+            '!shoutout': handle_shoutout,
+            '!so': handle_shoutout,
            }
 
 expected_args = {'!setgame': 1,
@@ -490,6 +497,8 @@ expected_args = {'!setgame': 1,
                  '!unnuke': 1,
                  '!uptime': 0,
                  '!listruns': 0,
+                 '!shoutout': 1,
+                 '!so': 1,
                 }
 
 usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
@@ -511,6 +520,8 @@ usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
          '!unnuke': 'Usage: !nuke <word or phrase>',
          '!uptime': 'Usage: !uptime',
          '!listruns': 'Usage: !listruns',
+         '!shoutout': 'Usage: !shoutout <Twitch username>',
+         '!so': 'Usage: !so <Twitch username>',
         }
 
 def handle_admin_command(line):
