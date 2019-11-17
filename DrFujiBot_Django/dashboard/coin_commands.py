@@ -57,7 +57,7 @@ def handle_resolve(username, args):
             betting_event.status = RESOLVED
             betting_event.resolved_timestamp = datetime.datetime.now(datetime.timezone.utc)
 
-            winners = Bet.objects.filter(value__iexact=result)
+            winners = Bet.objects.filter(value__iexact=result, event=betting_event)
 
             betting_event.result = result
             betting_event.num_winners = len(winners)
