@@ -91,20 +91,25 @@ def handle_editcom(args):
     if len(command_matches) == 1:
         command_object = command_matches[0]
         if not command_object.is_built_in:
+            prefix = ''
             simple_output = command_object.output
 
-            # We need to check if the current SimpleOutput is referenced by any Run that is not the current Run
-            need_new_simple_output = False
-            current_run_setting = Setting.objects.filter(key='Current Run')[0]
-            run_matches = Run.objects.all()
-            for run in run_matches:
-                if run.name != current_run_setting.value:
-                    if simple_output == run.last_run_output or simple_output == run.how_far_output:
-                        need_new_simple_output = True
+            if None != simple_output:
+                # We need to check if the current SimpleOutput is referenced by any Run that is not the current Run
+                need_new_simple_output = False
+                current_run_setting = Setting.objects.filter(key='Current Run')[0]
+                run_matches = Run.objects.all()
+                for run in run_matches:
+                    if run.name != current_run_setting.value:
+                        if simple_output == run.last_run_output or simple_output == run.how_far_output:
+                            need_new_simple_output = True
+                            prefix = simple_output.prefix
+            else:
+                need_new_simple_output = True
 
             if need_new_simple_output:
                 # Create a new SimpleOutput and point the Command to it, in order to preserve other Run references to the current SimpleOutput
-                new_simple_output = SimpleOutput(prefix=simple_output.prefix, output_text=simple_output_text)
+                new_simple_output = SimpleOutput(prefix=prefix, output_text=simple_output_text)
                 new_simple_output.save()
                 command_object.output = new_simple_output
                 command_object.save()
