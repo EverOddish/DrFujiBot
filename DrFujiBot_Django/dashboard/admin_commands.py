@@ -34,7 +34,7 @@ def handle_setgame(args):
 
 def handle_addcom(args):
     output = ''
-    command_name = args[0]
+    command_name = args[0].lower()
     simple_output_text = ' '.join(args[1:])
 
     if not command_name.startswith('!'):
@@ -60,7 +60,7 @@ def handle_addcom(args):
 
 def handle_delcom(args):
     output = ''
-    command_name = args[0]
+    command_name = args[0].lower()
 
     if not command_name.startswith('!'):
         return 'Command must start with "!"'
@@ -78,7 +78,7 @@ def handle_delcom(args):
 
 def handle_editcom(args):
     output = ''
-    command_name = args[0]
+    command_name = args[0].lower()
     simple_output_text = ' '.join(args[1:])
 
     if not command_name.startswith('!'):
@@ -125,8 +125,8 @@ def handle_editcom(args):
 
 def handle_alias(args):
     output = ''
-    existing_command_name = args[0]
-    new_command_name = args[1]
+    existing_command_name = args[0].lower()
+    new_command_name = args[1].lower()
 
     if not new_command_name.startswith('!'):
         return 'New command must start with "!"'
