@@ -320,9 +320,14 @@ def handle_weak(args):
             type2 = args[1]
     else:
         pokemon_name = correct_pokemon_name(type_or_pokemon_name)
-        pokemon = Pokemon.objects.get(name__iexact=pokemon_name)
-        type1, type2 = get_types_for_pokemon(pokemon.name)
-        prefix = pokemon.name
+        pokemon_objects = Pokemon.objects.filter(name__iexact=pokemon_name)
+        if len(pokemon_objects) > 0:
+            pokemon = pokemon_objects[0]
+            type1, type2 = get_types_for_pokemon(pokemon.name)
+            prefix = pokemon.name
+        else:
+            # All lookups failed
+            return '"' + type_or_pokemon_name + '" is not a type or a Pokemon'
 
     weak_to, resistances, no_damage = get_type_advantages_for_type_pair(type1, type2)
     weak_to = set(weak_to)
@@ -348,9 +353,14 @@ def handle_resist(args):
             type2 = args[1]
     else:
         pokemon_name = correct_pokemon_name(type_or_pokemon_name)
-        pokemon = Pokemon.objects.get(name__iexact=pokemon_name)
-        type1, type2 = get_types_for_pokemon(pokemon.name)
-        prefix = pokemon.name
+        pokemon_objects = Pokemon.objects.filter(name__iexact=pokemon_name)
+        if len(pokemon_objects) > 0:
+            pokemon = pokemon_objects[0]
+            type1, type2 = get_types_for_pokemon(pokemon.name)
+            prefix = pokemon.name
+        else:
+            # All lookups failed
+            return '"' + type_or_pokemon_name + '" is not a type or a Pokemon'
 
     weaknesses, resistant_to, no_damage = get_type_advantages_for_type_pair(type1, type2)
     resistant_to = set(resistant_to)
@@ -369,6 +379,13 @@ def handle_type(args):
     defending_type_2_name = ''
     if len(args) >= 4:
         defending_type_2_name = args[3]
+
+    if not is_type(attacking_type_name):
+        return '"' + attacking_type_name + '" is not a valid type'
+    if not is_type(defending_type_1_name):
+        return '"' + defending_type_1_name + '" is not a valid type'
+    if len(defending_type_2_name) > 0 and not is_type(defending_type_2_name):
+        return '"' + defending_type_2_name + '" is not a valid type'
 
     weaknesses, resistances, no_damage = get_type_advantages_for_type_pair(defending_type_1_name, defending_type_2_name)
 
@@ -785,8 +802,8 @@ usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
           '!faster': 'Usage: !faster <pokemon name 1> <pokemon name 2>',
           '!item': 'Usage: !item <item name>',
           '!evolve': 'Usage: !evolve <pokemon name>',
-          '!weak': 'Usage: !weak <type>',
-          '!resist': 'Usage: !resist <type>',
+          '!weak': 'Usage: !weak <type or pokemon name>',
+          '!resist': 'Usage: !resist <type or pokemon name>',
           '!type': 'Usage: !type <type 1> against <type 2> <type 3>',
           '!catchrate': 'Usage: !catchrate <pokemon name>',
           '!expcurve': 'Usage: !expcurve <pokemon name>',
