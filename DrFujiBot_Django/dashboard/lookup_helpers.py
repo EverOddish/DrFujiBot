@@ -258,18 +258,3 @@ def get_type_advantages_for_type_pair(type1, type2):
 def is_type(possible_type):
     type_objects = Type.objects.filter(value__iexact=possible_type)
     return len(type_objects) > 0
-
-def get_weaknesses_for_type(type_name):
-    weak_to = []
-    current_game_name = Setting.objects.filter(key='Current Game')[0]
-
-    for effectiveness_sets_list_element in EffectivenessSetsListElement.objects.all():
-        effectiveness_set = effectiveness_sets_list_element.element
-        if is_game_name_in_game_list(current_game_name.value, effectiveness_set.games):
-            for effectiveness_records_list_element in EffectivenessRecordsListElement.objects.filter(list_id=effectiveness_set.effectiveness_records):
-                effectiveness_record = effectiveness_records_list_element.element
-                if effectiveness_record.target_type.lower() == type_name.lower() and effectiveness_record.damage_factor > 100:
-                    weak_to.append(effectiveness_record.source_type)
-            break
-
-    return weak_to
