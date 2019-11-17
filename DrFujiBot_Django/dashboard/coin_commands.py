@@ -238,7 +238,7 @@ def handle_balance(username, args):
 def handle_leaderboard(username, args):
     output = 'Leaderboard: '
     
-    coin_entries = CoinEntry.objects.all().order_by('-coins')[:3]
+    coin_entries = CoinEntry.objects.all().order_by('-coins')[:10]
     if len(coin_entries) > 0:
         for entry in coin_entries:
             output += f'{entry.username}({entry.coins}) '
