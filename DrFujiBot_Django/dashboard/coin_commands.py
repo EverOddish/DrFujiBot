@@ -178,13 +178,18 @@ def handle_daily(username, args):
                 output = '@' + username + ' You have already received a daily bonus this stream!'
 
         if do_daily:
+            crit_string = ''
+            miss_string = ''
+
             amount = random.randint(0, 100)
 
-            crit = random.randint(1, 16)
-            crit_string = ''
-            if 16 == crit:
-                amount *= 2
-                crit_string = 'A critical hit! '
+            if amount >= 50:
+                crit = random.randint(1, 16)
+                if 16 == crit:
+                    amount *= 2
+                    crit_string = 'A critical hit! '
+            elif amount == 0:
+                miss_string = 'It missed! '
 
             coin_entry.coins += amount
             coin_entry.last_daily = now
@@ -192,6 +197,7 @@ def handle_daily(username, args):
 
             output = '@' + username + ' You received ' + str(amount) + ' coins! '
             output += crit_string
+            output += miss_string
             output += 'Your balance is now ' + str(coin_entry.coins) + ' coins'
     else:
         output = 'Try !daily again next time the stream is live!'
