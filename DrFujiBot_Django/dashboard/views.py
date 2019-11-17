@@ -48,7 +48,9 @@ def permitted(is_broadcaster, is_moderator, is_subscriber, permissions):
 
 def get_permission_message(permissions):
     if permissions == DISABLED:
-        return 'disabled'
+        # Do not display any permissions warnings for disabled commands, as they could be the same as other bots
+        # and might be disabled on purpose to allow the other bot to handle the command.
+        return None
     elif permissions == BROADCASTER_ONLY:
         return 'only permitted for the broadcaster'
     elif permissions == MODERATOR_ONLY:
@@ -109,7 +111,8 @@ def drfujibot(request):
                 cmd.save()
         else:
             message = get_permission_message(cmd.permissions)
-            response_text = 'Sorry, ' + command + ' is ' + message +'. If you would like to use this bot on your own computer, you can find it at https://github.com/EverOddish/DrFujiBot/releases'
+            if message:
+                response_text = 'Sorry, ' + command + ' is ' + message +'. If you would like to use this bot on your own computer, you can find it at https://github.com/EverOddish/DrFujiBot/releases'
 
     if isinstance(response_text, list):
         response_text = '\n'.join(response_text)
