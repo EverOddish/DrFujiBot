@@ -20,23 +20,15 @@ def handle_pokemon(args):
 
         output = pokemon.name + ': ['
 
-        current_game_name = Setting.objects.filter(key='Current Game')[0]
+        type1, type2 = get_types_for_pokemon(pokemon.name)
 
-        try_again = True
-        check_base_game = False
-        while try_again:
-            for type_sets_list_element in TypeSetsListElement.objects.filter(list_id=pokemon.type_sets):
-                type_set = type_sets_list_element.element
-                if is_game_name_in_game_list(current_game_name.value, type_set.games, check_base_game=check_base_game):
-                    output += type_set.type1
-                    if len(type_set.type2) > 0:
-                        output += ', '
-                        output += type_set.type2
-                    try_again = False
-                    break
-            if try_again:
-                check_base_game = True
+        output += type1
+        if len(type2) > 0:
+            output += ', '
+            output += type2
         output += '] '
+
+        current_game_name = Setting.objects.filter(key='Current Game')[0]
 
         # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
         # If not a ROM hack, stats should be found on the first pass every time.
@@ -316,47 +308,57 @@ def handle_evolve(args):
 
 def handle_weak(args):
     output = ''
-    type_name = args[0]
+    prefix = ' '.join(args).title()
+    type_or_pokemon_name = ' '.join(args)
     weak_to = []
+    type1 = ''
+    type2 = ''
 
-    current_game_name = Setting.objects.filter(key='Current Game')[0]
+    if is_type(args[0]):
+        type1 = args[0]
+        if len(args) > 1:
+            type2 = args[1]
+    else:
+        pokemon_name = correct_pokemon_name(type_or_pokemon_name)
+        pokemon = Pokemon.objects.get(name__iexact=pokemon_name)
+        type1, type2 = get_types_for_pokemon(pokemon.name)
+        prefix = pokemon.name
 
-    for effectiveness_sets_list_element in EffectivenessSetsListElement.objects.all():
-        effectiveness_set = effectiveness_sets_list_element.element
-        if is_game_name_in_game_list(current_game_name.value, effectiveness_set.games):
-            for effectiveness_records_list_element in EffectivenessRecordsListElement.objects.filter(list_id=effectiveness_set.effectiveness_records):
-                effectiveness_record = effectiveness_records_list_element.element
-                if effectiveness_record.target_type.lower() == type_name.lower() and effectiveness_record.damage_factor > 100:
-                    weak_to.append(effectiveness_record.source_type)
-            break
+    weak_to, resistances, no_damage = get_type_advantages_for_type_pair(type1, type2)
+    weak_to = set(weak_to)
 
     if len(weak_to) > 0:
-        output = type_name.title() + ' is weak to: ' + ', '.join(weak_to)
+        output = prefix + ' is weak to: ' + ', '.join(weak_to)
     else:
-        output = type_name.title() + ' has no weaknesses'
+        output = prefix + ' has no weaknesses'
 
     return output
 
 def handle_resist(args):
     output = ''
-    type_name = args[0]
+    prefix = ' '.join(args).title()
+    type_or_pokemon_name = ' '.join(args)
     resistant_to = []
+    type1 = ''
+    type2 = ''
 
-    current_game_name = Setting.objects.filter(key='Current Game')[0]
+    if is_type(args[0]):
+        type1 = args[0]
+        if len(args) > 1:
+            type2 = args[1]
+    else:
+        pokemon_name = correct_pokemon_name(type_or_pokemon_name)
+        pokemon = Pokemon.objects.get(name__iexact=pokemon_name)
+        type1, type2 = get_types_for_pokemon(pokemon.name)
+        prefix = pokemon.name
 
-    for effectiveness_sets_list_element in EffectivenessSetsListElement.objects.all():
-        effectiveness_set = effectiveness_sets_list_element.element
-        if is_game_name_in_game_list(current_game_name.value, effectiveness_set.games):
-            for effectiveness_records_list_element in EffectivenessRecordsListElement.objects.filter(list_id=effectiveness_set.effectiveness_records):
-                effectiveness_record = effectiveness_records_list_element.element
-                if effectiveness_record.target_type.lower() == type_name.lower() and effectiveness_record.damage_factor != 0 and effectiveness_record.damage_factor < 100:
-                    resistant_to.append(effectiveness_record.source_type)
-            break
+    weaknesses, resistant_to, no_damage = get_type_advantages_for_type_pair(type1, type2)
+    resistant_to = set(resistant_to)
 
     if len(resistant_to) > 0:
-        output = type_name.title() + ' is resistant to: ' + ', '.join(resistant_to)
+        output = prefix + ' is resistant to: ' + ', '.join(resistant_to)
     else:
-        output = type_name.title() + ' has no resistances'
+        output = prefix + ' has no resistances'
 
     return output
 
@@ -368,50 +370,9 @@ def handle_type(args):
     if len(args) >= 4:
         defending_type_2_name = args[3]
 
-    current_game_name = Setting.objects.filter(key='Current Game')[0]
-
-    weaknesses = []
-    resistances = []
-    no_damage = []
-
-    for effectiveness_sets_list_element in EffectivenessSetsListElement.objects.all():
-        effectiveness_set = effectiveness_sets_list_element.element
-        if is_game_name_in_game_list(current_game_name.value, effectiveness_set.games):
-            for effectiveness_records_list_element in EffectivenessRecordsListElement.objects.filter(list_id=effectiveness_set.effectiveness_records):
-                effectiveness_record = effectiveness_records_list_element.element
-
-                if effectiveness_record.target_type.lower() == defending_type_1_name.lower() or effectiveness_record.target_type.lower() == defending_type_2_name.lower():
-                    if effectiveness_record.damage_factor == 0:
-                        no_damage.append(effectiveness_record.source_type)
-                    elif effectiveness_record.damage_factor > 100:
-                        weaknesses.append(effectiveness_record.source_type)
-                    elif effectiveness_record.damage_factor < 100:
-                        resistances.append(effectiveness_record.source_type)
-            break
-
-    # Take out no-damage types outright.
-    weaknesses = [
-        w for w in weaknesses if w not in no_damage
-    ]
-    resistances = [
-        r for r in resistances if r not in no_damage
-    ]
-
-    weaknesses_copy = weaknesses[:]
-
-    # Reduce weakness instance by one for each resistance.
-    for r in resistances:
-        if r in weaknesses:
-            weaknesses.remove(r)
-
-    # Reduce resistance instance by one for each weakness.
-    for w in weaknesses_copy:
-        if w in resistances:
-            resistances.remove(w)
+    weaknesses, resistances, no_damage = get_type_advantages_for_type_pair(defending_type_1_name, defending_type_2_name)
 
     output = attacking_type_name.capitalize()
-    print(weaknesses)
-    print(resistances)
 
     if attacking_type_name in no_damage:
         output += " does no damage"

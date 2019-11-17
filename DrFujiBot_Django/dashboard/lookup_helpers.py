@@ -2,7 +2,7 @@ from django.core.cache import cache
 from spellchecker import SpellChecker
 
 from dashboard.models import Setting
-from westwood.models import Ability, Game, GamesListElement, Move, Pokemon, PokemonForm, RomHack, StatSetsListElement, MoveRecordsListElement, TypeSetsListElement
+from westwood.models import *
 
 def is_game_name_in_game_list(current_game_name, game_list_id, check_base_game=True):
     games_list_element_objects = GamesListElement.objects.filter(list_id=game_list_id)
@@ -178,3 +178,98 @@ def move_not_present(move_name):
             if is_game_name_in_game_list(current_game_name.value, move_record.games, check_base_game=True):
                 return False
     return True
+
+def get_types_for_pokemon(pokemon_name):
+    type1 = ''
+    type2 = ''
+    current_game_name = Setting.objects.filter(key='Current Game')[0]
+
+    pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
+    if len(pokemon_matches) == 0:
+        pokemon_matches = PokemonForm.objects.filter(name__iexact=pokemon_name)
+
+    if len(pokemon_matches) > 0:
+        pokemon = pokemon_matches[0]
+
+        try_again = True
+        check_base_game = False
+        while try_again:
+            for type_sets_list_element in TypeSetsListElement.objects.filter(list_id=pokemon.type_sets):
+                type_set = type_sets_list_element.element
+                if is_game_name_in_game_list(current_game_name.value, type_set.games, check_base_game=check_base_game):
+                    type1 = type_set.type1
+                    if len(type_set.type2) > 0:
+                        type2 = type_set.type2
+                    try_again = False
+                    break
+            if try_again:
+                check_base_game = True
+
+    return type1, type2
+
+def get_type_advantages_for_type_pair(type1, type2):
+    current_game_name = Setting.objects.filter(key='Current Game')[0]
+
+    weaknesses = []
+    resistances = []
+    no_damage = []
+
+    for effectiveness_sets_list_element in EffectivenessSetsListElement.objects.all():
+        effectiveness_set = effectiveness_sets_list_element.element
+        if is_game_name_in_game_list(current_game_name.value, effectiveness_set.games):
+            for effectiveness_records_list_element in EffectivenessRecordsListElement.objects.filter(list_id=effectiveness_set.effectiveness_records):
+                effectiveness_record = effectiveness_records_list_element.element
+
+                if effectiveness_record.target_type.lower() == type1.lower() or effectiveness_record.target_type.lower() == type2.lower():
+                    if effectiveness_record.damage_factor == 0:
+                        no_damage.append(effectiveness_record.source_type)
+                    elif effectiveness_record.damage_factor > 100:
+                        weaknesses.append(effectiveness_record.source_type)
+                    elif effectiveness_record.damage_factor < 100:
+                        resistances.append(effectiveness_record.source_type)
+            break
+
+    # Take out no-damage types outright.
+    weaknesses = [
+        w for w in weaknesses if w not in no_damage
+    ]
+    resistances = [
+        r for r in resistances if r not in no_damage
+    ]
+
+    weaknesses_copy = weaknesses[:]
+
+    # Reduce weakness instance by one for each resistance.
+    for r in resistances:
+        if r in weaknesses:
+            weaknesses.remove(r)
+
+    # Reduce resistance instance by one for each weakness.
+    for w in weaknesses_copy:
+        if w in resistances:
+            resistances.remove(w)
+
+    #print(weaknesses)
+    #print(resistances)
+    #print(no_damage)
+
+    return weaknesses, resistances, no_damage
+
+def is_type(possible_type):
+    type_objects = Type.objects.filter(value__iexact=possible_type)
+    return len(type_objects) > 0
+
+def get_weaknesses_for_type(type_name):
+    weak_to = []
+    current_game_name = Setting.objects.filter(key='Current Game')[0]
+
+    for effectiveness_sets_list_element in EffectivenessSetsListElement.objects.all():
+        effectiveness_set = effectiveness_sets_list_element.element
+        if is_game_name_in_game_list(current_game_name.value, effectiveness_set.games):
+            for effectiveness_records_list_element in EffectivenessRecordsListElement.objects.filter(list_id=effectiveness_set.effectiveness_records):
+                effectiveness_record = effectiveness_records_list_element.element
+                if effectiveness_record.target_type.lower() == type_name.lower() and effectiveness_record.damage_factor > 100:
+                    weak_to.append(effectiveness_record.source_type)
+            break
+
+    return weak_to
