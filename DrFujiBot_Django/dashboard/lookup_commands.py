@@ -251,7 +251,7 @@ def handle_faster(args):
                     check_base_game = True
 
             if speed_1 == speed_2:
-                output = pokemon_1.name + ' and ' + pokemon_2.name + ' are tied for speed (' + str(speed_1)
+                output = pokemon_1.name + ' and ' + pokemon_2.name + ' are tied for speed (' + str(speed_1) + ')'
             elif speed_1 > speed_2:
                 output = pokemon_1.name + ' (' + str(speed_1) + ')' + modified_stats_1['speed'] + ' is faster than ' + pokemon_2.name + ' (' + str(speed_2) + ')' + modified_stats_2['speed']
             elif speed_1 < speed_2:
