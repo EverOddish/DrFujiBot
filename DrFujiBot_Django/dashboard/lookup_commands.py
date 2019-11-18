@@ -320,6 +320,10 @@ def handle_weak(args):
             type2 = args[1]
     else:
         pokemon_name = correct_pokemon_name(type_or_pokemon_name)
+
+        if pokemon_not_present(pokemon_name):
+            return pokemon_name.title() + ' is not present in the current game'
+
         pokemon_objects = Pokemon.objects.filter(name__iexact=pokemon_name)
         if len(pokemon_objects) > 0:
             pokemon = pokemon_objects[0]
@@ -353,6 +357,10 @@ def handle_resist(args):
             type2 = args[1]
     else:
         pokemon_name = correct_pokemon_name(type_or_pokemon_name)
+
+        if pokemon_not_present(pokemon_name):
+            return pokemon_name.title() + ' is not present in the current game'
+
         pokemon_objects = Pokemon.objects.filter(name__iexact=pokemon_name)
         if len(pokemon_objects) > 0:
             pokemon = pokemon_objects[0]
