@@ -173,16 +173,11 @@ try:
                                   (self._svc_name_, ''))
             self.ReportServiceStatus(win32service.SERVICE_RUNNING)
             self.log('Service is running.')
-            while True:
-                try:
-                    self.bot.start()
-                except e as Exception:
-                    self.log(str(e))
 
-                if self.stopping:
-                    break
-
-                time.sleep(5)
+            try:
+                self.bot.start()
+            except e as Exception:
+                self.log(str(e))
 
 except NameError:
     pass
