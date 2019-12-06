@@ -6,8 +6,11 @@ def check_irc_service():
     from dashboard.models import Setting
     irc_setting = Setting.objects.get(key='IRC Service')
     if 'Running' == irc_setting.value:
-        args = ['net', 'start', 'DrFujiBot IRC']
-        subprocess.run(args)
+        try:
+            args = ['net', 'start', 'DrFujiBot IRC']
+            subprocess.run(args)
+        except:
+            pass
 
 def start_irc_monitor_task():
     scheduler = BackgroundScheduler()
