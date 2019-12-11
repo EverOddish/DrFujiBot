@@ -654,7 +654,11 @@ def handle_does(args):
                             try_again = False
                             break
                     if try_again:
-                        check_base_game = True
+                        if check_base_game:
+                            # Already tried base game and still found nothing, so stop searching.
+                            break
+                        else:
+                            check_base_game = True
 
         print(output)
         if len(output) == 0:
