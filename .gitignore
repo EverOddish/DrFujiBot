@@ -8,3 +8,8 @@ DrFujiBot_IRC/config.json
 DrFujiBot_Installer/combined.nsi
 
 DrFujiBot_Django/westwood
+
+DrFujiBot_Twitch/.vs
+DrFujiBot_Twitch/packages
+DrFujiBot_Twitch/DrFujiBot_Twitch/bin
+DrFujiBot_Twitch/DrFujiBot_Twitch/obj
