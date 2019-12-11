@@ -44,6 +44,220 @@ SetCompressor lzma
 !include nsDialogs.nsh
 !include LogicLib.nsh
 
+;; USAGE:
+!define MIN_FRA_MAJOR "4"
+!define MIN_FRA_MINOR "6"
+!define MIN_FRA_BUILD "1"
+;
+;; NB Use an asterisk to match anything.
+; Call AbortIfBadFramework
+;; No pops. It just aborts inside the function, or returns if all is well.
+;; Change this if you like.
+Function AbortIfBadFramework
+ 
+  ; Save the variables in case something else is using them
+  Push $0
+  Push $1
+  Push $2
+  Push $3
+  Push $4
+  Push $R1
+  Push $R2
+  Push $R3
+  Push $R4
+  Push $R5
+  Push $R6
+  Push $R7
+  Push $R8
+ 
+  ; Major
+  StrCpy $R5 "0"
+ 
+  ; Minor
+  StrCpy $R6 "0"
+ 
+  ; Build
+  StrCpy $R7 "0"
+ 
+  ; No Framework
+  StrCpy $R8 "0.0.0"
+ 
+  StrCpy $0 0
+ 
+  loop:
+ 
+  ; Get each sub key under "SOFTWARE\Microsoft\NET Framework Setup\NDP"
+  EnumRegKey $1 HKLM "SOFTWARE\Microsoft\NET Framework Setup\NDP" $0
+  StrCmp $1 "" done ;jump to end if no more registry keys
+  IntOp $0 $0 + 1
+  StrCpy $2 $1 1 ;Cut off the first character
+  StrCpy $3 $1 "" 1 ;Remainder of string
+ 
+  ; Loop if first character is not a 'v'
+  StrCmpS $2 "v" start_parse loop
+ 
+  ; Parse the string
+  start_parse:
+  StrCpy $R1 ""
+  StrCpy $R2 ""
+  StrCpy $R3 ""
+  StrCpy $R4 $3
+ 
+  StrCpy $4 1
+ 
+  parse:
+  StrCmp $3 "" parse_done ; If string is empty, we are finished
+  StrCpy $2 $3 1 ; Cut off the first character
+  StrCpy $3 $3 "" 1 ; Remainder of string
+  StrCmp $2 "." is_dot not_dot ; Move to next part if it's a dot
+ 
+  is_dot:
+  IntOp $4 $4 + 1 ; Move to the next section
+  goto parse ; Carry on parsing
+ 
+  not_dot:
+  IntCmp $4 1 major_ver
+  IntCmp $4 2 minor_ver
+  IntCmp $4 3 build_ver
+  IntCmp $4 4 parse_done
+ 
+  major_ver:
+  StrCpy $R1 $R1$2
+  goto parse ; Carry on parsing
+ 
+  minor_ver:
+  StrCpy $R2 $R2$2
+  goto parse ; Carry on parsing
+ 
+  build_ver:
+  StrCpy $R3 $R3$2
+  goto parse ; Carry on parsing
+ 
+  parse_done:
+ 
+  IntCmp $R1 $R5 this_major_same loop this_major_more
+  this_major_more:
+  StrCpy $R5 $R1
+  StrCpy $R6 $R2
+  StrCpy $R7 $R3
+  StrCpy $R8 $R4
+ 
+  goto loop
+ 
+  this_major_same:
+  IntCmp $R2 $R6 this_minor_same loop this_minor_more
+  this_minor_more:
+  StrCpy $R6 $R2
+  StrCpy $R7 $R3
+  StrCpy $R8 $R4
+  goto loop
+ 
+  this_minor_same:
+  IntCmp R3 $R7 loop loop this_build_more
+  this_build_more:
+  StrCpy $R7 $R3
+  StrCpy $R8 $R4
+  goto loop
+ 
+  done:
+ 
+  ; Have we got the framework we need?
+  IntCmp $R5 ${MIN_FRA_MAJOR} max_major_same fail end
+  max_major_same:
+ 
+  ; Versions > 4.5 have different logic.
+  IntCmp ${MIN_FRA_MAJOR} 4 0 before45 end
+  IntCmp ${MIN_FRA_MINOR} 5 max_major_greaterthan45 before45 max_major_greaterthan45
+ 
+  before45:
+  IntCmp $R6 ${MIN_FRA_MINOR} max_minor_same fail end
+ 
+  max_minor_same:
+  IntCmp $R7 ${MIN_FRA_BUILD} end fail end
+ 
+  max_major_greaterthan45:
+ 
+  !if ${MIN_FRA_MINOR} == "5"
+ 
+   !if ${MIN_FRA_BUILD} == "0"
+    !define MIN_FRA_RELEASE "378389"
+   !else if ${MIN_FRA_BUILD} == "1"
+    !define MIN_FRA_RELEASE "378675"
+   !else if ${MIN_FRA_BUILD} == "2"
+    !define MIN_FRA_RELEASE "379893"
+   !else
+    !error "AbortIfBadFramework was passed a bad framework version ${MIN_FRA_MAJOR}.${MIN_FRA_MINOR}.${MIN_FRA_BUILD}."
+   !endif
+ 
+  !else if ${MIN_FRA_MINOR} == "6"
+ 
+   !if ${MIN_FRA_BUILD} == "0"
+    !define MIN_FRA_RELEASE "393295"
+   !else if ${MIN_FRA_BUILD} == "1"
+    !define MIN_FRA_RELEASE "394254"
+   !else if ${MIN_FRA_BUILD} == "2"
+    !define MIN_FRA_RELEASE "394802"
+   !else
+    !error "AbortIfBadFramework was passed a bad framework version ${MIN_FRA_MAJOR}.${MIN_FRA_MINOR}.${MIN_FRA_BUILD}."
+   !endif
+ 
+  !else if ${MIN_FRA_MINOR} == "7"
+ 
+   !if ${MIN_FRA_BUILD} == "0"
+    !define MIN_FRA_RELEASE "460798"
+   !else if ${MIN_FRA_BUILD} == "1"
+    !define MIN_FRA_RELEASE "461308"
+   !else if ${MIN_FRA_BUILD} == "2"
+    !define MIN_FRA_RELEASE "461808"
+   !else
+    !error "AbortIfBadFramework was passed a bad framework version ${MIN_FRA_MAJOR}.${MIN_FRA_MINOR}.${MIN_FRA_BUILD}."
+   !endif
+  !else
+   !error "AbortIfBadFramework is not sure how to check .NET framework versions > V4.7."
+  !endif
+ 
+  ReadRegDWORD $R9 HKLM "SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" Release
+  IntCmp $R9 ${MIN_FRA_RELEASE} end wrong_framework end
+ 
+  fail:
+  StrCmp $R8 "0.0.0" no_framework
+  goto wrong_framework
+ 
+  no_framework:
+  MessageBox MB_OK|MB_ICONSTOP "Installation failed.$\n$\n\
+         This software requires Windows Framework version \
+         ${MIN_FRA_MAJOR}.${MIN_FRA_MINOR}.${MIN_FRA_BUILD} or higher.$\n$\n\
+         No version of Windows Framework is installed.$\n$\n\
+         Please update your computer at http://windowsupdate.microsoft.com/."
+  abort
+ 
+  wrong_framework:
+  MessageBox MB_OK|MB_ICONSTOP "Installation failed!$\n$\n\
+         This software requires Windows Framework version \
+         ${MIN_FRA_MAJOR}.${MIN_FRA_MINOR}.${MIN_FRA_BUILD} or higher.$\n$\n\
+         The highest version on this computer is $R8.$\n$\n\
+         Please update your computer at http://windowsupdate.microsoft.com/."
+  abort
+ 
+  end:
+ 
+  ; Pop the variables we pushed earlier
+  Pop $R8
+  Pop $R7
+  Pop $R6
+  Pop $R5
+  Pop $R4
+  Pop $R3
+  Pop $R2
+  Pop $R1
+  Pop $4
+  Pop $3
+  Pop $2
+  Pop $1
+  Pop $0
+ 
+FunctionEnd
+
 Function TrimQuotes
 Exch $R0
 Push $R1
@@ -64,6 +278,11 @@ FunctionEnd
   Pop ${Output}
 !macroend
 !define TrimQuotes `!insertmacro _TrimQuotes`
+
+Section "Check .NET Framework Version"
+Call AbortIfBadFramework
+SectionEnd
+
 Section "Backup and remove old version"
     ; Check for uninstaller.
     ReadRegStr $0 HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" "UninstallString"

@@ -144,22 +144,19 @@ Section "DrFujiBot Django"
     done:
 SectionEnd
 
-; IRC Section
-Section "DrFujiBot IRC"
-    File /r /x config.json /x *.swp "..\..\..\DrFujiBot_IRC"
-    ${If} ${RunningX64}
-        CopyFiles "$INSTDIR\pkgs\pywin32_system32\*.dll" "$WINDIR\SysWOW64"
-    ${EndIf}
+; Twitch Section
+Section "DrFujiBot Twitch"
+    File /r /x config.json /x *.swp /x *.pdb "..\..\..\DrFujiBot_Twitch\DrFujiBot_Twitch\bin\Release"
 
     ; Create config.json
     ClearErrors
-    FileOpen $4 "$INSTDIR\DrFujiBot_IRC\config.json" w
+    FileOpen $4 "$INSTDIR\Release\config.json" w
     FileSeek $4 0 END
     FileWrite $4 "{$\"twitch_channel$\": $\"$\", $\"twitch_oauth_token$\": $\"6nqy3hwjxnijah2oi6ya7wijxctrct$\", $\"comment$\": $\"Please do not use this token for any other purpose than the normal functions of DrFujiBot. Thank you.$\"}"
     FileClose $4
 
-    nsExec::ExecToLog 'sc.exe create "DrFujiBot IRC" start= auto binPath= "\$\"$INSTDIR\Python\python.exe\$\" \$\"$INSTDIR\DrFujiBot_IRC\drfujibot_irc.py\$\"'
-    nsExec::ExecToLog 'sc.exe description "DrFujiBot IRC" "Connects to Twitch chat to relay commands to the local DrFujiBot Django instance"'
+    nsExec::ExecToLog 'sc.exe create "DrFujiBot Twitch Service" start= auto binPath= "\$\"$INSTDIR\Release\DrFujiBot_Twitch.exe\$\"'
+    nsExec::ExecToLog 'sc.exe description "DrFujiBot Twitch Service" "Connects to Twitch chat to relay commands to the local DrFujiBot Django instance"'
 
     File ..\..\disclaimers.txt
 
@@ -184,10 +181,10 @@ Section "Uninstall"
     ; DrFujiBot Django
     RMDir /r "$INSTDIR\DrFujiBot_Django"
 
-    ; DrFujiBot IRC
-    nsExec::ExecToLog 'net.exe stop "DrFujiBot IRC"'
-    nsExec::ExecToLog 'sc.exe delete "DrFujiBot IRC"'
-    RMDir /r "$INSTDIR\DrFujiBot_IRC"
+    ; DrFujiBot Twitch
+    nsExec::ExecToLog 'net.exe stop "DrFujiBot Twitch Service"'
+    nsExec::ExecToLog 'sc.exe delete "DrFujiBot Twitch Service"'
+    RMDir /r "$INSTDIR\Release"
 
     ; Remove leftovers that couldn't be deleted because Apache was still running
     RMDir /r "$INSTDIR"

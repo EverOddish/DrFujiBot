@@ -186,7 +186,7 @@ def save_access_token(request):
                 channel = user_data['data'][0]['login']
                 display_name = user_data['data'][0]['display_name']
 
-                config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'DrFujiBot_IRC', 'config.json')
+                config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'Release', 'config.json')
                 config = {}
 
                 with open(config_path, 'r') as config_file:
@@ -206,10 +206,10 @@ def save_access_token(request):
                 quotee_setting.save()
 
                 try:
-                    # Restart the IRC service
-                    args = ['net', 'stop', 'DrFujiBot IRC']
+                    # Restart the Twitch service
+                    args = ['net', 'stop', 'DrFujiBot Twitch Service']
                     subprocess.run(args)
-                    args = ['net', 'start', 'DrFujiBot IRC']
+                    args = ['net', 'start', 'DrFujiBot Twitch Service']
                     subprocess.run(args)
                 except:
                     pass
