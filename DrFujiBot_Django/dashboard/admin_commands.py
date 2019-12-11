@@ -347,7 +347,7 @@ def handle_fallen(args):
     current_run_setting = Setting.objects.filter(key='Current Run')[0]
     run = Run.objects.filter(name=current_run_setting.value)[0]
 
-    death_objects = Death.objects.filter(run=run).order_by('respect_count')
+    death_objects = Death.objects.filter(run=run).order_by('-respect_count')
     if len(death_objects) > 3:
         death_objects = death_objects[:3]
 
