@@ -472,6 +472,11 @@ def handle_shoutout(args):
     output = 'Go check out @' + twitch_username + ' at twitch.tv/' + twitch_username + ' They make great content and if you enjoy this stream, you will enjoy them as well!'
     return output
 
+def handle_debug(args):
+    # Not sure what else would be useful to put here.
+    output = 'DrFujiBot 2.0.7'
+    return output
+
 handlers = {'!setgame': handle_setgame,
             '!addcom': handle_addcom,
             '!delcom': handle_delcom,
@@ -493,6 +498,7 @@ handlers = {'!setgame': handle_setgame,
             '!listruns': handle_listruns,
             '!shoutout': handle_shoutout,
             '!so': handle_shoutout,
+            '!debug': handle_debug,
            }
 
 expected_args = {'!setgame': 1,
@@ -516,6 +522,7 @@ expected_args = {'!setgame': 1,
                  '!listruns': 0,
                  '!shoutout': 1,
                  '!so': 1,
+                 '!debug': 0,
                 }
 
 usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
@@ -539,6 +546,7 @@ usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
          '!listruns': 'Usage: !listruns',
          '!shoutout': 'Usage: !shoutout <Twitch username>',
          '!so': 'Usage: !so <Twitch username>',
+         '!debug': 'Usage: !debug',
         }
 
 def handle_admin_command(line):
