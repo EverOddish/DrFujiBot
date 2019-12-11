@@ -28,7 +28,11 @@ Django itself requires a web server to host its implementation. Apache was chose
 
 ## DrFujiBot IRC
 
-This component is a simple IRC chat bot written in Python. It somewhat resembles a very stripped-down version of the original OpenFuji. The IRC component acts as an intermediary between Twitch chat and the local Django instance. It will do basic command parsing, determine permissions, and forward requests to Django for command output. The component runs as a Windows service in the background of the host system.
+This component is a simple IRC chat bot written in Python. It somewhat resembles a very stripped-down version of the original OpenFuji. Performance and reliability issues were encountered with this approach, so it has been deprecated in favour of the DrFujiBot Twitch component as of DrFujiBot version 2.0.7.
+
+## DrFujiBot Twitch
+
+The Twitch component is written in C# and acts as an intermediary between Twitch chat and the local Django instance. It will do basic command parsing, determine permissions, and forward requests to Django for command output. The component runs as a Windows service in the background of the host system.
 
 ## DrFujiBot Installer
 
@@ -80,15 +84,7 @@ If you want to contribute to Westwood, see the [Westwood](https://github.com/Eve
 
 8. You should now be able to make changes to the Python files and the server will automatically restart itself. The dashboard should be available by browsing to [http://localhost:41945/admin](http://localhost:41945/admin)
 
-## Setup for the IRC component
-
-1. Open a terminal or command prompt and navigate to the DrFujiBot_IRC directory
-
-    `cd DrFujiBot_IRC`
-
-2. Run the IRC component
-
-    `python3 drfujibot_irc.py debug`
+9. You may use the DrFujiBot Web Console link on the dashboard to test interaction with the bot.
 
 ## Setup for the installer component
 
