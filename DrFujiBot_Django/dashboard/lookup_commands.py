@@ -99,7 +99,8 @@ def handle_move(args):
                     output += 'Accuracy(' + str(move_definition.accuracy) + ')' + modified_move_details['accuracy'] + ' '
                     output += 'PP(' + str(move_definition.power_points) + ')' + modified_move_details['power_points'] + ' '
                     output += 'Priority(' + str(move_definition.priority) + ')' + modified_move_details['priority'] + ' '
-                    output += move_definition.description
+                    if None != move_definition.description:
+                        output += move_definition.description
                     try_again = False
                     break
             if try_again:
