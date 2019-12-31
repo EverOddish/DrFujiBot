@@ -763,6 +763,158 @@ def handle_nature(args):
         output = '"' + nature_name + '" was not found'
     return output
 
+def handle_speed(args):
+    output = ''
+    speed = 0
+    level = 50
+    try:
+        level = int(args[-1])
+    except:
+        pass
+    pokemon_name = ' '.join(args[:-1])
+    pokemon_name = correct_pokemon_name(pokemon_name)
+
+    if pokemon_not_present(pokemon_name):
+        return pokemon_name.title() + ' is not present in the current game'
+
+    pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
+    if len(pokemon_matches) == 0:
+        pokemon_matches = PokemonForm.objects.filter(name__iexact=pokemon_name)
+
+    if len(pokemon_matches) > 0:
+        pokemon = pokemon_matches[0]
+
+        current_game_name = Setting.objects.filter(key='Current Game')[0]
+
+        # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
+        # If not a ROM hack, stats should be found on the first pass every time.
+        try_again = True
+        check_base_game = False
+        while try_again:
+            for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon.stat_sets):
+                stat_set = stat_sets_list_element.element
+                # Don't ask for base game stats if ROM hack stats aren't found, because they could be present in a later stat set
+                if is_game_name_in_game_list(current_game_name.value, stat_set.games, check_base_game=check_base_game):
+                    speed = stat_set.speed
+                    try_again = False
+                    break
+            if try_again:
+                check_base_game = True
+
+        if speed > 0:
+            hindered_speed = calculate_stat(speed, level=level, hindered=True)
+            neutral_speed = calculate_stat(speed, level=level)
+            beneficial_speed = calculate_stat(speed, level=level, beneficial=True)
+            output = pokemon.name + ' with 31 IVs, 0 EVs at Level ' + str(level) + ': Hindered(' + str(hindered_speed) + ') Neutral(' + str(neutral_speed) + ') Beneficial(' + str(beneficial_speed) + ')'
+        else:
+            output = 'Speed stat for "' + pokemon_name + '" was not found'
+    else:
+        output = '"' + pokemon_name + '" was not found'
+    return output
+
+def handle_speedev(args):
+    output = ''
+    found_stat_set = None
+    pokemon_name = ' '.join(args)
+    pokemon_name = correct_pokemon_name(pokemon_name)
+
+    if pokemon_not_present(pokemon_name):
+        return pokemon_name.title() + ' is not present in the current game'
+
+    pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
+    if len(pokemon_matches) == 0:
+        pokemon_matches = PokemonForm.objects.filter(name__iexact=pokemon_name)
+
+    if len(pokemon_matches) > 0:
+        pokemon = pokemon_matches[0]
+
+        current_game_name = Setting.objects.filter(key='Current Game')[0]
+
+        # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
+        # If not a ROM hack, stats should be found on the first pass every time.
+        try_again = True
+        check_base_game = False
+        while try_again:
+            for stat_sets_list_element in StatSetsListElement.objects.filter(list_id=pokemon.stat_sets):
+                stat_set = stat_sets_list_element.element
+                # Don't ask for base game stats if ROM hack stats aren't found, because they could be present in a later stat set
+                if is_game_name_in_game_list(current_game_name.value, stat_set.games, check_base_game=check_base_game):
+                    found_stat_set = stat_set
+                    try_again = False
+                    break
+            if try_again:
+                check_base_game = True
+
+        if None != found_stat_set:
+            # Calculate our Pokemon's minimum speed so we can filter out other Pokemon that are always out-sped
+            min_speed_neutral = calculate_stat(found_stat_set.speed, ev=0.0)
+
+            # Query all full-Speed-EV Pokemon that will out-speed our Pokemon with zero speed EVs
+            faster_stat_sets = StatSet.objects.filter(max_speed_beneficial__gt=min_speed_neutral)
+
+            # Filter stat sets that don't match the current game
+            filtered_faster_stat_sets = [stat_set for stat_set in faster_stat_sets if is_game_name_in_game_list(current_game_name.value, stat_set.games, check_base_game=check_base_game)]
+            print('Number of faster stat sets: ' + str(len(filtered_faster_stat_sets)))
+
+            # Keep a mapping of each Speed EV investment to list of Pokemon names that will be out-sped at that EV count
+            ev_to_outspeed = {}
+
+            # Make a list of all possible EV counts at each multiple of 4
+            evs = list(range(0, 252 + 1, 4))
+
+            # For each possible Speed EV investment
+            for ev in evs:
+                # Calculate our Pokemon's Speed at the current EV count
+                this_max_speed = calculate_stat(found_stat_set.speed, ev=(ev * 1.0))
+
+                # For each other Pokemon, calculate their Speed with max EVs
+                can_outspeed = []
+                for faster_stat_set in filtered_faster_stat_sets:
+                    that_max_speed = calculate_stat(faster_stat_set.speed, ev=252.0)
+
+                    # Our Pokemon can out-speed the other, so keep track of it
+                    if this_max_speed > that_max_speed:
+                        can_outspeed.append(faster_stat_set)
+
+                # Convert from stat set to Pokemon name
+                if len(can_outspeed) > 0:
+                    can_outspeed_names = []
+                    for outspeed in can_outspeed:
+                        list_elements = StatSetsListElement.objects.filter(element=outspeed.id)
+                        pokemon = Pokemon.objects.filter(stat_sets=list_elements[0].list_id)
+                        if len(pokemon) == 0:
+                            pokemon = PokemonForm.objects.filter(stat_sets=list_elements[0].list_id)
+                        can_outspeed_names.append(pokemon[0].name)
+                    if can_outspeed_names not in ev_to_outspeed.values():
+                        ev_to_outspeed[ev] = can_outspeed_names
+
+            # For each EV count from lowest to highest
+            keys = sorted(list(ev_to_outspeed.keys()))
+            for key in keys:
+                # Remove all of the Pokemon at this EV count from other EV counts to avoid duplicates
+                names_to_remove = ev_to_outspeed[key]
+
+                for key_to_update in keys:
+                    if key_to_update != key:
+                        names = list(set(ev_to_outspeed[key_to_update]) - set(names_to_remove))
+                        ev_to_outspeed[key_to_update] = names
+
+            output = ['The following Speed EVs are required for a neutral-natured ' + pokemon_name.title() + ' to outspeed each Pokemon with 252 Speed EVs and a neutral nature:']
+            line = ''
+
+            # For each EV count from highest to lowest
+            keys = sorted(list(ev_to_outspeed.keys()))
+            keys.reverse()
+            keys = keys[:5]
+            for key in keys:
+                line += '[' + str(key) + ': ' + ', '.join(ev_to_outspeed[key]) + '] '
+            output.append(line)
+        else:
+            output = 'Speed stat for "' + pokemon_name + '" was not found'
+    else:
+        output = '"' + pokemon_name + '" was not found'
+    return output
+
 handlers = {'!pokemon': handle_pokemon,
             '!move': handle_move,
             '!ability': handle_ability,
@@ -787,6 +939,8 @@ handlers = {'!pokemon': handle_pokemon,
             '!baseexp': handle_baseexp,
             '!evyield': handle_evyield,
             '!nature': handle_nature,
+            '!speed': handle_speed,
+            '!speedev': handle_speedev,
            }
 
 expected_args = {'!pokemon': 1,
@@ -813,6 +967,8 @@ expected_args = {'!pokemon': 1,
                  '!baseexp': 1,
                  '!evyield': 1,
                  '!nature': 1,
+                 '!speed': 2,
+                 '!speedev': 1,
                 }
 
 usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
@@ -839,6 +995,8 @@ usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
           '!baseexp': 'Usage: !baseexp <pokemon name>',
           '!evyield': 'Usage: !evyield <pokemon name>',
           '!nature': 'Usage: !nature <nature name>',
+          '!speed': 'Usage: !speed <pokemon name> <level>',
+          '!speedev': 'Usage: !speedev <pokemon name>',
          }
 
 def handle_lookup_command(line):

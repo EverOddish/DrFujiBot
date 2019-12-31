@@ -1,3 +1,5 @@
+import math
+
 from django.core.cache import cache
 from spellchecker import SpellChecker
 
@@ -258,3 +260,18 @@ def get_type_advantages_for_type_pair(type1, type2):
 def is_type(possible_type):
     type_objects = Type.objects.filter(value__iexact=possible_type)
     return len(type_objects) > 0
+
+def calculate_stat(base_stat, level=100, ev=0.0, iv=31.0, hindered=False, beneficial=False):
+    base_stat = base_stat * 1.0
+    nature = 1.0
+    if hindered:
+        nature = 0.9
+    if beneficial:
+        nature = 1.1
+    stat = math.floor((math.floor((((2 * base_stat) + iv + math.floor(ev / 4)) * level) / 100) + 5) * nature)
+    return stat
+
+def calculate_hp(base_hp, level=100, ev=0.0, iv=31.0):
+    base_hp = base_hp * 1.0
+    hp_stat = math.floor((((2 * base_hp) + iv + math.floor(ev / 4)) * level) / 100) + level + 10
+    return hp_stat
