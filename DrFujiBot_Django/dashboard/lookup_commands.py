@@ -815,6 +815,20 @@ def handle_speed(args):
 def handle_speedev(args):
     output = ''
     found_stat_set = None
+    choice_scarf = False
+    beneficial = False
+
+    if 'scarfed' in args:
+        args.remove('scarfed')
+        choice_scarf = True
+    if 'choice' in args and 'scarf' in args:
+        args.remove('choice')
+        args.remove('scarf')
+        choice_scarf = True
+    if 'beneficial' in args:
+        args.remove('beneficial')
+        beneficial = True
+
     pokemon_name = ' '.join(args)
     pokemon_name = correct_pokemon_name(pokemon_name)
 
@@ -847,14 +861,13 @@ def handle_speedev(args):
 
         if None != found_stat_set:
             # Calculate our Pokemon's minimum speed so we can filter out other Pokemon that are always out-sped
-            min_speed_neutral = calculate_stat(found_stat_set.speed, ev=0.0)
+            min_speed_neutral = calculate_stat(found_stat_set.speed, ev=0.0, beneficial=beneficial, choice_item=choice_scarf)
 
             # Query all full-Speed-EV Pokemon that will out-speed our Pokemon with zero speed EVs
             faster_stat_sets = StatSet.objects.filter(max_speed_beneficial__gt=min_speed_neutral)
 
             # Filter stat sets that don't match the current game
             filtered_faster_stat_sets = [stat_set for stat_set in faster_stat_sets if is_game_name_in_game_list(current_game_name.value, stat_set.games, check_base_game=check_base_game)]
-            print('Number of faster stat sets: ' + str(len(filtered_faster_stat_sets)))
 
             # Keep a mapping of each Speed EV investment to list of Pokemon names that will be out-sped at that EV count
             ev_to_outspeed = {}
@@ -865,7 +878,7 @@ def handle_speedev(args):
             # For each possible Speed EV investment
             for ev in evs:
                 # Calculate our Pokemon's Speed at the current EV count
-                this_max_speed = calculate_stat(found_stat_set.speed, ev=(ev * 1.0))
+                this_max_speed = calculate_stat(found_stat_set.speed, ev=(ev * 1.0), beneficial=beneficial, choice_item=choice_scarf)
 
                 # For each other Pokemon, calculate their Speed with max EVs
                 can_outspeed = []
@@ -899,10 +912,19 @@ def handle_speedev(args):
                         names = list(set(ev_to_outspeed[key_to_update]) - set(names_to_remove))
                         ev_to_outspeed[key_to_update] = names
 
-            output = ['The following Speed EVs are required for a neutral-natured ' + pokemon_name.title() + ' to outspeed each Pokemon with 252 Speed EVs and a neutral nature:']
-            line = ''
+            output = []
+            line = 'The following Speed EVs are required for a '
+            if choice_scarf:
+                line += 'Choice-Scarfed '
+            if beneficial:
+                line += 'beneficial-natured '
+            else:
+                line += 'neutral-natured '
+            line += pokemon_name.title() + ' to outspeed each Pokemon with 252 Speed EVs and a neutral nature:'
+            output.append(line)
 
             # For each EV count from highest to lowest
+            line = ''
             keys = sorted(list(ev_to_outspeed.keys()))
             keys.reverse()
             keys = keys[:5]
@@ -996,7 +1018,7 @@ usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
           '!evyield': 'Usage: !evyield <pokemon name>',
           '!nature': 'Usage: !nature <nature name>',
           '!speed': 'Usage: !speed <pokemon name> <level>',
-          '!speedev': 'Usage: !speedev <pokemon name>',
+          '!speedev': 'Usage: !speedev <optional "choice scarf" or "scarfed"> <optional "beneficial"> <pokemon name>',
          }
 
 def handle_lookup_command(line):
