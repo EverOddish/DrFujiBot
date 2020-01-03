@@ -7,7 +7,7 @@ import json
 import os
 
 def import_afflictions(apps, schema_editor):
-    json_path = os.path.join('data', 'afflictions.json')
+    json_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', 'afflictions.json')
 
     with open(json_path) as json_file:
         affliction_data = json.load(json_file)
