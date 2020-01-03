@@ -1,9 +1,10 @@
-from .models import Setting, Command, SimpleOutput, Run, Death, Quote, ChatLog, BannedPhrase, TimedMessage
+from .models import *
 from scheduled_tasks.uptime_check import get_uptime
 from apscheduler.schedulers.background import BackgroundScheduler
 from westwood.models import Game
 
 import datetime
+import random
 
 def update_run(command_name, simple_output):
     if '!lastrun' == command_name or '!howfar' == command_name:
@@ -477,6 +478,41 @@ def handle_debug(args):
     output = 'DrFujiBot 2.0.7'
     return output
 
+def handle_afflict(args):
+    output = ''
+    nickname = ' '.join(args)
+
+    all_afflictions = Affliction.objects.all()
+    random_affliction = random.choice(all_afflictions)
+
+    afflicted_pokemon_results = AfflictedPokemon.objects.filter(nickname__iexact=nickname)
+    if 0 == len(afflicted_pokemon_results):
+        afflicted_pokemon = AfflictedPokemon(nickname=nickname, affliction_1=random_affliction)
+        output = nickname + ' has been afflicted with ' + random_affliction.name + ' (' + random_affliction.description + ')'
+    else:
+        afflicted_pokemon = afflicted_pokemon_results[0]
+        afflicted_pokemon.affliction_2 = random_affliction
+        output = nickname + ' is now afflicted with ' + afflicted_pokemon.affliction_1.name + ' (' + afflicted_pokemon.affliction_1.description + ') and '
+        output += random_affliction.name + ' (' + random_affliction.description + ')'
+    afflicted_pokemon.save()
+
+    return output
+
+def handle_check(args):
+    output = ''
+    nickname = ' '.join(args)
+
+    afflicted_pokemon_results = AfflictedPokemon.objects.filter(nickname__iexact=nickname)
+    if len(afflicted_pokemon_results) > 0:
+        afflicted_pokemon = afflicted_pokemon_results[0]
+        output = nickname + ' is afflicted with ' + afflicted_pokemon.affliction_1.name + ' (' + afflicted_pokemon.affliction_1.description + ')'
+        if None != afflicted_pokemon.affliction_2:
+            output += ' and ' + afflicted_pokemon.affliction_2.name + ' (' + afflicted_pokemon.affliction_2.description + ')'
+    else:
+        output = nickname + ' was not found'
+
+    return output
+
 handlers = {'!setgame': handle_setgame,
             '!addcom': handle_addcom,
             '!delcom': handle_delcom,
@@ -499,6 +535,8 @@ handlers = {'!setgame': handle_setgame,
             '!shoutout': handle_shoutout,
             '!so': handle_shoutout,
             '!debug': handle_debug,
+            '!afflict': handle_afflict,
+            '!check': handle_check,
            }
 
 expected_args = {'!setgame': 1,
@@ -523,6 +561,8 @@ expected_args = {'!setgame': 1,
                  '!shoutout': 1,
                  '!so': 1,
                  '!debug': 0,
+                 '!afflict': 1,
+                 '!check': 1,
                 }
 
 usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
@@ -547,6 +587,8 @@ usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
          '!shoutout': 'Usage: !shoutout <Twitch username>',
          '!so': 'Usage: !so <Twitch username>',
          '!debug': 'Usage: !debug',
+         '!afflict': 'Usage: !afflict <nickname>',
+         '!check': 'Usage: !check <nickname>',
         }
 
 def handle_admin_command(line):
