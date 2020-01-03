@@ -119,3 +119,16 @@ class Bet(models.Model):
     username = models.CharField(max_length=200)
     value = models.CharField(max_length=200)
     event = models.ForeignKey(BettingEvent, on_delete=models.CASCADE)
+
+class Affliction(models.Model):
+    name = models.CharField(max_length=200)
+    description = models.CharField(max_length=500)
+    def __str__(self):
+        return self.name
+
+class AfflictedPokemon(models.Model):
+    nickname = models.CharField(max_length=200)
+    affliction_1 = models.ForeignKey(Affliction, on_delete=models.CASCADE, related_name='affliction_1')
+    affliction_2 = models.ForeignKey(Affliction, on_delete=models.CASCADE, related_name='affliction_2', blank=True, null=True)
+    class Meta:
+        verbose_name_plural = 'Afflicted Pokemon'

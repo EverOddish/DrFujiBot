@@ -1,8 +1,7 @@
 from django.contrib import admin
 from django.forms import ModelForm, Select, TextInput
 
-from .models import Command, SimpleOutput, TimedMessage, Setting, Run, Death, Quote, BannedPhrase
-from .models import DISABLED, BROADCASTER_ONLY, MODERATOR_ONLY, SUBSCRIBER_ONLY, EVERYONE
+from .models import *
 from westwood.models import Game
 
 class CommandAdmin(admin.ModelAdmin):
@@ -167,6 +166,21 @@ class QuoteAdmin(admin.ModelAdmin):
 class BannedPhraseAdmin(admin.ModelAdmin):
     list_display = ['phrase', 'expiry']
 
+class AfflictionAdmin(admin.ModelAdmin):
+    readonly_fields = ['name', 'description']
+    list_display = ['name', 'description']
+    ordering = ['name']
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+class AfflictedPokemonAdmin(admin.ModelAdmin):
+    list_display = ['nickname', 'affliction_1', 'affliction_2']
+    def get_affliction_2(self, obj):
+        if None != obj.affliction_2:
+            return obj.affliction_2
+        else:
+            return ''
+
 admin.site.register(Command, CommandAdmin)
 admin.site.register(TimedMessage, TimedMessageAdmin)
 admin.site.register(SimpleOutput, SimpleOutputAdmin)
@@ -175,3 +189,5 @@ admin.site.register(Run, RunAdmin)
 admin.site.register(Death, DeathAdmin)
 admin.site.register(Quote, QuoteAdmin)
 admin.site.register(BannedPhrase, BannedPhraseAdmin)
+admin.site.register(Affliction, AfflictionAdmin)
+admin.site.register(AfflictedPokemon, AfflictedPokemonAdmin)
