@@ -183,27 +183,28 @@ def save_access_token(request):
                 user_id = token['sub']
                 url = 'https://api.twitch.tv/helix/users?id=' + user_id
                 user_data = twitch_api_request(url)
-                channel = user_data['data'][0]['login']
-                display_name = user_data['data'][0]['display_name']
+                if user_data:
+                    channel = user_data['data'][0]['login']
+                    display_name = user_data['data'][0]['display_name']
 
-                config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'Release', 'config.json')
-                config = {}
+                    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'Release', 'config.json')
+                    config = {}
 
-                with open(config_path, 'r') as config_file:
-                    config = json.load(config_file)
+                    with open(config_path, 'r') as config_file:
+                        config = json.load(config_file)
 
-                config['twitch_channel'] = channel
+                    config['twitch_channel'] = channel
 
-                with open(config_path, 'w') as config_file:
-                    config_file.write(json.dumps(config))
+                    with open(config_path, 'w') as config_file:
+                        config_file.write(json.dumps(config))
 
-                username_setting = Setting.objects.get(key='Twitch Username')
-                username_setting.value = channel
-                username_setting.save()
+                    username_setting = Setting.objects.get(key='Twitch Username')
+                    username_setting.value = channel
+                    username_setting.save()
 
-                quotee_setting = Setting.objects.get(key='Quotee')
-                quotee_setting.value = display_name
-                quotee_setting.save()
+                    quotee_setting = Setting.objects.get(key='Quotee')
+                    quotee_setting.value = display_name
+                    quotee_setting.save()
 
                 try:
                     # Restart the Twitch service
