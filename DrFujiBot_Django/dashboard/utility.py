@@ -16,10 +16,12 @@ def unscramble(scrambled):
     return unscrambled
 
 def get_twitch_access_token():
-    access_token = 'https://raw.githubusercontent.com/EverOddish/DrFujiBot/master/DrFujiBot_Django/data/access_token.txt'
+    access_token = ''
+    access_token_url = 'https://raw.githubusercontent.com/EverOddish/DrFujiBot/master/DrFujiBot_Django/data/access_token.txt'
     try:
-        f = urllib.urlopen(access_token_url)
-        access_token = f.read()
+        req = request.Request(access_token_url)
+        response = request.urlopen(req, cafile=certifi.where())
+        access_token = response.read().decode('utf-8')
         access_token = unscramble(access_token)
     except Exception as e:
         print('Exception while retrieving access token: ' + str(e))
