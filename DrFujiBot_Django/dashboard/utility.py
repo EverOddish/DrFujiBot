@@ -5,11 +5,20 @@ import urllib.request as request
 
 CLIENT_ID = 'cnus4j6y1dvr60vkqsgvto5almy5j8'
 
+def unscramble(scrambled):
+    unscrambled = ''
+    for i in range(0, 30, 2):
+        unscrambled += scrambled[i]
+    for i in range(1, 30, 2):
+        unscrambled += scrambled[i]
+    return unscrambled
+
 def get_twitch_access_token():
     access_token = 'https://raw.githubusercontent.com/EverOddish/DrFujiBot/master/DrFujiBot_Django/data/access_token.txt'
     try:
         f = urllib.urlopen(access_token_url)
         access_token = f.read()
+        access_token = unscramble(access_token)
     except Exception as e:
         print('Exception while retrieving access token: ' + str(e))
     return access_token
