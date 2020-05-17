@@ -21,4 +21,7 @@ urlpatterns = [
 
     # This is the URL that saves the access token to the IRC config file
     path('save_access_token/', views.save_access_token, name='save_access_token'),
+
+    # This is the URL that triggers a restart of the DrFujiBot IRC service
+    path('restart_drfujibot_service/', views.restart_drfujibot_service, name='restart_drfujibot_service'),
 ]

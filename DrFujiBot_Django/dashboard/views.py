@@ -216,3 +216,7 @@ def save_access_token(request):
                     pass
 
     return redirect('/admin/')
+
+def restart_drfujibot_service(request):
+    context = {}
+    return render(request, 'dashboard/restart_drfujibot_service.html', context)
