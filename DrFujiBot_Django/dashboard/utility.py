@@ -5,8 +5,6 @@ import urllib.request as request
 
 CLIENT_ID = 'cnus4j6y1dvr60vkqsgvto5almy5j8'
 
-# The purpose of scrambling the token is mainly to prevent bots from scraping the token from GitHub.
-# Please do not use this token for any other purpose than the normal functions of DrFujiBot. Thank you.
 def unscramble(scrambled):
     unscrambled = ''
     for i in range(0, 30, 2):

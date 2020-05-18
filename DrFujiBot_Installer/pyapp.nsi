@@ -315,12 +315,12 @@ SectionEnd
 
 
 ; Start DrFujiBot add-in:
-;Function LaunchTwitchAuthorization
-;    ExecShell "open" "https://id.twitch.tv/oauth2/authorize?client_id=cnus4j6y1dvr60vkqsgvto5almy5j8&redirect_uri=http://localhost:41945/dashboard/authorize&response_type=token+id_token&scope=openid%20chat:read%20chat:edit"
-;FunctionEnd
-;!define MUI_FINISHPAGE_RUN
-;!define MUI_FINISHPAGE_RUN_TEXT "Launch Twitch authorization (optional)"
-;!define MUI_FINISHPAGE_RUN_FUNCTION "LaunchTwitchAuthorization"
+Function LaunchTwitchAuthorization
+    ExecShell "open" "https://id.twitch.tv/oauth2/authorize?client_id=cnus4j6y1dvr60vkqsgvto5almy5j8&redirect_uri=http://localhost:41945/dashboard/authorize&response_type=token+id_token&scope=openid%20chat:read%20chat:edit"
+FunctionEnd
+!define MUI_FINISHPAGE_RUN
+!define MUI_FINISHPAGE_RUN_TEXT "Launch Twitch authorization (optional)"
+!define MUI_FINISHPAGE_RUN_FUNCTION "LaunchTwitchAuthorization"
 ; End DrFujiBot add-in
 
 
