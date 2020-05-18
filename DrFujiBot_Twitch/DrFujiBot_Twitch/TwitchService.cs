@@ -17,6 +17,7 @@ namespace DrFujiBot_Twitch
     public partial class TwitchService : ServiceBase
     {
         TwitchClient client;
+        Timer timer;
         Dictionary<string, string> config;
         System.Diagnostics.EventLog eventLog;
         const string serviceName = "DrFujiBot Twitch Service";
@@ -34,9 +35,11 @@ namespace DrFujiBot_Twitch
             eventLog.Log = "";
 
             client = null;
+
+            CanHandlePowerEvent = true;
         }
 
-        protected override void OnStart(string[] args)
+        private void startBot()
         {
             string configFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
             using (StreamReader r = new StreamReader(configFilePath))
@@ -47,7 +50,7 @@ namespace DrFujiBot_Twitch
 
             // The purpose of scrambling the token is mainly to prevent bots from scraping the token from GitHub.
             // Please do not use this token for any other purpose than the normal functions of DrFujiBot. Thank you.
-            ConnectionCredentials credentials = new ConnectionCredentials("DrFujiBot", unscrambleToken(config["twitch_oauth_token"]));
+            ConnectionCredentials credentials = new ConnectionCredentials("DrFujiBot", getToken());
             var clientOptions = new ClientOptions
             {
                 MessagesAllowedInPeriod = 750,
@@ -63,15 +66,50 @@ namespace DrFujiBot_Twitch
 
             client.Connect();
 
-            Timer timer = new Timer();
+            timer = new Timer();
             timer.Interval = 30000; // 30 seconds
             timer.Elapsed += new ElapsedEventHandler(this.OnTimer);
             timer.Start();
         }
 
+        private void stopBot()
+        {
+            if (null != client)
+            {
+                client.Disconnect();
+                client = null;
+            }
+
+            if (null != timer)
+            {
+                timer.Stop();
+                timer = null;
+            }
+        }
+
+        protected override void OnStart(string[] args)
+        {
+            startBot();
+        }
+
         protected override void OnStop()
         {
-            client.Disconnect();
+            stopBot();
+        }
+
+        protected override bool OnPowerEvent(PowerBroadcastStatus powerStatus)
+        {
+            if (powerStatus.HasFlag(PowerBroadcastStatus.QuerySuspend))
+            {
+                stopBot();
+            }
+
+            if (powerStatus.HasFlag(PowerBroadcastStatus.ResumeSuspend))
+            {
+                startBot();
+            }
+
+            return base.OnPowerEvent(powerStatus);
         }
 
         private string unscrambleToken(string scrambledToken)
@@ -89,6 +127,31 @@ namespace DrFujiBot_Twitch
             }
 
             return unscrambledToken;
+        }
+
+        private string getToken()
+        {
+            string token = "";
+
+            try
+            {
+                string url = "https://raw.githubusercontent.com/EverOddish/DrFujiBot/master/DrFujiBot_Django/data/access_token.txt";
+                WebRequest request = WebRequest.Create(url);
+                Stream objStream = request.GetResponse().GetResponseStream();
+                StreamReader objReader = new StreamReader(objStream);
+                string line =  objReader.ReadToEnd();
+
+                if (null != line && line.Length > 0)
+                {
+                    token = unscrambleToken(line);
+                }
+            }
+            catch (Exception e)
+            {
+                eventLog.WriteEntry(e.ToString());
+            }
+
+            return token;
         }
 
         private void requestAndDisplay(string url)

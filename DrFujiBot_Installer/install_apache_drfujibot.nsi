@@ -152,7 +152,7 @@ Section "DrFujiBot Twitch"
     ClearErrors
     FileOpen $4 "$INSTDIR\Release\config.json" w
     FileSeek $4 0 END
-    FileWrite $4 "{$\"twitch_channel$\": $\"$\", $\"twitch_oauth_token$\": $\"6nqy3hwjxnijah2oi6ya7wijxctrct$\", $\"comment$\": $\"Please do not use this token for any other purpose than the normal functions of DrFujiBot. Thank you.$\"}"
+    FileWrite $4 "{$\"twitch_channel$\": $\"$\", $\"twitch_oauth_token$\": $\"$\", $\"comment$\": $\"Please do not use this token for any other purpose than the normal functions of DrFujiBot. Thank you.$\"}"
     FileClose $4
 
     nsExec::ExecToLog 'sc.exe create "DrFujiBot Twitch Service" start= auto binPath= "\$\"$INSTDIR\Release\DrFujiBot_Twitch.exe\$\"'
