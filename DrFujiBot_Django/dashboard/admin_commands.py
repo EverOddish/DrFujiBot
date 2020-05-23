@@ -5,6 +5,8 @@ from westwood.models import Game
 
 import datetime
 import random
+import urllib
+import json
 
 def update_run(command_name, simple_output):
     if '!lastrun' == command_name or '!howfar' == command_name:
@@ -513,6 +515,27 @@ def handle_check(args):
 
     return output
 
+def handle_song(args):
+    output = ''
+
+    lastfm_key_results = Setting.objects.filter(key='LastFM API Key')
+    lastfm_username_results = Setting.objects.filter(key='LastFM Username')
+    if len(lastfm_key_results) > 0 and len(lastfm_username_results) > 0:
+        lastfm_key = lastfm_key_results[0]
+        lastfm_username = lastfm_username_results[0]
+        url = "http://ws.audioscrobbler.com/2.0?"
+        url += urllib.parse.urlencode({
+            "api_key": lastfm_key.value,
+            "user": lastfm_username.value,
+            "method": "user.getrecenttracks",
+            "format": "json"
+        })
+        response = urllib.request.urlopen(url).read()
+        lastfm_data = json.loads(response)
+        most_recent_track = lastfm_data['recenttracks']['track'][0]
+        output = f"{most_recent_track['name']} - {most_recent_track['artist']['#text']}"
+    return output
+
 handlers = {'!setgame': handle_setgame,
             '!addcom': handle_addcom,
             '!delcom': handle_delcom,
@@ -537,6 +560,7 @@ handlers = {'!setgame': handle_setgame,
             '!debug': handle_debug,
             '!afflict': handle_afflict,
             '!check': handle_check,
+            '!song': handle_song
            }
 
 expected_args = {'!setgame': 1,
@@ -563,6 +587,7 @@ expected_args = {'!setgame': 1,
                  '!debug': 0,
                  '!afflict': 1,
                  '!check': 1,
+                 '!song': 0
                 }
 
 usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
@@ -589,6 +614,7 @@ usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
          '!debug': 'Usage: !debug',
          '!afflict': 'Usage: !afflict <nickname>',
          '!check': 'Usage: !check <nickname>',
+         '!song': 'Usage: !song'
         }
 
 def handle_admin_command(line):
