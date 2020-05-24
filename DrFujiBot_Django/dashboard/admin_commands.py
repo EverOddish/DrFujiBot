@@ -516,24 +516,28 @@ def handle_check(args):
     return output
 
 def handle_song(args):
-    output = ''
+    output = 'Unable to determine current song, LastFM not configured'
 
     lastfm_key_results = Setting.objects.filter(key='LastFM API Key')
     lastfm_username_results = Setting.objects.filter(key='LastFM Username')
     if len(lastfm_key_results) > 0 and len(lastfm_username_results) > 0:
         lastfm_key = lastfm_key_results[0]
         lastfm_username = lastfm_username_results[0]
-        url = "http://ws.audioscrobbler.com/2.0?"
-        url += urllib.parse.urlencode({
-            "api_key": lastfm_key.value,
-            "user": lastfm_username.value,
-            "method": "user.getrecenttracks",
-            "format": "json"
-        })
-        response = urllib.request.urlopen(url).read()
-        lastfm_data = json.loads(response)
-        most_recent_track = lastfm_data['recenttracks']['track'][0]
-        output = f"{most_recent_track['name']} - {most_recent_track['artist']['#text']}"
+        if len(lastfm_key.value) > 0 and len(lastfm_username.value) > 0:
+            url = "http://ws.audioscrobbler.com/2.0?"
+            url += urllib.parse.urlencode({
+                "api_key": lastfm_key.value,
+                "user": lastfm_username.value,
+                "method": "user.getrecenttracks",
+                "format": "json"
+            })
+            try:
+                response = urllib.request.urlopen(url).read()
+                lastfm_data = json.loads(response)
+                most_recent_track = lastfm_data['recenttracks']['track'][0]
+                output = f"Current song: {most_recent_track['name']} - {most_recent_track['artist']['#text']}"
+            except Exception as e:
+                output = "Unable to determine current song"
     return output
 
 handlers = {'!setgame': handle_setgame,
