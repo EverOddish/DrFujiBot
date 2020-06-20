@@ -7,7 +7,7 @@ import shutil
 def backup_database():
     original_path = settings.DATABASES['default']['NAME']
     now = datetime.now()
-    filename = 'db_2.0.9_' + now.strftime('%Y-%m-%d_%H-%M-%S') + '.sqlite3'
+    filename = 'db_2.0.10_' + now.strftime('%Y-%m-%d_%H-%M-%S') + '.sqlite3'
     backup_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', '..', 'DrFujiBot_Backup', filename)
     print('Backing up database from ' + original_path + ' to ' + backup_path)
     shutil.copyfile(original_path, backup_path)
