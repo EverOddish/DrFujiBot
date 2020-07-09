@@ -3,6 +3,7 @@ Release Checklist:
  * Add any new required Python modules to DrFujiBot_Installer\install_python.cfg
  * Update the version in DrFujiBot_Installer\install_python.cfg
  * Update the version in DrFujiBot_Django\scheduled_tasks\backup_task.py
+ * Update the version in DrFujiBot_Django\dashboard\admin_commands.py
  * Make sure Westwood is up to date and the data base exists at DrFujiBot_Django\westwood.sqlite3
  * Build DrFujiBot_Twitch in Visual Studio in Release
  * Build and test the installer
