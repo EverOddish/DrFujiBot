@@ -89,7 +89,12 @@ def drfujibot(request):
             if cmd.cooldown:
                 cooldown_setting = Setting.objects.filter(key='Cooldown Seconds')[0]
                 cooldown_seconds = int(cooldown_setting.value)
-                if now - cmd.last_output_time >= datetime.timedelta(seconds=cooldown_seconds):
+                if now < cmd.last_output_time:
+                    # The command's last output time is in the future.
+                    # This can occur if system time was modified for Desmume/in-game clock purposes.
+                    # Allow the command to be output, and the last output time will be set back to a normal value.
+                    should_output = True
+                elif now - cmd.last_output_time >= datetime.timedelta(seconds=cooldown_seconds):
                     should_output = True
             else:
                 should_output = True
