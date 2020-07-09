@@ -295,7 +295,12 @@ def update_respects(death_object_id):
         for match in pokemof_matches:
             pokemof_users.add(match.username)
 
-        respect_count = len(f_users) + len(pokemof_users)
+        pokemo7_matches = ChatLog.objects.filter(line__exact='pokemo7').filter(timestamp__gte=twenty_seconds_ago)
+        pokemo7_users = set()
+        for match in pokemo7_matches:
+            pokemo7_users.add(match.username)
+
+        respect_count = len(f_users) + len(pokemof_users) + len(pokemo7_users)
 
         death_object.respect_count = respect_count
         death_object.save()
