@@ -171,6 +171,16 @@ def authorize(request):
     context = {}
     return render(request, 'dashboard/authorize.html', context)
 
+def restart_twitch_service():
+    try:
+        # Restart the Twitch service
+        args = ['net', 'stop', 'DrFujiBot Twitch Service']
+        subprocess.run(args)
+        args = ['net', 'start', 'DrFujiBot Twitch Service']
+        subprocess.run(args)
+    except:
+        pass
+
 def save_access_token(request):
     id_token = request.GET.get('id_token')
 
@@ -211,17 +221,11 @@ def save_access_token(request):
                     quotee_setting.value = display_name
                     quotee_setting.save()
 
-                try:
-                    # Restart the Twitch service
-                    args = ['net', 'stop', 'DrFujiBot Twitch Service']
-                    subprocess.run(args)
-                    args = ['net', 'start', 'DrFujiBot Twitch Service']
-                    subprocess.run(args)
-                except:
-                    pass
+                restart_twitch_service()
 
     return redirect('/admin/')
 
 def restart_drfujibot_service(request):
     context = {}
+    restart_twitch_service()
     return render(request, 'dashboard/restart_drfujibot_service.html', context)
