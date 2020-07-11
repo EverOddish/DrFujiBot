@@ -172,7 +172,12 @@ def handle_daily(username, args):
             do_daily = True
         else:
             coin_entry = coin_entries[0]
-            if coin_entry.last_daily < (now - stream_uptime):
+            if now < coin_daily.last_daily:
+                # The last daily time is in the future.
+                # This can occur if system time was modified for Desmume/in-game clock purposes.
+                # Allow the daily to proceed, and the last daily time will be set back to a normal value.
+                do_daily = True
+            elif coin_entry.last_daily < (now - stream_uptime):
                 do_daily = True
             else:
                 output = '@' + username + ' You have already received a daily bonus this stream!'
