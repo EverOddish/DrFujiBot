@@ -52,16 +52,25 @@ def handle_pokemon(args):
                 check_base_game = True
                 
         output += 'Abilities: '
-        for ability_sets_list_element in AbilitySetsListElement.objects.filter(list_id=pokemon.ability_sets):
-            ability_set = ability_sets_list_element.element
-            if is_game_name_in_game_list(current_game_name.value, ability_set.games):
-                for ability_records_list_element in AbilityRecordsListElement.objects.filter(list_id=ability_set.ability_records):
-                    ability_record = ability_records_list_element.element
-                    output += ability_record.name
-                    if ability_record.hidden == 'Yes':
-                        output += ' (HA)'
-                    output += ', '
-                break
+        # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
+        # If not a ROM hack, stats should be found on the first pass every time.
+        try_again = True
+        check_base_game = False
+        while try_again:
+            for ability_sets_list_element in AbilitySetsListElement.objects.filter(list_id=pokemon.ability_sets):
+                ability_set = ability_sets_list_element.element
+                if is_game_name_in_game_list(current_game_name.value, ability_set.games, check_base_game=check_base_game):
+                    for ability_records_list_element in AbilityRecordsListElement.objects.filter(list_id=ability_set.ability_records):
+                        ability_record = ability_records_list_element.element
+                        output += ability_record.name
+                        if ability_record.hidden == 'Yes':
+                            output += ' (HA)'
+                        output += ', '
+                    try_again = False
+                    break
+            if try_again:
+                check_base_game = True
+
         if output.endswith(', '):
             output = output[:-2]
     else:
