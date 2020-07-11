@@ -137,6 +137,7 @@ Section "DrFujiBot Django"
     nsExec::ExecToLog '"$INSTDIR\create_super_user.bat"'
 
     Check:
+    ClearErrors
     nsExec::ExecToLog '"$INSTDIR\Python\python.exe" "$INSTDIR\DrFujiBot_Django\manage.py" check'
     Pop $0
     IfErrors 0 done
