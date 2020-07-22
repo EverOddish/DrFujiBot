@@ -28,6 +28,8 @@ def check_uptime():
         # This could happen if the computer has gone to sleep and has woken up later.
         force_update = False
         if None != real_start_time:
+            utc_tz = datetime.timezone.utc
+            now = datetime.datetime.now(utc_tz)
             current_uptime = now - real_start_time
             if current_uptime > datetime.timedelta(hours=16):
                 force_update = True
