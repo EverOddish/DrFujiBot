@@ -5,6 +5,12 @@ Release Checklist:
  * Update the version in DrFujiBot_Django\scheduled_tasks\backup_task.py
  * Update the version in DrFujiBot_Django\dashboard\admin_commands.py
  * Make sure Westwood is up to date and the data base exists at DrFujiBot_Django\westwood.sqlite3
+
+     cd DrFujiBot_Django
+     python manage.py migrate
+     python manage.py migrate --database=westwood
+     python manage.py import_westwood_data
+
  * Build DrFujiBot_Twitch in Visual Studio in Release
  * Build and test the installer
  * Create a release on GitHub with this format:
