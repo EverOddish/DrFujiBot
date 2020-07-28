@@ -946,6 +946,43 @@ def handle_speedev(args):
         output = '"' + pokemon_name + '" was not found'
     return output
 
+def handle_tm(args):
+    output = ''
+    move_name = ' '.join(args)
+    move_name = correct_move_name(move_name)
+
+    if move_not_present(move_name):
+        return move_name.title() + ' is not present in the current game'
+
+    move_matches = Move.objects.filter(name__iexact=move_name)
+    if move_matches:
+        move = move_matches[0]
+
+        current_game_name = Setting.objects.filter(key='Current Game')[0]
+
+        # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
+        # If not a ROM hack, stats should be found on the first pass every time.
+        try_again = True
+        check_base_game = False
+        while try_again:
+            for tm_records_list_element in TmRecordsListElement.objects.filter(list_id=move.tm_records):
+                tm_record = tm_records_list_element.element
+                # Don't ask for base game stats if ROM hack stats aren't found, because they could be present in a later stat set
+                if is_game_name_in_game_list(current_game_name.value, tm_record.games, check_base_game=check_base_game):
+                    tm_definition = tm_record.tm_definition
+                    output = 'TM/HM ' + '{:02d}'.format(tm_definition.number) + ' ' + move.name + ': '
+                    output += tm_definition.location
+                    if None != tm_definition.cost:
+                        output += ' (' + tm_definition.cost + ')'
+                    try_again = False
+                    break
+            if try_again:
+                check_base_game = True
+    else:
+        output = '"' + move_name + '" was not found'
+
+    return output
+
 handlers = {'!pokemon': handle_pokemon,
             '!move': handle_move,
             '!ability': handle_ability,
@@ -972,6 +1009,8 @@ handlers = {'!pokemon': handle_pokemon,
             '!nature': handle_nature,
             '!speed': handle_speed,
             '!speedev': handle_speedev,
+            '!tm': handle_tm,
+            '!hm': handle_tm,
            }
 
 expected_args = {'!pokemon': 1,
@@ -1000,6 +1039,8 @@ expected_args = {'!pokemon': 1,
                  '!nature': 1,
                  '!speed': 2,
                  '!speedev': 1,
+                 '!tm': 1,
+                 '!hm': 1,
                 }
 
 usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
@@ -1028,6 +1069,8 @@ usage = {'!pokemon': 'Usage: !pokemon <pokemon name>',
           '!nature': 'Usage: !nature <nature name>',
           '!speed': 'Usage: !speed <pokemon name> <level>',
           '!speedev': 'Usage: !speedev <optional "choice scarf" or "scarfed"> <optional "beneficial"> <pokemon name>',
+          '!tm': 'Usage: !tm <move name>',
+          '!hm': 'Usage: !hm <move name>',
          }
 
 def handle_lookup_command(line):
