@@ -21,6 +21,7 @@ namespace DrFujiBot_Twitch
         Dictionary<string, string> config;
         System.Diagnostics.EventLog eventLog;
         const string serviceName = "DrFujiBot Twitch Service";
+        bool running;
 
         public TwitchService()
         {
@@ -37,53 +38,64 @@ namespace DrFujiBot_Twitch
             client = null;
 
             CanHandlePowerEvent = true;
+            running = false;
         }
 
         private void startBot()
         {
-            string configFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
-            using (StreamReader r = new StreamReader(configFilePath))
+            if (!running)
             {
-                string json = r.ReadToEnd();
-                config = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+                string configFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
+                using (StreamReader r = new StreamReader(configFilePath))
+                {
+                    string json = r.ReadToEnd();
+                    config = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+                }
+
+                // The purpose of scrambling the token is mainly to prevent bots from scraping the token from GitHub.
+                // Please do not use this token for any other purpose than the normal functions of DrFujiBot. Thank you.
+                ConnectionCredentials credentials = new ConnectionCredentials("DrFujiBot", getToken());
+                var clientOptions = new ClientOptions
+                {
+                    MessagesAllowedInPeriod = 750,
+                    ThrottlingPeriod = TimeSpan.FromSeconds(30)
+                };
+                TcpClient customClient = new TcpClient(clientOptions);
+                client = new TwitchClient(customClient);
+                client.Initialize(credentials, config["twitch_channel"]);
+
+                client.OnMessageReceived += Client_OnMessageReceived;
+                client.OnIncorrectLogin += Client_OnIncorrectLogin;
+                client.OnConnectionError += Client_OnConnectionError;
+
+                client.Connect();
+
+                timer = new Timer();
+                timer.Interval = 30000; // 30 seconds
+                timer.Elapsed += new ElapsedEventHandler(this.OnTimer);
+                timer.Start();
+
+                running = true;
             }
-
-            // The purpose of scrambling the token is mainly to prevent bots from scraping the token from GitHub.
-            // Please do not use this token for any other purpose than the normal functions of DrFujiBot. Thank you.
-            ConnectionCredentials credentials = new ConnectionCredentials("DrFujiBot", getToken());
-            var clientOptions = new ClientOptions
-            {
-                MessagesAllowedInPeriod = 750,
-                ThrottlingPeriod = TimeSpan.FromSeconds(30)
-            };
-            TcpClient customClient = new TcpClient(clientOptions);
-            client = new TwitchClient(customClient);
-            client.Initialize(credentials, config["twitch_channel"]);
-
-            client.OnMessageReceived += Client_OnMessageReceived;
-            client.OnIncorrectLogin += Client_OnIncorrectLogin;
-            client.OnConnectionError += Client_OnConnectionError;
-
-            client.Connect();
-
-            timer = new Timer();
-            timer.Interval = 30000; // 30 seconds
-            timer.Elapsed += new ElapsedEventHandler(this.OnTimer);
-            timer.Start();
         }
 
         private void stopBot()
         {
-            if (null != client)
+            if (running)
             {
-                client.Disconnect();
-                client = null;
-            }
+                if (null != client)
+                {
+                    client.Disconnect();
+                    client = null;
+                }
 
-            if (null != timer)
-            {
-                timer.Stop();
-                timer = null;
+                if (null != timer)
+                {
+                    timer.Stop();
+                    timer = null;
+                }
+
+                running = false;
             }
         }
 
@@ -99,13 +111,17 @@ namespace DrFujiBot_Twitch
 
         protected override bool OnPowerEvent(PowerBroadcastStatus powerStatus)
         {
-            if (powerStatus.HasFlag(PowerBroadcastStatus.QuerySuspend))
+            if (PowerBroadcastStatus.QuerySuspend == powerStatus ||
+                PowerBroadcastStatus.Suspend == powerStatus )
             {
+                eventLog.WriteEntry("Stopping DrFujiBot Twitch IRC due to system suspend");
                 stopBot();
             }
 
-            if (powerStatus.HasFlag(PowerBroadcastStatus.ResumeSuspend))
+            if (PowerBroadcastStatus.ResumeSuspend == powerStatus ||
+                PowerBroadcastStatus.ResumeAutomatic == powerStatus)
             {
+                eventLog.WriteEntry("Starting DrFujiBot Twitch IRC due to system resume");
                 startBot();
             }
 
@@ -204,7 +220,8 @@ namespace DrFujiBot_Twitch
 
                 foreach (var chunk in chunks)
                 {
-                    eventLog.WriteEntry(chunk);
+                    //eventLog.WriteEntry(chunk);
+
                     if (chunks.Count() > 1)
                     {
                         line = "(" + i + "/" + chunks.Count() + ") " + chunk;
