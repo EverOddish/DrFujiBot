@@ -297,21 +297,33 @@ def handle_evolve(args):
 
         current_game_name = Setting.objects.filter(key='Current Game')[0]
 
-        evolution_set_list_elements = EvolutionSetsListElement.objects.filter(list_id=pokemon.evolution_sets)
-        if len(evolution_set_list_elements) > 0:
-            for evolution_set_list_element in evolution_set_list_elements:
-                evolution_set = evolution_set_list_element.element
-                if is_game_name_in_game_list(current_game_name.value, evolution_set.games):
-                    for evolution_records_list_element in EvolutionRecordsListElement.objects.filter(list_id=evolution_set.evolution_records):
-                        evolution_record = evolution_records_list_element.element
-                        output += pokemon.name + ' evolves into ' + str(evolution_record.evolves_to)
-                        if evolution_record.level > 0:
-                             output += ' at level ' + str(evolution_record.level)
-                        if len(evolution_record.method) > 0:
-                            output += ' ' + evolution_record.method
-                        output += '. '
-        else:
-            output = pokemon.name + ' does not evolve.'
+        # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
+        # If not a ROM hack, stats should be found on the first pass every time.
+        try_again = True
+        check_base_game = False
+        while try_again:
+            evolution_set_list_elements = EvolutionSetsListElement.objects.filter(list_id=pokemon.evolution_sets)
+            if len(evolution_set_list_elements) > 0:
+                for evolution_set_list_element in evolution_set_list_elements:
+                    evolution_set = evolution_set_list_element.element
+                    if is_game_name_in_game_list(current_game_name.value, evolution_set.games, check_base_game=check_base_game):
+                        for evolution_records_list_element in EvolutionRecordsListElement.objects.filter(list_id=evolution_set.evolution_records):
+                            evolution_record = evolution_records_list_element.element
+                            output += pokemon.name + ' evolves into ' + str(evolution_record.evolves_to)
+                            if evolution_record.level > 0:
+                                 output += ' at level ' + str(evolution_record.level)
+                            if len(evolution_record.method) > 0:
+                                output += ' ' + evolution_record.method
+                            output += '. '
+                        try_again = False
+                        break
+                if False == try_again:
+                    break
+            else:
+                output = pokemon.name + ' does not evolve.'
+                break
+            if try_again:
+                check_base_game = True
     else:
         output = '"' + pokemon_name + '" was not found'
     return output
