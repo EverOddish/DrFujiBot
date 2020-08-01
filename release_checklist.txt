@@ -26,3 +26,4 @@ Release Checklist:
      Version 2.0.2 is released (link)
 
  * Write up any manual post-install instructions (enabling new commands, etc.)
+ * Add new commands to the Command Documentation wiki page
