@@ -988,8 +988,12 @@ def handle_tm(args):
                         output += ' (' + tm_definition.cost + ')'
                     try_again = False
                     break
-            if try_again:
+            if try_again and False == check_base_game:
                 check_base_game = True
+            elif try_again and True == check_base_game:
+                # We've checked for ROM hack and base game. This move is not a TM in either one.
+                output = move_name.title() + ' is not a TM/HM in the current game'
+                break
     else:
         output = '"' + move_name + '" was not found'
 
