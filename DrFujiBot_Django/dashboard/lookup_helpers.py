@@ -277,3 +277,50 @@ def calculate_hp(base_hp, level=100, ev=0.0, iv=31.0):
     base_hp = base_hp * 1.0
     hp_stat = math.floor((((2 * base_hp) + iv + math.floor(ev / 4)) * level) / 100) + level + 10
     return hp_stat
+
+def get_generation(game):
+    if 'Pokemon Red' == game or \
+       'Pokemon Blue' == game or \
+       'Pokemon Yellow' == game:
+        return 1
+    elif 'Pokemon Gold' == game or \
+         'Pokemon Silver' == game or \
+         'Pokemon Crystal' == game:
+        return 2
+    elif 'Pokemon Ruby' == game or \
+         'Pokemon Sapphire' == game or \
+         'Pokemon Emerald' == game or \
+         'Pokemon Emerald Kaizo' == game or \
+         'Pokemon FireRed' == game or \
+         'Pokemon LeafGreen' == game:
+        return 3
+    elif 'Pokemon Diamond' == game or \
+         'Pokemon Pearl' == game or \
+         'Pokemon Platinum' == game or \
+         'Pokemon HeartGold' == game or \
+         'Pokemon SoulSilver' == game or \
+         'Pokemon Renegade Platinum' == game:
+        return 4
+    elif 'Pokemon Black' == game or \
+         'Pokemon White' == game or \
+         'Pokemon Black 2' == game or \
+         'Pokemon White 2' == game or \
+         'Pokemon Blaze Black' == game or \
+         'Pokemon Volt White' == game or \
+         'Pokemon Blaze Black 2' == game or \
+         'Pokemon Volt White 2' == game:
+        return 5
+    elif 'Pokemon X' == game or \
+         'Pokemon Y' == game or \
+         'Pokemon Omega Ruby' == game or \
+         'Pokemon Alpha Sapphire' == game:
+        return 6
+    elif 'Pokemon Sun' == game or \
+         'Pokemon Moon' == game or \
+         'Pokemon Ultra Sun' == game or \
+         'Pokemon Ultra Moon' == game:
+        return 7
+    elif 'Pokemon Sword' == game or \
+         'Pokemon Shield' == game:
+        return 8
+    return 0
