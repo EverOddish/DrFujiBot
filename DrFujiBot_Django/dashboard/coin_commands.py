@@ -144,7 +144,7 @@ def handle_bet(username, args):
     if len(existing_events) > 0:
         # For now, the result can only be 0-6 (number of deaths in the party)
         if is_num(guess) and int(guess) >= 0 and int(guess) <= 6:
-            existing_bets = Bet.objects.filter(username__iexact=username)
+            existing_bets = Bet.objects.filter(username__iexact=username, event_id=existing_events[0])
             if len(existing_bets) > 0:
                 bet = existing_bets[0]
                 bet.value = guess
