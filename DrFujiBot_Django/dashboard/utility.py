@@ -66,3 +66,22 @@ def get_viewer_list():
                 for user in users:
                     viewer_list.append(user)
     return viewer_list
+
+def populate_placeholders(text):
+    if '<latest_youtube_video>' in text:
+        from .models import Setting
+        url = 'https://www.googleapis.com/youtube/v3/search?order=date&part=snippet&maxResults=1&'
+        channel_id = Setting.objects.get(key='YouTube Channel ID').value
+        url += 'channelId=' + channel_id + '&'
+        url += 'key=' + 'AIzaSyDvWkm9pcjZh0UJUDh1q6BsCBN4fC7rvfg'
+        try:
+            youtube_request = request.Request(url)
+            response = request.urlopen(youtube_request, cafile=certifi.where())
+            data = json.loads(response.read().decode('utf-8'))
+            title = data['items'][0]['snippet']['title']
+            video_id = data['items'][0]['id']['videoId']
+            video_url = 'https://www.youtube.com/watch?v=' + video_id
+            text = text.replace('<latest_youtube_video>', title + ' ' + video_url)
+        except Exception as e:
+            print('Exception while retrieving YouTube data: ' + str(e))
+    return text

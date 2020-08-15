@@ -18,7 +18,7 @@ from .coin_commands import handle_coin_command
 from .models import DISABLED, BROADCASTER_ONLY, MODERATOR_ONLY, SUBSCRIBER_ONLY, EVERYONE
 from .models import UNSPECIFIED, ONLINE_ONLY, OFFLINE_ONLY
 from .models import Command, SimpleOutput, Setting, TimedMessage, ChatLog, BannedPhrase
-from .utility import twitch_api_request, CLIENT_ID
+from .utility import twitch_api_request, CLIENT_ID, populate_placeholders
 
 def index(request):
     settings_list = Setting.objects.order_by('key')
@@ -105,6 +105,7 @@ def drfujibot(request):
                         response_text = cmd.output.prefix + ' ' + cmd.output.output_text
                     else:
                         response_text = cmd.output.output_text
+                    response_text = populate_placeholders(response_text)
                 else:
                     response_text = handle_lookup_command(line)
                     if None == response_text or len(response_text) == 0:
@@ -153,6 +154,7 @@ def timed_messages(request):
                     response_text = timed_message.message.prefix + ' ' + timed_message.message.output_text
                 else:
                     response_text = timed_message.message.output_text
+                response_text = populate_placeholders(response_text)
                 timed_message.last_output_time = now
                 if timed_message.max_output_count > 0:
                     timed_message.current_output_count += 1
