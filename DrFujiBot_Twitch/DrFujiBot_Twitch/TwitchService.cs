@@ -22,6 +22,7 @@ namespace DrFujiBot_Twitch
         System.Diagnostics.EventLog eventLog;
         const string serviceName = "DrFujiBot Twitch Service";
         bool running;
+        private object lockObject;
 
         public TwitchService()
         {
@@ -39,63 +40,70 @@ namespace DrFujiBot_Twitch
 
             CanHandlePowerEvent = true;
             running = false;
+            lockObject = new object();
         }
 
         private void startBot()
         {
-            if (!running)
+            lock (lockObject)
             {
-                string configFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
-                using (StreamReader r = new StreamReader(configFilePath))
+                if (!running)
                 {
-                    string json = r.ReadToEnd();
-                    config = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+                    string configFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "config.json");
+                    using (StreamReader r = new StreamReader(configFilePath))
+                    {
+                        string json = r.ReadToEnd();
+                        config = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
+                    }
+
+                    // The purpose of scrambling the token is mainly to prevent bots from scraping the token from GitHub.
+                    // Please do not use this token for any other purpose than the normal functions of DrFujiBot. Thank you.
+                    ConnectionCredentials credentials = new ConnectionCredentials("DrFujiBot", getToken());
+                    var clientOptions = new ClientOptions
+                    {
+                        MessagesAllowedInPeriod = 750,
+                        ThrottlingPeriod = TimeSpan.FromSeconds(30)
+                    };
+                    TcpClient customClient = new TcpClient(clientOptions);
+                    client = new TwitchClient(customClient);
+                    client.Initialize(credentials, config["twitch_channel"]);
+
+                    client.OnMessageReceived += Client_OnMessageReceived;
+                    client.OnIncorrectLogin += Client_OnIncorrectLogin;
+                    client.OnConnectionError += Client_OnConnectionError;
+
+                    client.Connect();
+
+                    timer = new Timer();
+                    timer.Interval = 30000; // 30 seconds
+                    timer.Elapsed += new ElapsedEventHandler(this.OnTimer);
+                    timer.Start();
+
+                    running = true;
                 }
-
-                // The purpose of scrambling the token is mainly to prevent bots from scraping the token from GitHub.
-                // Please do not use this token for any other purpose than the normal functions of DrFujiBot. Thank you.
-                ConnectionCredentials credentials = new ConnectionCredentials("DrFujiBot", getToken());
-                var clientOptions = new ClientOptions
-                {
-                    MessagesAllowedInPeriod = 750,
-                    ThrottlingPeriod = TimeSpan.FromSeconds(30)
-                };
-                TcpClient customClient = new TcpClient(clientOptions);
-                client = new TwitchClient(customClient);
-                client.Initialize(credentials, config["twitch_channel"]);
-
-                client.OnMessageReceived += Client_OnMessageReceived;
-                client.OnIncorrectLogin += Client_OnIncorrectLogin;
-                client.OnConnectionError += Client_OnConnectionError;
-
-                client.Connect();
-
-                timer = new Timer();
-                timer.Interval = 30000; // 30 seconds
-                timer.Elapsed += new ElapsedEventHandler(this.OnTimer);
-                timer.Start();
-
-                running = true;
             }
         }
 
         private void stopBot()
         {
-            if (running)
+            lock (lockObject)
             {
-                if (null != client)
+                if (running)
                 {
-                    client.Disconnect();
-                    client = null;
-                }
+                    if (null != client)
+                    {
+                        client.Disconnect();
+                        client = null;
+                    }
 
-                if (null != timer)
-                {
-                    timer.Stop();
-                    timer = null;
-                }
+                    if (null != timer)
+                    {
+                        timer.Stop();
+                        timer = null;
+                    }
 
-                running = false;
+                    running = false;
+                }
             }
         }
 
