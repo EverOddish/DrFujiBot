@@ -280,6 +280,18 @@ def handle_resetcoins(username, args):
 
     return output
 
+def handle_userbalance(username, args):
+    output = ''
+    
+    coin_entry = CoinEntry.objects.filter(username__iexact=args[0])
+    if len(coin_entry) > 0:
+        coins = coin_entry[0].coins
+        output = args[0] + ' has ' + str(coins) + ' coins.'
+    else:
+        output = 'User "' + args[0] + '" not found.'
+
+    return output
+
 handlers = {'!open': handle_open,
             '!event': handle_open,
             '!close': handle_close,
@@ -293,6 +305,7 @@ handlers = {'!open': handle_open,
             '!coins': handle_balance,
             '!leaderboard': handle_leaderboard,
             '!resetcoins': handle_resetcoins,
+            '!userbalance': handle_userbalance,
            }
 
 expected_args = {'!open': 2,
@@ -308,6 +321,7 @@ expected_args = {'!open': 2,
                  '!coins': 0,
                  '!leaderboard': 0,
                  '!resetcoins': 0,
+                 '!userbalance': 1,
                 }
 
 usage = {'!open': 'Usage: !open <event name> <prize coins>',
@@ -323,6 +337,7 @@ usage = {'!open': 'Usage: !open <event name> <prize coins>',
          '!coins': 'Usage: !coins',
          '!leaderboard': 'Usage: !leaderboard',
          '!resetcoins': 'Usage: !resetcoins',
+         '!userbalance': 'Usage: !userbalance <username>',
         }
 
 def handle_coin_command(line, username):
