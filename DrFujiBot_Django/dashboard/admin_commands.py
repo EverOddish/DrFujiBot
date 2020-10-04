@@ -4,6 +4,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from westwood.models import Game
 
 import datetime
+import math
 import random
 import urllib
 import json
@@ -545,6 +546,88 @@ def handle_song(args):
                 output = "Unable to determine current song"
     return output
 
+def handle_pickegg(args):
+    output = ''
+
+    def divide_into_groups_of(group_size, value):
+        return math.ceil(value / group_size)
+
+    used_eggs_setting = Setting.objects.filter(key='Used Eggs')[0]
+    used_eggs = []
+    if len(used_eggs_setting.value) > 0:
+        used_eggs = used_eggs_setting.value.split(',')
+    total_eggs = int(Setting.objects.filter(key='Total Eggs')[0].value)
+
+    if len(used_eggs) >= total_eggs:
+        output = "All eggs have been used!"
+    else:
+        egg_num = random.randint(1, total_eggs)
+
+        while str(egg_num) in used_eggs:
+            egg_num = random.randint(1, total_eggs)
+
+        remainder = egg_num
+
+        # There are 30 pokemon per box.
+        box_num = divide_into_groups_of(30, remainder)
+        remainder -= (box_num - 1) * 30
+
+        # There are six pokemon per row.
+        row_num = divide_into_groups_of(6, remainder)
+        remainder -= (row_num - 1) * 6
+
+        column_num = remainder
+
+        used_eggs.append(str(egg_num))
+        used_eggs_setting.value = ','.join(used_eggs)
+        used_eggs_setting.save()
+
+        output = "Egg #" + str(egg_num) + " (Box: " + str(box_num) + " Row: " + str(row_num) + " Column: " + str(column_num) + ")"
+
+    return output
+
+def handle_useegg(args):
+    output = ''
+
+    if args[0].isnumeric():
+        egg_num = int(args[0])
+        total_eggs = int(Setting.objects.filter(key='Total Eggs')[0].value)
+
+        if egg_num <= total_eggs:
+            used_eggs_setting = Setting.objects.filter(key='Used Eggs')[0]
+            used_eggs = []
+            if len(used_eggs_setting.value) > 0:
+                used_eggs = used_eggs_setting.value.split(',')
+            used_eggs.append(str(egg_num))
+            used_eggs_setting.value = ','.join(used_eggs)
+            used_eggs_setting.save()
+
+            output = 'Marked egg #' + str(egg_num) + ' as used.'
+        else:
+            output = 'Invalid egg number'
+    else:
+        output = 'Usage: !useegg <egg number>'
+
+    return output
+
+def handle_reseteggs(args):
+    output = ''
+
+    if args[0].isnumeric():
+        used_eggs_setting = Setting.objects.filter(key='Used Eggs')[0]
+        used_eggs_setting.value = ''
+        used_eggs_setting.save()
+
+        total_eggs_setting = Setting.objects.filter(key='Total Eggs')[0]
+        total_eggs_setting.value = args[0]
+        total_eggs_setting.save()
+
+        output = "Set number of eggs to " + args[0] + " and cleared used egg list."
+    else:
+        output = 'Usage: !reseteggs <total number of eggs>'
+
+    return output
+
 handlers = {'!setgame': handle_setgame,
             '!addcom': handle_addcom,
             '!delcom': handle_delcom,
@@ -569,7 +652,10 @@ handlers = {'!setgame': handle_setgame,
             '!debug': handle_debug,
             '!afflict': handle_afflict,
             '!check': handle_check,
-            '!song': handle_song
+            '!song': handle_song,
+            '!pickegg': handle_pickegg,
+            '!useegg': handle_useegg,
+            '!reseteggs': handle_reseteggs
            }
 
 expected_args = {'!setgame': 1,
@@ -596,7 +682,10 @@ expected_args = {'!setgame': 1,
                  '!debug': 0,
                  '!afflict': 1,
                  '!check': 1,
-                 '!song': 0
+                 '!song': 0,
+                 '!pickegg': 0,
+                 '!useegg': 1,
+                 '!reseteggs': 1
                 }
 
 usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
@@ -623,7 +712,10 @@ usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
          '!debug': 'Usage: !debug',
          '!afflict': 'Usage: !afflict <nickname>',
          '!check': 'Usage: !check <nickname>',
-         '!song': 'Usage: !song'
+         '!song': 'Usage: !song',
+         '!pickegg': 'Usage: !pickegg',
+         '!useegg': 'Usage: !useegg <egg number>',
+         '!reseteggs': 'Usage: !reseteggs <total number of eggs>'
         }
 
 def handle_admin_command(line):
