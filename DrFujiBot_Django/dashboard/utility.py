@@ -78,9 +78,17 @@ def populate_placeholders(text):
             youtube_request = request.Request(url)
             response = request.urlopen(youtube_request, cafile=certifi.where())
             data = json.loads(response.read().decode('utf-8'))
+
             title = data['items'][0]['snippet']['title']
+            title = title.replace('&quot;', '"')
+            title = title.replace('&amp;', '&')
+            title = title.replace('&apos;', "'")
+            title = title.replace('&lt;', '<')
+            title = title.replace('&gt;', '>')
+
             video_id = data['items'][0]['id']['videoId']
             video_url = 'https://www.youtube.com/watch?v=' + video_id
+
             text = text.replace('<latest_youtube_video>', title + ' ' + video_url)
         except Exception as e:
             print('Exception while retrieving YouTube data: ' + str(e))
