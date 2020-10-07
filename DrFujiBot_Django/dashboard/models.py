@@ -34,7 +34,7 @@ class Command(models.Model):
 
 class Setting(models.Model):
     key = models.CharField(max_length=200)
-    value = models.CharField(max_length=200)
+    value = models.CharField(max_length=1000)
 
 UNSPECIFIED = 1
 ONLINE_ONLY = 2
