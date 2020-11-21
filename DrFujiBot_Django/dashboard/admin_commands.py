@@ -2,6 +2,8 @@ from .models import *
 from scheduled_tasks.uptime_check import get_uptime
 from apscheduler.schedulers.background import BackgroundScheduler
 from westwood.models import Game
+from os import path
+from shutil import copyfile
 
 import datetime
 import math
@@ -290,7 +292,7 @@ def update_respects(death_object_id):
         f_users = set()
         for match in f_matches:
             f_users.add(match.username)
-            
+
         pokemof_matches = ChatLog.objects.filter(line__exact='pokemoF').filter(timestamp__gte=twenty_seconds_ago)
         pokemof_users = set()
         for match in pokemof_matches:
@@ -628,6 +630,42 @@ def handle_reseteggs(args):
 
     return output
 
+def is_safe_path(sprites_folder, sprite_filename):
+    requested_path = path.join(sprites_folder, sprite_filename)
+    requested_path = path.abspath(requested_path)
+    common_prefix = path.commonprefix([requested_path, sprites_folder])
+    return common_prefix == sprites_folder
+
+def handle_setslot(args):
+    sprites_folder_results = Setting.objects.filter(key='Sprites Folder')
+
+    if len(sprites_folder_results) > 0:
+        sprites_folder = sprites_folder_results[0].value
+        if len(sprites_folder) > 0:
+            if not args[0].isdecimal():
+                return 'Invalid slot number'
+
+            slot_to_set = int(args[0])
+            if slot_to_set < 1 or slot_to_set > 6:
+                return 'Invalid slot number ' + str(slot_to_set)
+
+            pokemon_to_set = args[1] + '.png'
+            if is_safe_path(sprites_folder, pokemon_to_set):
+                desired_sprite_path = path.join(sprites_folder, pokemon_to_set)
+                desired_sprite_exists = path.exists(desired_sprite_path)
+                if not desired_sprite_exists:
+                    return 'Pokemon ' + pokemon_to_set + ' is invalid'
+
+                slot_path = path.join(sprites_folder, 'p' + str(slot_to_set) + '.png')
+
+                copyfile(desired_sprite_path, slot_path)
+                return 'Slot ' + str(slot_to_set) + ' sprite has been updated'
+            else:
+                return 'Invalid filename'
+        else:
+            return 'Sprite folder not set'
+
+
 handlers = {'!setgame': handle_setgame,
             '!addcom': handle_addcom,
             '!delcom': handle_delcom,
@@ -655,7 +693,8 @@ handlers = {'!setgame': handle_setgame,
             '!song': handle_song,
             '!pickegg': handle_pickegg,
             '!useegg': handle_useegg,
-            '!reseteggs': handle_reseteggs
+            '!reseteggs': handle_reseteggs,
+            '!setslot': handle_setslot
            }
 
 expected_args = {'!setgame': 1,
@@ -685,7 +724,8 @@ expected_args = {'!setgame': 1,
                  '!song': 0,
                  '!pickegg': 0,
                  '!useegg': 1,
-                 '!reseteggs': 1
+                 '!reseteggs': 1,
+                 '!setslot': 2
                 }
 
 usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
@@ -715,7 +755,8 @@ usage = {'!setgame': 'Usage: !setgame <pokemon game name>',
          '!song': 'Usage: !song',
          '!pickegg': 'Usage: !pickegg',
          '!useegg': 'Usage: !useegg <egg number>',
-         '!reseteggs': 'Usage: !reseteggs <total number of eggs>'
+         '!reseteggs': 'Usage: !reseteggs <total number of eggs>',
+         '!setslot': 'Usage: !setslot <slot number> <pokemon name>'
         }
 
 def handle_admin_command(line):
