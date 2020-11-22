@@ -485,7 +485,7 @@ def handle_shoutout(args):
 
 def handle_debug(args):
     # Not sure what else would be useful to put here.
-    output = 'DrFujiBot 2.0.19'
+    output = 'DrFujiBot 2.0.20'
     return output
 
 def handle_afflict(args):
