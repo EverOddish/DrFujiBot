@@ -10,6 +10,8 @@ import math
 import random
 import urllib
 import json
+import re
+import argparse
 
 def update_run(command_name, simple_output):
     if '!lastrun' == command_name or '!howfar' == command_name:
@@ -426,32 +428,73 @@ def handle_delquote(args):
     return output
 
 def handle_nuke(args):
-    expiry = None
-    expiry_minutes = 0
-    maybe_expiry = args[0]
-    phrase = ' '.join(args)
-    if maybe_expiry.isnumeric():
-        expiry_minutes = int(maybe_expiry)
-        phrase = ' '.join(args[1:])
-        utc_tz = datetime.timezone.utc
-        expiry = datetime.datetime.now(utc_tz) + datetime.timedelta(minutes=expiry_minutes)
+    def make_delta(arg):
+        time_re = re.compile(r'(\d+)([dhms]+)')
+        match = time_re.match(arg)
+        if match:
+            number = match.group(1)
+            unit = match.group(2)
+            if 'd' == unit:
+                return datetime.timedelta(days=int(number))
+            elif 'h' == unit:
+                return datetime.timedelta(hours=int(number))
+            elif 'm' == unit:
+                return datetime.timedelta(minutes=int(number))
+            elif 's' == unit:
+                return datetime.timedelta(seconds=int(number))
+        raise argparse.ArgumentTypeError('Invalid time format')
 
-    banned_phrase = BannedPhrase(phrase=phrase, expiry=expiry)
+    parser = argparse.ArgumentParser(prog='!nuke', add_help=False)
+    parser.add_argument('phrase', type=str)
+    parser.add_argument('-t', '--timeout', type=make_delta, nargs=1, default=datetime.timedelta(minutes=10))
+    parser.add_argument('-e', '--expiry', type=make_delta, nargs=1, default=datetime.timedelta(hours=1))
+
+    try:
+        parsed_args = parser.parse_args(args=args)
+    except argparse.ArgumentTypeError:
+        return parser.format_help()
+    except SystemExit:
+        return parser.format_help()
+
+    if isinstance(parsed_args.timeout, list):
+        parsed_args.timeout = parsed_args.timeout[0]
+    if isinstance(parsed_args.expiry, list):
+        parsed_args.expiry = parsed_args.expiry[0]
+
+    utc_tz = datetime.timezone.utc
+    expiry_time = datetime.datetime.now(utc_tz) + parsed_args.expiry
+
+    banned_phrase_matches = BannedPhrase.objects.filter(phrase=parsed_args.phrase)
+    banned_phrase = None
+    is_update = False
+    if len(banned_phrase_matches) > 0:
+        banned_phrase = banned_phrase_matches[0]
+        banned_phrase.expiry = expiry_time
+        banned_phrase.timeout = parsed_args.timeout.total_seconds()
+        is_update = True
+    else:
+        banned_phrase = BannedPhrase(phrase=parsed_args.phrase, expiry=expiry_time, timeout=parsed_args.timeout.total_seconds())
     banned_phrase.save()
 
-    output_text = 'The phrase "' + phrase + '" is now banned'
-    if expiry_minutes > 0:
-        output_text += ' for ' + str(expiry_minutes) + ' minutes'
+    output_text = ''
+    if is_update:
+        output_text = 'The banned phrase "' + parsed_args.phrase + '" has been updated '
+        output_text += '(timeout is ' + str(int(parsed_args.timeout.total_seconds())) + ' seconds, '
+        output_text += 'expires in ' + str(int(parsed_args.expiry.total_seconds())) + ' seconds)'
+    else:
+        output_text = 'The phrase "' + parsed_args.phrase + '" is now banned '
+        output_text += '(timeout is ' + str(int(parsed_args.timeout.total_seconds())) + ' seconds, '
+        output_text += 'expires in ' + str(int(parsed_args.expiry.total_seconds())) + ' seconds)'
     output = [output_text]
 
-    chat_log_matches = ChatLog.objects.filter(line__icontains=phrase)
+    chat_log_matches = ChatLog.objects.filter(line__icontains=parsed_args.phrase)
     for match in chat_log_matches:
-        output.append('/timeout ' + match.username + ' 1')
+        output.append('/timeout ' + match.username + ' ' + str(int(parsed_args.timeout.total_seconds())))
 
     return output
 
 def handle_unnuke(args):
-    phrase = ' '.join(args)
+    phrase = args[0]
     output = 'Phrase "' + phrase + '" not found'
 
     banned_phrase_matches = BannedPhrase.objects.filter(phrase__icontains=phrase)
@@ -712,8 +755,8 @@ expected_args = {'!setgame': 1,
                  '!latestquote': 0,
                  '!addquote': 1,
                  '!delquote': 1,
-                 '!nuke': 1,
-                 '!unnuke': 1,
+                 '!nuke': 0,
+                 '!unnuke': 0,
                  '!uptime': 0,
                  '!listruns': 0,
                  '!shoutout': 1,

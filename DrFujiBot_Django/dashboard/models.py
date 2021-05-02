@@ -85,6 +85,7 @@ class ChatLog(models.Model):
 class BannedPhrase(models.Model):
     phrase = models.CharField(max_length=200)
     expiry = models.DateTimeField(null=True)
+    timeout = models.IntegerField(default=600)
 
 class CoinEntry(models.Model):
     username = models.CharField(max_length=200)

@@ -71,9 +71,9 @@ def drfujibot(request):
     if 'True' != is_broadcaster and 'True' != is_moderator:
         banned_phrase_matches = BannedPhrase.objects.all()
         for phrase_object in banned_phrase_matches:
-            print(phrase_object.phrase.lower())
+            #print(phrase_object.phrase.lower())
             if phrase_object.phrase.lower() in line.lower():
-                return HttpResponse('/timeout ' + username + ' 1')
+                return HttpResponse('/timeout ' + username + ' ' + str(phrase_object.timeout))
 
     line_pieces = line.split(' ')
     command = line_pieces[0]

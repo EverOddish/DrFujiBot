@@ -164,7 +164,7 @@ class QuoteAdmin(admin.ModelAdmin):
     list_display = ['id', 'quote_text', 'quotee']
 
 class BannedPhraseAdmin(admin.ModelAdmin):
-    list_display = ['phrase', 'expiry']
+    list_display = ['phrase', 'expiry', 'timeout']
 
 class AfflictionAdmin(admin.ModelAdmin):
     readonly_fields = ['name', 'description']
