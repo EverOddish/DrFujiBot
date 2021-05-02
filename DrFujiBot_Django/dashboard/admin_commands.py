@@ -427,7 +427,32 @@ def handle_delquote(args):
         output = 'Invalid quote number'
     return output
 
+def process_quoted_args(args):
+    new_args = []
+    accumulator = None
+    finish = False
+    for arg in args:
+        if arg.startswith('"'):
+            accumulator = []
+            arg = arg[1:]
+        elif arg.endswith('"'):
+            arg = arg[:-1]
+            finish = True
+
+        if None != accumulator:
+            accumulator.append(arg)
+        else:
+            new_args.append(arg)
+
+        if finish:
+            new_args.append(' '.join(accumulator))
+            accumulator = None
+            finish = False
+    return new_args
+
 def handle_nuke(args):
+    args = process_quoted_args(args)
+
     def make_delta(arg):
         time_re = re.compile(r'(\d+)([dhms]+)')
         match = time_re.match(arg)
@@ -444,10 +469,12 @@ def handle_nuke(args):
                 return datetime.timedelta(seconds=int(number))
         raise argparse.ArgumentTypeError('Invalid time format')
 
+    help_string = 'Expressed as <number><unit>, for example: 10s (seconds), 5m (minutes), 2h (hours), 3d (days)'
+
     parser = argparse.ArgumentParser(prog='!nuke', add_help=False)
     parser.add_argument('phrase', type=str)
-    parser.add_argument('-t', '--timeout', type=make_delta, nargs=1, default=datetime.timedelta(minutes=10))
-    parser.add_argument('-e', '--expiry', type=make_delta, nargs=1, default=datetime.timedelta(hours=1))
+    parser.add_argument('-t', '--timeout', type=make_delta, nargs=1, default=datetime.timedelta(minutes=10), help=help_string)
+    parser.add_argument('-e', '--expiry', type=make_delta, nargs=1, default=datetime.timedelta(hours=1), help='Same format as timeout')
 
     try:
         parsed_args = parser.parse_args(args=args)
@@ -494,6 +521,7 @@ def handle_nuke(args):
     return output
 
 def handle_unnuke(args):
+    args = process_quoted_args(args)
     phrase = args[0]
     output = 'Phrase "' + phrase + '" not found'
 
