@@ -59,69 +59,73 @@ def get_permission_message(permissions):
         return 'only permitted for subscribers'
 
 def drfujibot(request):
+    response_text = ''
     is_broadcaster = request.GET.get('is_broadcaster')
     is_moderator = request.GET.get('is_moderator')
     is_subscriber = request.GET.get('is_subscriber')
     username = request.GET.get('username')
     line = request.GET.get('line')
 
-    chat_log = ChatLog(is_broadcaster=is_broadcaster, is_moderator=is_moderator, is_subscriber=is_subscriber, username=username, line=line)
-    chat_log.save()
+    # Note: This function gets called a lot in larger Twitch streams, so be mindful of performance.
 
+    # Check for banned phrases first, and don't continue if banned.
     if 'True' != is_broadcaster and 'True' != is_moderator:
         banned_phrase_matches = BannedPhrase.objects.all()
         for phrase_object in banned_phrase_matches:
-            #print(phrase_object.phrase.lower())
             if phrase_object.phrase.lower() in line.lower():
                 return HttpResponse('/timeout ' + username + ' ' + str(phrase_object.timeout))
 
-    line_pieces = line.split(' ')
-    command = line_pieces[0]
+    chat_log = ChatLog(is_broadcaster=is_broadcaster, is_moderator=is_moderator, is_subscriber=is_subscriber, username=username, line=line)
+    chat_log.save()
 
-    response_text = ''
-    command_query_set = Command.objects.filter(command__iexact=command)
-    if len(command_query_set) >= 1:
-        cmd = command_query_set[0]
-        if permitted(is_broadcaster, is_moderator, is_subscriber, cmd.permissions):
-            now = datetime.datetime.now(datetime.timezone.utc)
+    # The rest of this function is for commands only, so don't even bother if the line doesn't start with '!'
+    if line.startswith('!'):
+        line_pieces = line.split(' ')
+        command = line_pieces[0]
 
-            should_output = False
-            if cmd.cooldown:
-                cooldown_setting = Setting.objects.filter(key='Cooldown Seconds')[0]
-                cooldown_seconds = int(cooldown_setting.value)
-                if now < cmd.last_output_time:
-                    # The command's last output time is in the future.
-                    # This can occur if system time was modified for Desmume/in-game clock purposes.
-                    # Allow the command to be output, and the last output time will be set back to a normal value.
-                    should_output = True
-                elif now - cmd.last_output_time >= datetime.timedelta(seconds=cooldown_seconds):
-                    should_output = True
-            else:
-                should_output = True
+        command_query_set = Command.objects.filter(command__iexact=command)
+        if len(command_query_set) >= 1:
+            cmd = command_query_set[0]
+            if permitted(is_broadcaster, is_moderator, is_subscriber, cmd.permissions):
+                now = datetime.datetime.now(datetime.timezone.utc)
 
-            if should_output:
-                if cmd.output:
-                    if len(cmd.output.prefix) > 0:
-                        response_text = cmd.output.prefix + ' ' + cmd.output.output_text
-                    else:
-                        response_text = cmd.output.output_text
-                    response_text = populate_placeholders(response_text)
+                should_output = False
+                if cmd.cooldown:
+                    cooldown_setting = Setting.objects.filter(key='Cooldown Seconds')[0]
+                    cooldown_seconds = int(cooldown_setting.value)
+                    if now < cmd.last_output_time:
+                        # The command's last output time is in the future.
+                        # This can occur if system time was modified for Desmume/in-game clock purposes.
+                        # Allow the command to be output, and the last output time will be set back to a normal value.
+                        should_output = True
+                    elif now - cmd.last_output_time >= datetime.timedelta(seconds=cooldown_seconds):
+                        should_output = True
                 else:
-                    response_text = handle_lookup_command(line)
-                    if None == response_text or len(response_text) == 0:
-                        response_text = handle_admin_command(line)
-                        if None == response_text or len(response_text) == 0:
-                            response_text = handle_coin_command(line, username)
-                cmd.invocation_count += 1
-                cmd.last_output_time = now
-                cmd.save()
-        else:
-            message = get_permission_message(cmd.permissions)
-            if message:
-                response_text = 'Sorry, ' + command + ' is ' + message +'. If you would like to use this bot on your own computer, you can find it at https://github.com/EverOddish/DrFujiBot/releases'
+                    should_output = True
 
-    if isinstance(response_text, list):
-        response_text = '\n'.join(response_text)
+                if should_output:
+                    if cmd.output:
+                        if len(cmd.output.prefix) > 0:
+                            response_text = cmd.output.prefix + ' ' + cmd.output.output_text
+                        else:
+                            response_text = cmd.output.output_text
+                        response_text = populate_placeholders(response_text)
+                    else:
+                        response_text = handle_lookup_command(line)
+                        if None == response_text or len(response_text) == 0:
+                            response_text = handle_admin_command(line)
+                            if None == response_text or len(response_text) == 0:
+                                response_text = handle_coin_command(line, username)
+                    cmd.invocation_count += 1
+                    cmd.last_output_time = now
+                    cmd.save()
+            else:
+                message = get_permission_message(cmd.permissions)
+                if message:
+                    response_text = 'Sorry, ' + command + ' is ' + message +'. If you would like to use this bot on your own computer, you can find it at https://github.com/EverOddish/DrFujiBot/releases'
+
+        if isinstance(response_text, list):
+            response_text = '\n'.join(response_text)
 
     return HttpResponse(response_text)
 
