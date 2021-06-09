@@ -1,4 +1,4 @@
-Django==2.2.13
+Django==2.2.22
 mod_wsgi==4.6.7
 irc==17.1
 pynsist==2.4
