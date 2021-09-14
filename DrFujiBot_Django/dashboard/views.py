@@ -72,7 +72,7 @@ def drfujibot(request):
     if 'True' != is_broadcaster and 'True' != is_moderator:
         banned_phrase_matches = BannedPhrase.objects.all()
         for phrase_object in banned_phrase_matches:
-            if phrase_object.phrase.lower() in line.lower():
+            if None != phrase_object.phrase and phrase_object.phrase.lower() in line.lower():
                 return HttpResponse('/timeout ' + username + ' ' + str(phrase_object.timeout))
 
     chat_log = ChatLog(is_broadcaster=is_broadcaster, is_moderator=is_moderator, is_subscriber=is_subscriber, username=username, line=line)
