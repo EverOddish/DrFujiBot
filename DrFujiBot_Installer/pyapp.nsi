@@ -10,6 +10,7 @@
 ; Marker file to tell the uninstaller that it's a user installation
 !define USER_INSTALL_MARKER _user_install_marker
  
+Unicode false
 SetCompressor lzma
 
 !define MULTIUSER_EXECUTIONLEVEL Highest
@@ -43,6 +44,7 @@ SetCompressor lzma
 ; Start DrFujiBot add-in:
 !include nsDialogs.nsh
 !include LogicLib.nsh
+!include ZipDLL.nsh
 
 ;; USAGE:
 !define MIN_FRA_MAJOR "4"

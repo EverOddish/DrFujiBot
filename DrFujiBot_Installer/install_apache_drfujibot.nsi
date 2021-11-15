@@ -41,7 +41,8 @@ FunctionEnd
 Section "Apache HTTP Server 2.4"
     SetOutPath "$INSTDIR"
     File "..\..\prebuilt\httpd-2.4.41-win32-VC15.zip"
-    nsisunz::Unzip "$INSTDIR/httpd-2.4.41-win32-VC15.zip" "$INSTDIR"
+    ;nsisunz::Unzip "$INSTDIR/httpd-2.4.41-win32-VC15.zip" "$INSTDIR"
+    !insertmacro ZIPDLL_EXTRACT "$INSTDIR/httpd-2.4.41-win32-VC15.zip" "$INSTDIR" <ALL>
 
     ; Set Apache's root directory to the bundled installation
     textreplace::_ReplaceInFile /NOUNLOAD "$INSTDIR/Apache24/conf/httpd.conf" "$INSTDIR/Apache24/conf/httpd.conf" "Define SRVROOT $\"c:/Apache24$\"" "Define SRVROOT $\"$INSTDIR\Apache24$\"" "/S=1"

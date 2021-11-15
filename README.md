@@ -48,6 +48,18 @@ If you aren't familiar with Git or GitHub, read through the [Getting Started wit
 
 If you want to contribute to Westwood, see the [Westwood](https://github.com/EverOddish/Westwood) project for instructions.
 
+## Requirements for building a release
+
+On a Windows system:
+
+ * Install NSIS
+   * Install the ZipDLL plugin
+   * Install the TextReplace
+ * Install Apache 2.4 from `DrFujiBot_Installer\prebuilt\httpd-2.4.41-win32-VC15.zip` to `C:\Apache24`
+ * Set the `MOD_WSGI_APACHE_ROOTDIR` environment variable to `C:\Apache24`
+ * Install Python 3.7.9 32-bit
+ * `pip install -r requirements.txt`
+
 ## Setup for the Django component
 
 1. Install Python 3 and GitHub Desktop (or other Git software)
