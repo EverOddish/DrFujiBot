@@ -321,6 +321,8 @@ def get_generation(game):
          'Pokemon Ultra Moon' == game:
         return 7
     elif 'Pokemon Sword' == game or \
-         'Pokemon Shield' == game:
+         'Pokemon Shield' == game or \
+         'Pokemon Brilliant Diamon' == game or \
+         'Pokemon Shining Pearl' == game:
         return 8
     return 0
