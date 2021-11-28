@@ -161,10 +161,13 @@ def pokemon_not_present(pokemon_name):
 
         current_game_name = Setting.objects.get(key='Current Game')
 
-        for type_sets_list_element in TypeSetsListElement.objects.filter(list_id=pokemon.type_sets):
-            type_set = type_sets_list_element.element
-            if is_game_name_in_game_list(current_game_name.value, type_set.games, check_base_game=True):
-                return False
+        if 'National Dex' == current_game_name.value:
+            return False
+        else:
+            for type_sets_list_element in TypeSetsListElement.objects.filter(list_id=pokemon.type_sets):
+                type_set = type_sets_list_element.element
+                if is_game_name_in_game_list(current_game_name.value, type_set.games, check_base_game=True):
+                    return False
     return True
 
 def move_not_present(move_name):
@@ -175,16 +178,22 @@ def move_not_present(move_name):
 
         current_game_name = Setting.objects.get(key='Current Game')
 
-        for move_records_list_element in MoveRecordsListElement.objects.filter(list_id=move.move_records):
-            move_record = move_records_list_element.element
-            if is_game_name_in_game_list(current_game_name.value, move_record.games, check_base_game=True):
-                return False
+        if 'National Dex' == current_game_name.value:
+            return False
+        else:
+            for move_records_list_element in MoveRecordsListElement.objects.filter(list_id=move.move_records):
+                move_record = move_records_list_element.element
+                if is_game_name_in_game_list(current_game_name.value, move_record.games, check_base_game=True):
+                    return False
     return True
 
 def get_types_for_pokemon(pokemon_name):
     type1 = ''
     type2 = ''
+    national_dex = False
     current_game_name = Setting.objects.filter(key='Current Game')[0]
+    if 'National Dex' == current_game_name.value:
+        national_dex = True
 
     pokemon_matches = Pokemon.objects.filter(name__iexact=pokemon_name)
     if len(pokemon_matches) == 0:
@@ -204,7 +213,11 @@ def get_types_for_pokemon(pokemon_name):
                         type2 = type_set.type2
                     try_again = False
                     break
-            if try_again:
+            if national_dex and try_again:
+                current_game_name.value = get_next_national_dex_game(current_game_name.value)
+                if None == current_game_name.value:
+                    break
+            elif try_again:
                 check_base_game = True
 
     return type1, type2
@@ -326,3 +339,14 @@ def get_generation(game):
          'Pokemon Shining Pearl' == game:
         return 8
     return 0
+
+def get_next_national_dex_game(current_game):
+    next_game = None
+    if 'National Dex' == current_game:
+        next_game = 'Pokemon Sword'
+    elif 'Pokemon Sword' == current_game:
+        next_game = 'Pokemon Ultra Sun'
+    elif 'Pokemon Ultra Sun' == current_game:
+        # Omega Ruby was the last game to include everything
+        next_game = 'Pokemon Omega Ruby'
+    return next_game

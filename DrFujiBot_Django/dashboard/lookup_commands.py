@@ -28,7 +28,10 @@ def handle_pokemon(args):
             output += type2
         output += '] '
 
+        national_dex = False
         current_game_name = Setting.objects.filter(key='Current Game')[0]
+        if 'National Dex' == current_game_name.value:
+            national_dex = True
 
         # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
         # If not a ROM hack, stats should be found on the first pass every time.
@@ -48,7 +51,11 @@ def handle_pokemon(args):
                     output += 'Speed(' + str(stat_set.speed) + ')' + modified_stats['speed'] + ' '
                     try_again = False
                     break
-            if try_again:
+            if national_dex and try_again:
+                current_game_name.value = get_next_national_dex_game(current_game_name.value)
+                if None == current_game_name.value:
+                    break
+            elif try_again:
                 check_base_game = True
                 
         if get_generation(current_game_name.value) >= 3:
@@ -91,7 +98,10 @@ def handle_move(args):
     if move_matches:
         move = move_matches[0]
 
+        national_dex = False
         current_game_name = Setting.objects.filter(key='Current Game')[0]
+        if 'National Dex' == current_game_name.value:
+            national_dex = True
 
         # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
         # If not a ROM hack, stats should be found on the first pass every time.
@@ -114,7 +124,11 @@ def handle_move(args):
                         output += move_definition.description
                     try_again = False
                     break
-            if try_again:
+            if national_dex and try_again:
+                current_game_name.value = get_next_national_dex_game(current_game_name.value)
+                if None == current_game_name.value:
+                    break
+            elif try_again:
                 check_base_game = True
     else:
         output = '"' + move_name + '" was not found'
@@ -145,7 +159,10 @@ def handle_learnset(args):
     if pokemon_learnset_matches:
         pokemon_learnset = pokemon_learnset_matches[0]
 
+        national_dex = False
         current_game_name = Setting.objects.filter(key='Current Game')[0]
+        if 'National Dex' == current_game_name.value:
+            national_dex = True
 
         output += pokemon_learnset.name + ' '
         # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
@@ -161,7 +178,11 @@ def handle_learnset(args):
                         output += '| ' + str(learnset_move.level) + ' ' + learnset_move.name + ' '
                     try_again = False
                     break
-            if try_again:
+            if national_dex and try_again:
+                current_game_name.value = get_next_national_dex_game(current_game_name.value)
+                if None == current_game_name.value:
+                    break
+            elif try_again:
                 check_base_game = True
     else:
         output = 'Learnsets for "' + pokemon_name + '" were not found'
@@ -179,7 +200,10 @@ def handle_tmset(args):
     if pokemon_tmset_matches:
         pokemon_tmset = pokemon_tmset_matches[0]
 
+        national_dex = False
         current_game_name = Setting.objects.filter(key='Current Game')[0]
+        if 'National Dex' == current_game_name.value:
+            national_dex = True
 
         output += pokemon_tmset.name + ': '
         # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
@@ -195,7 +219,11 @@ def handle_tmset(args):
                         output += tmset_move.name + ', '
                     try_again = False
                     break
-            if try_again:
+            if national_dex and try_again:
+                current_game_name.value = get_next_national_dex_game(current_game_name.value)
+                if None == current_game_name.value:
+                    break
+            elif try_again:
                 check_base_game = True
         if output.endswith(', '):
             output = output[:-2]
@@ -231,7 +259,10 @@ def handle_faster(args):
             speed_1 = 0
             speed_2 = 0
 
+            national_dex = False
             current_game_name = Setting.objects.filter(key='Current Game')[0]
+            if 'National Dex' == current_game_name.value:
+                national_dex = True
 
             # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
             # If not a ROM hack, stats should be found on the first pass every time.
@@ -246,8 +277,18 @@ def handle_faster(args):
                         speed_1 = stat_set.speed
                         try_again = False
                         break
-                if try_again:
+                if national_dex and try_again:
+                    current_game_name.value = get_next_national_dex_game(current_game_name.value)
+                    if None == current_game_name.value:
+                        break
+                elif try_again:
                     check_base_game = True
+
+            # Reset current game for the next pokemon
+            national_dex = False
+            current_game_name = Setting.objects.filter(key='Current Game')[0]
+            if 'National Dex' == current_game_name.value:
+                national_dex = True
 
             try_again = True
             check_base_game = False
@@ -259,7 +300,11 @@ def handle_faster(args):
                         speed_2 = stat_set.speed
                         try_again = False
                         break
-                if try_again:
+                if national_dex and try_again:
+                    current_game_name.value = get_next_national_dex_game(current_game_name.value)
+                    if None == current_game_name.value:
+                        break
+                elif try_again:
                     check_base_game = True
 
             if speed_1 == speed_2:
@@ -297,7 +342,10 @@ def handle_evolve(args):
     if pokemon_matches:
         pokemon = pokemon_matches[0]
 
+        national_dex = False
         current_game_name = Setting.objects.filter(key='Current Game')[0]
+        if 'National Dex' == current_game_name.value:
+            national_dex = True
 
         # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
         # If not a ROM hack, stats should be found on the first pass every time.
@@ -324,7 +372,12 @@ def handle_evolve(args):
             else:
                 output = pokemon.name + ' does not evolve.'
                 break
-            if try_again:
+
+            if national_dex and try_again:
+                current_game_name.value = get_next_national_dex_game(current_game_name.value)
+                if None == current_game_name.value:
+                    break
+            elif try_again:
                 check_base_game = True
     else:
         output = '"' + pokemon_name + '" was not found'
@@ -504,7 +557,10 @@ def handle_offence(args):
         pokemon = pokemon_matches[0]
         output = pokemon.name + ': '
 
+        national_dex = False
         current_game_name = Setting.objects.filter(key='Current Game')[0]
+        if 'National Dex' == current_game_name.value:
+            national_dex = True
 
         # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
         # If not a ROM hack, stats should be found on the first pass every time.
@@ -521,7 +577,11 @@ def handle_offence(args):
                     output += 'Speed(' + str(stat_set.speed) + ')' + modified_stats['speed'] + ' '
                     try_again = False
                     break
-            if try_again:
+            if national_dex and try_again:
+                current_game_name.value = get_next_national_dex_game(current_game_name.value)
+                if None == current_game_name.value:
+                    break
+            elif try_again:
                 check_base_game = True
     else:
         output = '"' + pokemon_name + '" was not found'
@@ -543,7 +603,10 @@ def handle_defence(args):
         pokemon = pokemon_matches[0]
         output = pokemon.name + ': '
 
+        national_dex = False
         current_game_name = Setting.objects.filter(key='Current Game')[0]
+        if 'National Dex' == current_game_name.value:
+            national_dex = True
 
         # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
         # If not a ROM hack, stats should be found on the first pass every time.
@@ -560,7 +623,11 @@ def handle_defence(args):
                     output += 'Sp. Def(' + str(stat_set.special_defense) + ')' + modified_stats['special_defense'] + ' '
                     try_again = False
                     break
-            if try_again:
+            if national_dex and try_again:
+                current_game_name.value = get_next_national_dex_game(current_game_name.value)
+                if None == current_game_name.value:
+                    break
+            elif try_again:
                 check_base_game = True
     else:
         output = '"' + pokemon_name + '" was not found'
@@ -617,7 +684,10 @@ def handle_does(args):
     if pokemon_learnset_matches:
         pokemon_learnset = pokemon_learnset_matches[0]
 
+        national_dex = False
         current_game_name = Setting.objects.filter(key='Current Game')[0]
+        if 'National Dex' == current_game_name.value:
+            national_dex = True
 
         # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
         # If not a ROM hack, stats should be found on the first pass every time.
@@ -633,7 +703,11 @@ def handle_does(args):
                             output = pokemon_name.capitalize() + ' learns ' + learnset_move.name + ' at level ' + str(learnset_move.level)
                     try_again = False
                     break
-            if try_again:
+            if national_dex and try_again:
+                current_game_name.value = get_next_national_dex_game(current_game_name.value)
+                if None == current_game_name.value:
+                    break
+            elif try_again:
                 check_base_game = True
 
         if len(output) == 0:
@@ -655,7 +729,11 @@ def handle_does(args):
                                     output = pokemon_name.capitalize() + ' learns ' + tmset_move.name + ' by TM/HM'
                             try_again = False
                             break
-                    if try_again:
+                    if national_dex and try_again:
+                        current_game_name.value = get_next_national_dex_game(current_game_name.value)
+                        if None == current_game_name.value:
+                            break
+                    elif try_again:
                         check_base_game = True
 
         if len(output) == 0:
@@ -677,14 +755,17 @@ def handle_does(args):
                                     output = pokemon_name.capitalize() + ' learns ' + tutor_set_move.name + ' by Move Tutor'
                             try_again = False
                             break
-                    if try_again:
+                    if national_dex and try_again:
+                        current_game_name.value = get_next_national_dex_game(current_game_name.value)
+                        if None == current_game_name.value:
+                            break
+                    elif try_again:
                         if check_base_game:
                             # Already tried base game and still found nothing, so stop searching.
                             break
                         else:
                             check_base_game = True
 
-        print(output)
         if len(output) == 0:
             output = pokemon_name.title() + ' does not learn ' + move_name.title()
     else:
@@ -807,7 +888,10 @@ def handle_speed(args):
     if len(pokemon_matches) > 0:
         pokemon = pokemon_matches[0]
 
+        national_dex = False
         current_game_name = Setting.objects.filter(key='Current Game')[0]
+        if 'National Dex' == current_game_name.value:
+            national_dex = True
 
         # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
         # If not a ROM hack, stats should be found on the first pass every time.
@@ -821,7 +905,11 @@ def handle_speed(args):
                     speed = stat_set.speed
                     try_again = False
                     break
-            if try_again:
+            if national_dex and try_again:
+                current_game_name.value = get_next_national_dex_game(current_game_name.value)
+                if None == current_game_name.value:
+                    break
+            elif try_again:
                 check_base_game = True
 
         if speed > 0:
@@ -865,7 +953,10 @@ def handle_speedev(args):
     if len(pokemon_matches) > 0:
         pokemon = pokemon_matches[0]
 
+        national_dex = False
         current_game_name = Setting.objects.filter(key='Current Game')[0]
+        if 'National Dex' == current_game_name.value:
+            national_dex = True
 
         # First pass is to search for ROM hack stats. Second pass is to search for base game stats, if needed.
         # If not a ROM hack, stats should be found on the first pass every time.
@@ -879,7 +970,11 @@ def handle_speedev(args):
                     found_stat_set = stat_set
                     try_again = False
                     break
-            if try_again:
+            if national_dex and try_again:
+                current_game_name.value = get_next_national_dex_game(current_game_name.value)
+                if None == current_game_name.value:
+                    break
+            elif try_again:
                 check_base_game = True
 
         if None != found_stat_set:

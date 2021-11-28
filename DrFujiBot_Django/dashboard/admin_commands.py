@@ -28,6 +28,12 @@ def update_run(command_name, simple_output):
 
 def handle_setgame(args):
     game_name = ' '.join(args)
+    if game_name.lower() == 'national dex':
+        game_setting_matches = Setting.objects.filter(key__exact='Current Game')
+        if len(game_setting_matches) > 0:
+            game_setting_matches[0].value = 'National Dex'
+            game_setting_matches[0].save()
+            return 'Current game set to National Dex'
     output = 'Game "' + game_name + '" not found'
     game_objects = Game.objects.all()
     for game_object in game_objects:

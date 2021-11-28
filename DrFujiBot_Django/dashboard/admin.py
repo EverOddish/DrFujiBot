@@ -95,6 +95,7 @@ class SettingAdmin(admin.ModelAdmin):
                 fields = ('value',)
                 game_objects = Game.objects.all().order_by('sequence')
                 valid_games = [(game.name, game.name) for game in game_objects]
+                valid_games.append('National Dex')
                 widgets={'value': Select(choices=valid_games)}
         class CooldownSecondsAdminForm(ModelForm):
             class Meta:
