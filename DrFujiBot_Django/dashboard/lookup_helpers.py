@@ -223,26 +223,40 @@ def get_types_for_pokemon(pokemon_name):
     return type1, type2
 
 def get_type_advantages_for_type_pair(type1, type2):
+    national_dex = False
     current_game_name = Setting.objects.filter(key='Current Game')[0]
+    if 'National Dex' == current_game_name.value:
+        national_dex = True
 
     weaknesses = []
     resistances = []
     no_damage = []
 
-    for effectiveness_sets_list_element in EffectivenessSetsListElement.objects.all():
-        effectiveness_set = effectiveness_sets_list_element.element
-        if is_game_name_in_game_list(current_game_name.value, effectiveness_set.games):
-            for effectiveness_records_list_element in EffectivenessRecordsListElement.objects.filter(list_id=effectiveness_set.effectiveness_records):
-                effectiveness_record = effectiveness_records_list_element.element
+    try_again = True
+    while try_again:
+        for effectiveness_sets_list_element in EffectivenessSetsListElement.objects.all():
+            effectiveness_set = effectiveness_sets_list_element.element
+            if is_game_name_in_game_list(current_game_name.value, effectiveness_set.games):
+                for effectiveness_records_list_element in EffectivenessRecordsListElement.objects.filter(list_id=effectiveness_set.effectiveness_records):
+                    effectiveness_record = effectiveness_records_list_element.element
 
-                if effectiveness_record.target_type.lower() == type1.lower() or effectiveness_record.target_type.lower() == type2.lower():
-                    if effectiveness_record.damage_factor == 0:
-                        no_damage.append(effectiveness_record.source_type)
-                    elif effectiveness_record.damage_factor > 100:
-                        weaknesses.append(effectiveness_record.source_type)
-                    elif effectiveness_record.damage_factor < 100:
-                        resistances.append(effectiveness_record.source_type)
-            break
+                    if effectiveness_record.target_type.lower() == type1.lower() or effectiveness_record.target_type.lower() == type2.lower():
+                        if effectiveness_record.damage_factor == 0:
+                            no_damage.append(effectiveness_record.source_type)
+                        elif effectiveness_record.damage_factor > 100:
+                            weaknesses.append(effectiveness_record.source_type)
+                        elif effectiveness_record.damage_factor < 100:
+                            resistances.append(effectiveness_record.source_type)
+                try_again = False
+                break
+            elif national_dex:
+                current_game_name.value = get_next_national_dex_game(current_game_name.value)
+                if None == current_game_name.value:
+                    try_again = False
+                    break
+            else:
+                # Failed to find record for current game
+                try_again = False
 
     # Take out no-damage types outright.
     weaknesses = [
