@@ -13,7 +13,7 @@ class CommandAdmin(admin.ModelAdmin):
         if None == obj or not obj.is_built_in:
             return ('command', 'permissions', 'invocation_count', 'cooldown', 'output')
         elif obj.is_built_in:
-            return ('command', 'permissions', 'invocation_count', 'cooldown')
+            return ('permissions', 'invocation_count', 'cooldown')
 
     def get_output(self, obj):
         if None != obj.output:
@@ -95,7 +95,7 @@ class SettingAdmin(admin.ModelAdmin):
                 fields = ('value',)
                 game_objects = Game.objects.all().order_by('sequence')
                 valid_games = [(game.name, game.name) for game in game_objects]
-                valid_games.append('National Dex')
+                valid_games.append(('National Dex', 'National Dex'))
                 widgets={'value': Select(choices=valid_games)}
         class CooldownSecondsAdminForm(ModelForm):
             class Meta:

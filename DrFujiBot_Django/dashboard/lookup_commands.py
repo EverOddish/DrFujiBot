@@ -1089,6 +1089,8 @@ def handle_tm(args):
                 check_base_game = True
                 if 'Pokemon Renegade Platinum' == current_game_name.value:
                     current_game_name.value = 'Pokemon Platinum'
+                elif 'Pokemon Blaze Black 2 Redux' == current_game_name.value or 'Pokemon Volt White 2 Redux' == current_game_name.value:
+                    current_game_name.value = 'Pokemon Black 2'
             elif try_again and True == check_base_game:
                 # We've checked for ROM hack and base game. This move is not a TM in either one.
                 output = move_name.title() + ' is not a TM/HM in the current game'

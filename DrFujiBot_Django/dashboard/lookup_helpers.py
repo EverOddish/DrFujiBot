@@ -336,6 +336,8 @@ def get_generation(game):
          'Pokemon Volt White' == game or \
          'Pokemon Blaze Black 2' == game or \
          'Pokemon Volt White 2' == game:
+         'Pokemon Blaze Black 2 Redux' == game or \
+         'Pokemon Volt White 2 Redux' == game:
         return 5
     elif 'Pokemon X' == game or \
          'Pokemon Y' == game or \
