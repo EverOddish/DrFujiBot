@@ -150,11 +150,11 @@ SectionEnd
 Section "DrFujiBot Twitch"
     File /r /x config.json /x *.swp /x *.pdb "..\..\..\DrFujiBot_Twitch\DrFujiBot_Twitch\bin\Release"
 
-    ; Create config.json
+    ; Create empty config.json
     ClearErrors
     FileOpen $4 "$INSTDIR\Release\config.json" w
     FileSeek $4 0 END
-    FileWrite $4 "{$\"twitch_channel$\": $\"$\", $\"twitch_oauth_token$\": $\"$\", $\"comment$\": $\"Please do not use this token for any other purpose than the normal functions of DrFujiBot. Thank you.$\"}"
+    FileWrite $4 "{$\"twitch_channel$\": $\"$\", $\"twitch_oauth_token$\": $\"$\"}"
     FileClose $4
 
     nsExec::ExecToLog 'sc.exe create "DrFujiBot Twitch Service" start= auto binPath= "\$\"$INSTDIR\Release\DrFujiBot_Twitch.exe\$\"'

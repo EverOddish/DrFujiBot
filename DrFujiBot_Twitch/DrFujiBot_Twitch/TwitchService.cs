@@ -17,7 +17,8 @@ namespace DrFujiBot_Twitch
     public partial class TwitchService : ServiceBase
     {
         TwitchClient client;
-        Timer timer;
+        Timer message_timer;
+        Timer reload_timer;
         Dictionary<string, string> config;
         System.Diagnostics.EventLog eventLog;
         const string serviceName = "DrFujiBot Twitch Service";
@@ -56,9 +57,7 @@ namespace DrFujiBot_Twitch
                         config = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
                     }
 
-                    // The purpose of scrambling the token is mainly to prevent bots from scraping the token from GitHub.
-                    // Please do not use this token for any other purpose than the normal functions of DrFujiBot. Thank you.
-                    ConnectionCredentials credentials = new ConnectionCredentials("DrFujiBot", getToken());
+                    ConnectionCredentials credentials = new ConnectionCredentials("DrFujiBot", config["twitch_oauth_token"]);
                     var clientOptions = new ClientOptions
                     {
                         MessagesAllowedInPeriod = 750,
@@ -74,10 +73,15 @@ namespace DrFujiBot_Twitch
 
                     client.Connect();
 
-                    timer = new Timer();
-                    timer.Interval = 30000; // 30 seconds
-                    timer.Elapsed += new ElapsedEventHandler(this.OnTimer);
-                    timer.Start();
+                    message_timer = new Timer();
+                    message_timer.Interval = 30000; // 30 seconds
+                    message_timer.Elapsed += new ElapsedEventHandler(this.OnMessageTimer);
+                    message_timer.Start();
+
+                    reload_timer = new Timer();
+                    reload_timer.Interval = 3000; // 3 seconds
+                    reload_timer.Elapsed += new ElapsedEventHandler(this.OnReloadTimer);
+                    reload_timer.Start();
 
                     running = true;
                 }
@@ -96,10 +100,16 @@ namespace DrFujiBot_Twitch
                         client = null;
                     }
 
-                    if (null != timer)
+                    if (null != message_timer)
                     {
-                        timer.Stop();
-                        timer = null;
+                        message_timer.Stop();
+                        message_timer = null;
+                    }
+
+                    if (null != reload_timer)
+                    {
+                        reload_timer.Stop();
+                        reload_timer = null;
                     }
 
                     running = false;
@@ -134,48 +144,6 @@ namespace DrFujiBot_Twitch
             }
 
             return base.OnPowerEvent(powerStatus);
-        }
-
-        private string unscrambleToken(string scrambledToken)
-        {
-            string unscrambledToken = "";
-
-            for(int i = 0; i < 30; i += 2)
-            {
-                unscrambledToken += scrambledToken[i];
-            }
-
-            for(int i = 1; i < 30; i += 2)
-            {
-                unscrambledToken += scrambledToken[i];
-            }
-
-            return unscrambledToken;
-        }
-
-        private string getToken()
-        {
-            string token = "";
-
-            try
-            {
-                string url = "https://raw.githubusercontent.com/EverOddish/DrFujiBot/master/DrFujiBot_Django/data/access_token.txt";
-                WebRequest request = WebRequest.Create(url);
-                Stream objStream = request.GetResponse().GetResponseStream();
-                StreamReader objReader = new StreamReader(objStream);
-                string line =  objReader.ReadToEnd();
-
-                if (null != line && line.Length > 0)
-                {
-                    token = unscrambleToken(line);
-                }
-            }
-            catch (Exception e)
-            {
-                eventLog.WriteEntry(e.ToString());
-            }
-
-            return token;
         }
 
         private void requestAndDisplay(string url)
@@ -268,11 +236,22 @@ namespace DrFujiBot_Twitch
             eventLog.WriteEntry("Connection error: " + e.Error.ToString());
         }
 
-        public void OnTimer(object sender, ElapsedEventArgs args)
+        public void OnMessageTimer(object sender, ElapsedEventArgs args)
         {
             string url = "http://127.0.0.1:41945/dashboard/timed_messages/";
 
             requestAndDisplay(url);
+        }
+        public void OnReloadTimer(object sender, ElapsedEventArgs args)
+        {
+            string reloadFilePath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "reload.txt");
+
+            if (File.Exists(reloadFilePath)) {
+                eventLog.WriteEntry("Reload file found, restarting bot.");
+                File.Delete(reloadFilePath);
+                stopBot();
+                startBot();
+            }
         }
     }
 }

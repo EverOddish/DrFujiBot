@@ -178,16 +178,13 @@ def authorize(request):
     return render(request, 'dashboard/authorize.html', context)
 
 def restart_twitch_service():
-    try:
-        # Restart the Twitch service
-        args = ['net', 'stop', 'DrFujiBot Twitch Service']
-        subprocess.run(args)
-        args = ['net', 'start', 'DrFujiBot Twitch Service']
-        subprocess.run(args)
-    except:
-        pass
+    # Cause the Twitch service to restart the chat bot
+    twitch_service_reload_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'Release', 'reload.txt')
+    with open(twitch_service_reload_path, 'w') as f:
+        f.write("reload config")
 
 def save_access_token(request):
+    access_token = request.GET.get('access_token')
     id_token = request.GET.get('id_token')
 
     if id_token:
@@ -215,6 +212,7 @@ def save_access_token(request):
                         config = json.load(config_file)
 
                     config['twitch_channel'] = channel
+                    config['twitch_oauth_token'] = access_token
 
                     with open(config_path, 'w') as config_file:
                         config_file.write(json.dumps(config))
