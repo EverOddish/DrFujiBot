@@ -57,33 +57,51 @@ namespace DrFujiBot_Twitch
                         config = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
                     }
 
-                    ConnectionCredentials credentials = new ConnectionCredentials("DrFujiBot", config["twitch_oauth_token"]);
-                    var clientOptions = new ClientOptions
+                    string oauth_token = config["twitch_oauth_token"];
+                    if (oauth_token.Length > 0)
                     {
-                        MessagesAllowedInPeriod = 750,
-                        ThrottlingPeriod = TimeSpan.FromSeconds(30)
-                    };
-                    TcpClient customClient = new TcpClient(clientOptions);
-                    client = new TwitchClient(customClient);
-                    client.Initialize(credentials, config["twitch_channel"]);
+                        eventLog.WriteEntry("Twitch token found");
 
-                    client.OnMessageReceived += Client_OnMessageReceived;
-                    client.OnIncorrectLogin += Client_OnIncorrectLogin;
-                    client.OnConnectionError += Client_OnConnectionError;
+                        ConnectionCredentials credentials = new ConnectionCredentials("DrFujiBot", oauth_token);
+                        var clientOptions = new ClientOptions
+                        {
+                            MessagesAllowedInPeriod = 750,
+                            ThrottlingPeriod = TimeSpan.FromSeconds(30)
+                        };
+                        TcpClient customClient = new TcpClient(clientOptions);
+                        client = new TwitchClient(customClient);
+                        client.Initialize(credentials, config["twitch_channel"]);
 
-                    client.Connect();
+                        client.OnMessageReceived += Client_OnMessageReceived;
+                        client.OnIncorrectLogin += Client_OnIncorrectLogin;
+                        client.OnConnectionError += Client_OnConnectionError;
 
-                    message_timer = new Timer();
-                    message_timer.Interval = 30000; // 30 seconds
-                    message_timer.Elapsed += new ElapsedEventHandler(this.OnMessageTimer);
-                    message_timer.Start();
+                        client.Connect();
 
-                    reload_timer = new Timer();
-                    reload_timer.Interval = 3000; // 3 seconds
-                    reload_timer.Elapsed += new ElapsedEventHandler(this.OnReloadTimer);
-                    reload_timer.Start();
+                        message_timer = new Timer();
+                        message_timer.Interval = 30000; // 30 seconds
+                        message_timer.Elapsed += new ElapsedEventHandler(this.OnMessageTimer);
+                        message_timer.Start();
 
-                    running = true;
+                        running = true;
+
+                        eventLog.WriteEntry("Bot started");
+                    }
+                    else
+                    {
+                        eventLog.WriteEntry("No Twitch token available at this time");
+                    }
+
+                    // Start the reload timer even if no token is available.
+                    if (reload_timer == null)
+                    {
+                        reload_timer = new Timer();
+                        reload_timer.Interval = 3000; // 3 seconds
+                        reload_timer.Elapsed += new ElapsedEventHandler(this.OnReloadTimer);
+                        reload_timer.Start();
+
+                        eventLog.WriteEntry("Reload timer started");
+                    }
                 }
             }
         }
@@ -110,6 +128,8 @@ namespace DrFujiBot_Twitch
                     {
                         reload_timer.Stop();
                         reload_timer = null;
+
+                        eventLog.WriteEntry("Reload timer stopped");
                     }
 
                     running = false;
@@ -120,11 +140,13 @@ namespace DrFujiBot_Twitch
         protected override void OnStart(string[] args)
         {
             startBot();
+            eventLog.WriteEntry("DrFujiBot Twitch Service started");
         }
 
         protected override void OnStop()
         {
             stopBot();
+            eventLog.WriteEntry("DrFujiBot Twitch Service stopped");
         }
 
         protected override bool OnPowerEvent(PowerBroadcastStatus powerStatus)
