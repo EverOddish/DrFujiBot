@@ -28,6 +28,9 @@ def get_twitch_access_token():
     return access_token
 
 def twitch_api_request(url):
+    # This function is currently broken due to Twitch token changes
+    return None
+
     data = None
     try:
         access_token = get_twitch_access_token()
@@ -41,6 +44,9 @@ def twitch_api_request(url):
     return data
 
 def get_stream_start_time():
+    # This function is currently broken due to Twitch token changes
+    return None
+
     from .models import Setting
     start_time = None
     username = Setting.objects.get(key='Twitch Username').value
@@ -54,6 +60,9 @@ def get_stream_start_time():
     return start_time
 
 def get_viewer_list():
+    # This function is currently broken due to Twitch token changes
+    return []
+
     from .models import Setting
     viewer_list = []
     username = Setting.objects.get(key='Twitch Username').value

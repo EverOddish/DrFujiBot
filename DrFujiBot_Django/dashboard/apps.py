@@ -22,8 +22,9 @@ class DashboardConfig(AppConfig):
             backup_task.start_backup_task()
             chat_history.start_prune_task()
             banned_phrase_expiry.start_expiry_task()
-            uptime_check.start_uptime_check_task()
-            coins.start_coins_task()
+            # Disabled these due to get_stream_start_time() being broken due to Twitch token changes
+            #uptime_check.start_uptime_check_task()
+            #coins.start_coins_task()
             irc_monitor.start_irc_monitor_task()
 
             from .models import Setting

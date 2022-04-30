@@ -57,12 +57,13 @@ namespace DrFujiBot_Twitch
                         config = JsonConvert.DeserializeObject<Dictionary<string, string>>(json);
                     }
 
-                    string oauth_token = config["twitch_oauth_token"];
-                    if (oauth_token.Length > 0)
+                    string bot_username = config["twitch_bot_username"];
+                    string oauth_token = config["twitch_bot_oauth_token"];
+                    if (bot_username.Length > 0 && oauth_token.Length > 0)
                     {
                         eventLog.WriteEntry("Twitch token found");
 
-                        ConnectionCredentials credentials = new ConnectionCredentials("DrFujiBot", oauth_token);
+                        ConnectionCredentials credentials = new ConnectionCredentials(bot_username, oauth_token);
                         var clientOptions = new ClientOptions
                         {
                             MessagesAllowedInPeriod = 750,
@@ -255,7 +256,7 @@ namespace DrFujiBot_Twitch
 
         private void Client_OnConnectionError(object sender, OnConnectionErrorArgs e)
         {
-            eventLog.WriteEntry("Connection error: " + e.Error.ToString());
+            eventLog.WriteEntry("Connection error: " + e.Error.Message);
         }
 
         public void OnMessageTimer(object sender, ElapsedEventArgs args)

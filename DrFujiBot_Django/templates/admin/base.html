@@ -80,12 +80,21 @@
         {% block sidebar %}{% endblock %}
         {% if title == 'Site administration' %}
         <div id="guide" style="margin: 10px;">
+	    <h3><font color="#c40808">Steps to authorize a Twitch account:</font></h3>
+	    <ol>
+		<li>Navigate to <a href="https://twitch.tv" target="_blank">https://twitch.tv</a> and log in to the Twitch account to be used by the bot</li>
+                <li>Go into Settings, then set "Twitch Bot Username" to the Twitch username of the account in the previous step</li>
+                <li>Go into Settings, then set "Twitch Channel" to the Twitch username of the stream/channel in which the bot should listen for commands and send output</li>
+		<li>Click "Re-authorize DrFujiBot with currently logged-in Twitch user" below and then click "Complete Authorization"</li>
+		<li>Make sure to set the bot account as a moderator in the channel so that chat rate limits do not apply</li>
+            </ol>
             <h3><a href="../dashboard/console">DrFujiBot Web Console</a></h3>
             <h3><a href="../dashboard/restart_drfujibot_service">Restart DrFujiBot chat service</a></h3>
             <h3><a href="https://id.twitch.tv/oauth2/authorize?client_id=cnus4j6y1dvr60vkqsgvto5almy5j8&redirect_uri=http://localhost:41945/dashboard/authorize&response_type=token+id_token&scope=openid%20chat:read%20chat:edit%20channel:moderate">Re-authorize DrFujiBot with currently logged-in Twitch user</a></h3>
             <h3><a href="https://github.com/EverOddish/DrFujiBot/wiki/Quick-Start-Guide" target="_blank">Quick Start Guide</a></h3>
             <h3><a href="https://github.com/EverOddish/DrFujiBot/wiki/Command-Documentation" target="_blank">Command Documentation</a></h3>
             <h3><a href="https://github.com/EverOddish/DrFujiBot/wiki/Frequently-Asked-Questions" target="_blank">Frequently Asked Questions</a></h3>
+	    <h3><a href="https://twitter.com/DrFujiBot">@DrFujiBot on Twitter</a></h3>
         </div>
         {% endif %}
         <br class="clear">

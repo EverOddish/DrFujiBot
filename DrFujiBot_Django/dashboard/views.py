@@ -198,47 +198,24 @@ def restart_twitch_service():
 
 def save_access_token(request):
     access_token = request.GET.get('access_token')
-    id_token = request.GET.get('id_token')
 
-    if id_token:
-        web_key_request = urllib.request.Request('https://id.twitch.tv/oauth2/keys')
-        web_key_response = urllib.request.urlopen(web_key_request, cafile=certifi.where())
-        web_key_content = web_key_response.read().decode('utf-8')
-        web_keys = json.loads(web_key_content)
-        for web_key in web_keys['keys']:
-            if web_key['alg'] == 'RS256':
-                key = jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(web_key))
-                token = jwt.decode(id_token, key, algorithms='RS256', audience=CLIENT_ID)
+    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'Release', 'config.json')
+    config = {}
 
-                # Convert user ID to username
-                user_id = token['sub']
-                url = 'https://api.twitch.tv/helix/users?id=' + user_id
-                user_data = twitch_api_request(url)
-                if user_data:
-                    channel = user_data['data'][0]['login']
-                    display_name = user_data['data'][0]['display_name']
+    with open(config_path, 'r') as config_file:
+        config = json.load(config_file)
 
-                    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'Release', 'config.json')
-                    config = {}
+    bot_username = Setting.objects.filter(key='Twitch Bot Username')[0].value
+    channel = Setting.objects.filter(key='Twitch Channel')[0].value
 
-                    with open(config_path, 'r') as config_file:
-                        config = json.load(config_file)
+    config['twitch_bot_username'] = bot_username
+    config['twitch_bot_oauth_token'] = access_token
+    config['twitch_channel'] = channel
 
-                    config['twitch_channel'] = channel
-                    config['twitch_oauth_token'] = access_token
+    with open(config_path, 'w') as config_file:
+        json.dump(config, config_file)
 
-                    with open(config_path, 'w') as config_file:
-                        config_file.write(json.dumps(config))
-
-                    username_setting = Setting.objects.get(key='Twitch Username')
-                    username_setting.value = channel
-                    username_setting.save()
-
-                    quotee_setting = Setting.objects.get(key='Quotee')
-                    quotee_setting.value = display_name
-                    quotee_setting.save()
-
-                restart_twitch_service()
+    restart_twitch_service()
 
     return redirect('/admin/')
 
