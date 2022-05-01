@@ -316,6 +316,16 @@ SectionEnd
 !insertmacro MUI_PAGE_INSTFILES
 
 
+; Start DrFujiBot add-in:
+Function LaunchDrFujiBot
+    ExecShell "open" "http://localhost:41945/admin/"
+FunctionEnd
+!define MUI_FINISHPAGE_RUN
+!define MUI_FINISHPAGE_RUN_TEXT "Launch DrFujiBot administration"
+!define MUI_FINISHPAGE_RUN_FUNCTION "LaunchDrFujiBot"
+; End DrFujiBot add-in
+
+
 !insertmacro MUI_PAGE_FINISH
 [% endblock ui_pages %]
 !insertmacro MUI_LANGUAGE "English"
