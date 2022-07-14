@@ -11,6 +11,9 @@ Release Checklist:
      python manage.py migrate --database=westwood
      python manage.py import_westwood_data
 
+ * If adding a new game from Westwood, update:
+   * DrFujiBot_Django/dashboard/lookup_commands.py handle_tm()
+   * DrFujiBot_Django/dashboard/lookup_helpers.py get_generation()
  * Build DrFujiBot_Twitch in Visual Studio in Release
  * Build and test the installer
  * Create a release on GitHub with this format:

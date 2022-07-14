@@ -244,7 +244,7 @@ namespace DrFujiBot_Twitch
             url += "is_moderator=" + (e.ChatMessage.IsModerator ? "True" : "False") + "&";
             url += "is_subscriber=" + (e.ChatMessage.IsSubscriber ? "True" : "False") + "&";
             url += "username=" + e.ChatMessage.Username + "&";
-            url += "line=" + e.ChatMessage.Message;
+            url += "line=" + Uri.EscapeDataString(e.ChatMessage.Message);
 
             requestAndDisplay(url);
         }

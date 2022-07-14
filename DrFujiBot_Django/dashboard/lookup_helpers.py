@@ -312,7 +312,8 @@ def get_generation(game):
         return 1
     elif 'Pokemon Gold' == game or \
          'Pokemon Silver' == game or \
-         'Pokemon Crystal' == game:
+         'Pokemon Crystal' == game or \
+         'Pokemon Crystal Kaizo+' == game:
         return 2
     elif 'Pokemon Ruby' == game or \
          'Pokemon Sapphire' == game or \
