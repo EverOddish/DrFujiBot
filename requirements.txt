@@ -10,5 +10,5 @@ certifi==2019.9.11
 cffi==1.13.1
 pycparser==2.19
 cryptography==3.2
-pyjwt==1.7.1
+pyjwt==2.4.0
 iso8601==0.1.12
