@@ -1,5 +1,5 @@
 Django==2.2.13
-mod_wsgi==4.6.7
+mod_wsgi==4.9.3
 irc==17.1
 pynsist==2.4
 lxml==4.4.1
