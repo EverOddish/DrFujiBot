@@ -1,5 +1,4 @@
 import irc.bot
-import json
 import os
 import requests
 import socket
@@ -7,48 +6,20 @@ import sys
 import threading
 import time
 
-# These are necessary because of the standalone Python installation
-file_dir = os.path.join(os.path.dirname(__file__), '..', 'pkgs', 'win32')
-sys.path.append(file_dir)
-
-file_dir = os.path.join(os.path.dirname(__file__), '..', 'pkgs', 'win32', 'lib')
-sys.path.append(file_dir)
-
-try:
-    import win32event
-    import win32service
-    import win32serviceutil
-    import servicemanager
-except ImportError:
-    pass
-
-def unscramble(scrambled):
-    unscrambled = ''
-    for i in range(0, 30, 2):
-        unscrambled += scrambled[i]
-    for i in range(1, 30, 2):
-        unscrambled += scrambled[i]
-    return unscrambled
-
 class DrFujiBot(irc.bot.SingleServerIRCBot):
     def __init__(self, debug):
         self.c = None
         self.debug = debug
-        config_path = os.path.join(os.path.dirname(__file__), 'config.json')
-        with open(config_path) as f:
-            self.settings = json.load(f)
 
-            # The purpose of scrambling the token is mainly to prevent bots from scraping the token from GitHub.
-            # Please do not use this token for any other purpose than the normal functions of DrFujiBot. Thank you.
-            token = 'oauth:' + unscramble(self.settings['twitch_oauth_token'])
+        token = 'oauth:' + os.environ['TWITCH_OAUTH_TOKEN']
 
-            self.twitch_channel = self.settings['twitch_channel'].lower()
-            if len(self.twitch_channel) > 0:
-                irc.bot.SingleServerIRCBot.__init__(self, [('irc.twitch.tv', 6667, token)], self.twitch_channel, self.twitch_channel)
-                self.channel = '#' + self.twitch_channel.lower()
-                self.session = requests.Session()
-                self.timed_message_thread = threading.Thread(target=self.timed_message_loop)
-                self.timed_message_thread.start()
+        self.twitch_channel = os.environ['TWITCH_CHANNEL'].lower()
+
+        irc.bot.SingleServerIRCBot.__init__(self, [('irc.twitch.tv', 6667, token)], self.twitch_channel, self.twitch_channel)
+        self.channel = '#' + self.twitch_channel.lower()
+        self.session = requests.Session()
+        self.timed_message_thread = threading.Thread(target=self.timed_message_loop)
+        self.timed_message_thread.start()
 
     def on_nicknameinuse(self, c, e):
         c.nick(c.get_nickname() + "_")
@@ -133,68 +104,7 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
                     print(str(e))
             time.sleep(30)
 
-try:
-    class DrFujiBotService(win32serviceutil.ServiceFramework):
-        _svc_name_ = 'DrFujiBot IRC'
-        _svc_display_name_ = 'DrFujiBot IRC'
-        _svc_description_ = 'Connects to Twitch chat to relay commands to the local DrFujiBot Django instance'
-        _exe_name_ = sys.executable
-        _exe_args_ = '"' + os.path.abspath(sys.argv[0]) + '"'
-
-        @classmethod
-        def parse_command_line(cls):
-            win32serviceutil.HandleCommandLine(cls)
-
-        def __init__(self, args):
-            win32serviceutil.ServiceFramework.__init__(self, args)
-            self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
-            socket.setdefaulttimeout(60)
-            self.bot = None
-            self.stopping = False
-
-        def log(self, msg):
-            servicemanager.LogInfoMsg(str(msg))
-
-        def SvcStop(self):
-            self.log('Service is stopping.')
-
-            self.stopping = True
-
-            if self.bot:
-                self.bot.disconnect()
-
-            self.ReportServiceStatus(win32service.SERVICE_STOPPED)
-
-        def SvcDoRun(self):
-            self.log('Service is starting.')
-            self.bot = DrFujiBot(debug=False)
-            servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE,
-                                  servicemanager.PYS_SERVICE_STARTED,
-                                  (self._svc_name_, ''))
-            self.ReportServiceStatus(win32service.SERVICE_RUNNING)
-            self.log('Service is running.')
-
-            try:
-                self.bot.start()
-            except e as Exception:
-                self.log(str(e))
-
-except NameError:
-    pass
-
 if '__main__' == __name__:
-    if len(sys.argv) == 1:
-        try:
-            servicemanager.Initialize()
-            servicemanager.PrepareToHostSingle(DrFujiBotService)
-            servicemanager.StartServiceCtrlDispatcher()
-        except NameError:
-            print('Running on non-Windows, only debug mode is available!')
-            print('Usage: python3 drfujibot_irc.py debug')
-    elif len(sys.argv) >= 2 and 'debug' == sys.argv[1]:
-        print('Welcome to DrFujiBot 2.0')
-        bot = DrFujiBot(debug=True)
-        if len(bot.twitch_channel) > 0:
-            bot.start()
-    else:
-        DrFujiBotService.parse_command_line()
+    print('Welcome to DrFujiBot 2.0')
+    bot = DrFujiBot(debug=True)
+    bot.start()
