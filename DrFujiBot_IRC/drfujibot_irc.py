@@ -7,7 +7,7 @@ import threading
 import time
 import logging
 
-DJANGO_URL = 'http://drfujibot-env.eba-9egtnyvz.us-east-2.elasticbeanstalk.com'
+DJANGO_URL = os.environ['DJANGO_URL']
 
 class DrFujiBot(irc.bot.SingleServerIRCBot):
     def __init__(self, debug):
