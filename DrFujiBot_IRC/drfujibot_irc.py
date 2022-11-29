@@ -5,6 +5,9 @@ import socket
 import sys
 import threading
 import time
+import logging
+
+DJANGO_URL = 'http://drfujibot-env.eba-9egtnyvz.us-east-2.elasticbeanstalk.com'
 
 class DrFujiBot(irc.bot.SingleServerIRCBot):
     def __init__(self, debug):
@@ -28,7 +31,7 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
         self.c = c
         c.join(self.channel)
         if self.debug:
-            print('Joined chat for ' + self.channel)
+            logging.info('Joined chat for ' + self.channel)
         c.cap('REQ', ":twitch.tv/tags")
 
     def on_privmsg(self, c, e):
@@ -46,7 +49,7 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
     def on_pubmsg(self, c, e):
         line = e.arguments[0]
         if self.debug:
-            print(line)
+            logging.info(line)
         is_broadcaster = False
         is_moderator = False
         is_subscriber = False
@@ -68,16 +71,16 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
         username = e.source.nick
         parameters = {'is_broadcaster': is_broadcaster, 'is_moderator': is_moderator, 'is_subscriber': is_subscriber, 'username': username, 'line': line}
         try:
-            response = self.session.get('http://127.0.0.1:41945/dashboard/drfujibot', params=parameters)
+            response = self.session.get('%s/dashboard/drfujibot/' % (DJANGO_URL), params=parameters)
             # Don't print errors from the server
             if len(response.text) > 0 and '<!DOCTYPE html>' not in response.text:
                 lines = response.text.split('\n')
                 for line in lines:
-                    print(line)
+                    logging.info(line)
                     self.output_msg(line)
         except Exception as e:
             if self.debug:
-                print(str(e))
+                logging.info(str(e))
 
     def output_msg(self, output):
         MAX_MESSAGE_SIZE = 480
@@ -95,16 +98,24 @@ class DrFujiBot(irc.bot.SingleServerIRCBot):
         while True:
             # Ask the server once per minute for a timed message (if any)
             try:
-                response = self.session.get('http://127.0.0.1:41945/dashboard/timed_messages')
+                response = self.session.get('%s/dashboard/timed_messages/' % (DJANGO_URL))
                 if len(response.text) > 0:
-                    print(response.text)
+                    logging.info(response.text)
                     self.output_msg(response.text)
             except Exception as e:
                 if self.debug:
-                    print(str(e))
-            time.sleep(30)
+                    logging.info(str(e))
+            time.sleep(60)
 
 if '__main__' == __name__:
-    print('Welcome to DrFujiBot 2.0')
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    root.addHandler(handler)
+
+    logging.info('Welcome to DrFujiBot 2.0')
     bot = DrFujiBot(debug=True)
     bot.start()
