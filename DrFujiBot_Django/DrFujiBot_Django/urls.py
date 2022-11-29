@@ -20,6 +20,7 @@ from django.contrib.auth.models import User, Group
 urlpatterns = [
     path('dashboard/', include('dashboard.urls')),
     path('admin/', admin.site.urls),
+    path('', admin.site.urls),
 ]
 
 admin.site.unregister(User)
