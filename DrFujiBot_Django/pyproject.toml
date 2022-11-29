@@ -16,7 +16,8 @@ pycparser = "^2.21"
 cryptography = "^38.0.3"
 iso8601 = "^1.1.0"
 PyJWT = "^2.6.0"
-psycopg2-binary = "^2.9.5"
+psycopg2-binary = "2.8.6"
+lxml = "^4.9.1"
 
 [tool.poetry.dev-dependencies]
 
