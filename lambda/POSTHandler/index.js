@@ -30,10 +30,14 @@ exports.handler = async event => {
     return { statusCode: 200 };
   }
 
-  if (notification["subscription"]["type"] == "stream.online") {
-      if (notification["event"]["broadcaster_user_login"] == "pokemonchallenges") {
+  if (notification["event"]["broadcaster_user_login"] == "pokemonchallenges") {
+      if (notification["subscription"]["type"] == "stream.online") {
           // Start DrFujiBotIRC
-          console.warn("Detected PokemonChallenges is live")
+          console.warn("Detected PokemonChallenges is online")
+      }
+      else if (notification["subscription"]["type"] == "stream.online") {
+          // Stop DrFujiBotIRC
+          console.warn("Detected PokemonChallenges is offline")
       }
   }
 

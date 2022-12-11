@@ -52,13 +52,41 @@ exports.handler = async event => {
 
     const sub = res.data.find(item => item["transport"]["callback"] === callback && item["status"] === "enabled");
     if (sub && (new Date() - new Date(sub.created_at)) / 3600000 < 24) {
-        console.warn("Callback already exists");
+        console.warn("stream.online callback already exists");
+    }
+    else {
+        console.warn("stream.online callback did not exist. Registering...");
+
+        const options = {
+          url: 'https://api.twitch.tv/helix/eventsub/subscriptions',
+          method: 'POST',
+          headers: {
+            Authorization: appToken,
+            'Content-Type': 'application/json',
+            'Client-Id': process.env.client_id
+          },
+          body: JSON.stringify({
+            'type': webhook.type,
+            'version': '1',
+            'condition': {'broadcaster_user_id': webhook.channel},
+            'transport': {'method': 'webhook', 'callback': callback, 'secret': process.env.webhook_secret}
+          })
+        };
+        request(options);
+    }
+
+    // Check if subscription both exists and has at least 24 hours remaining on the lease
+    const offlineCallback = `${process.env.domain}?channel=${webhook.channel}&type=stream.offline`; 
+
+    const sub2 = res.data.find(item => item["transport"]["callback"] === offlineCallback && item["status"] === "enabled");
+    if (sub2 && (new Date() - new Date(sub2.created_at)) / 3600000 < 24) {
+        console.warn("stream.offline callback already exists");
         return;
     }
 
-    console.warn("Callback did not exist. Registering...");
+    console.warn("stream.offline callback did not exist. Registering...");
 
-    const options = {
+    const options2 = {
       url: 'https://api.twitch.tv/helix/eventsub/subscriptions',
       method: 'POST',
       headers: {
@@ -67,14 +95,14 @@ exports.handler = async event => {
         'Client-Id': process.env.client_id
       },
       body: JSON.stringify({
-        'type': webhook.type,
+        'type': 'stream.offline',
         'version': '1',
         'condition': {'broadcaster_user_id': webhook.channel},
-        'transport': {'method': 'webhook', 'callback': callback, 'secret': process.env.webhook_secret}
+        'transport': {'method': 'webhook', 'callback': offlineCallback, 'secret': process.env.webhook_secret}
       })
     };
 
-    return request(options);
+    return request(options2);
   };
 
   return getAppToken()
