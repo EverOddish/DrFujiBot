@@ -1,3 +1,5 @@
 *.zip
 node_modules/
 .env
+
+set_vars.sh
