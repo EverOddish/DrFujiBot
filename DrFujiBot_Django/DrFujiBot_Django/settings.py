@@ -27,7 +27,7 @@ SECRET_KEY = '1o1*^e87^lxdupyka!k2gem21(bbe3z08_(&@8yf(7)hda#4d-'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]', 'drfujibot-env.eba-9egtnyvz.us-east-2.elasticbeanstalk.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]', 'drfujibot.de']
 
 
 # Application definition
