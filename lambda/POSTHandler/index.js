@@ -35,7 +35,7 @@ exports.handler = async event => {
           // Start DrFujiBotIRC
           console.warn("Detected PokemonChallenges is online")
       }
-      else if (notification["subscription"]["type"] == "stream.online") {
+      else if (notification["subscription"]["type"] == "stream.offline") {
           // Stop DrFujiBotIRC
           console.warn("Detected PokemonChallenges is offline")
       }
